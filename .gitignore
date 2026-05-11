@@ -57,3 +57,13 @@ desktop.ini
 # --- Backups ---
 *.bak
 *.orig
+
+# --- Códigos de terceiros extraídos (não pertencem a este repositório) ---
+openclaude-main/
+
+# --- Dumps históricos / dados legados (não versionar) ---
+**/legado4/
+**/legado/
+**/dumps/
+logs.txt
+**/logs.txt
