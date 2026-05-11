@@ -67,3 +67,21 @@ openclaude-main/
 **/dumps/
 logs.txt
 **/logs.txt
+
+# --- Dumps de dados de clientes / atendimentos (LGPD) ---
+# Snapshots de APIs Octadesk/KingHost/Tray/Locaweb com nomes, e-mails,
+# telefones e conteúdos de tickets/chats. NUNCA versionar.
+**/chat*.json
+**/tickets*.json
+**/pesquisas.json
+**/pesquisas_*.json
+**/mensagens.json
+**/mensagens_*.json
+**/atendimentos*.json
+**/atend.json
+**/atend_*.json
+**/contacts.json
+**/contatos.json
+**/escala.json
+tickets.json
+atendimentos_tray.json
