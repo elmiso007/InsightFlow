@@ -1,0 +1,141 @@
+
+{
+Protocolo: 251001405708 >> Fila: Revenda_Plesk
+a - Por favor digite o número correspondente ao assunto:
+c - Configuração de DNS
+a - Temos dois artigos com informações relacionadas a esse assunto:Servidores DNS (para o registro do domínio)[link] da Zona de DNS (Entradas)[link]
+a - Conseguiu obter o que procura com as informações acima?
+c - Não, falar com analista
+a - Por favor aguarde o retorno de um de nossos analistas.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+c - olá, bom dia
+c - tudo bem?
+c - dominio [dominio] vou lhe encaminhas os erros:
+a - Olá, tudo bem? Sou Daniel, como posso te ajudar?
+c - 
+c - 
+c - 
+c - você consegue visualizar minha mensagem e prints?
+a - Consigo sim, o servidor da plesk não tem certificado para conexão de SMTP, POP e/ou IMAP
+a - Precisaria configurar o acesso usando nenhum tipo de criptografia, além da porta 587
+c - hum entendi
+c - deixa eu ver aqui
+c - poderia me informar como faço isso?
+c - como corrijo exatamente
+
+},
+
+{
+Protocolo: 251001405516 >> Fila: Servidor_Dedicado
+c - Bom dia
+a - Olá Gabriel Oliveira! Tudo bem?  Para direcionar melhor o seu atendimento, farei algumas perguntas rápidas.Usamos botões interativos do WhatsApp — caso esteja no aplicativo para Desktop, será necessário continuar pelo app no celular ou pela versão web.
+a - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+a - Para continuar com seu atendimento, selecione uma das opções abaixo⤵️
+c - Suporte Técnico
+a - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: camaq. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Agora me diga, com qual produto você precisa de ajuda? 😊É só digitar o número correspondente ⤵️
+c - 3
+a - Por favor digite o número correspondente ao produto/categoria⤵️
+c - 6
+a - Olá! Sou o Rubens✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+c - Ativar SSH no domínio
+a - Você poderia me dizer se já instalou o componente SSH no seu sistema e se há algum erro específico que está enfrentando durante a ativação do SSH no seu domínio?
+c - plano de hospedagem Hospedagem Dedicada 6GB id [telefone], não tem a opção de ativar o SSH
+a - Você já verificou se existe algum pré-requisito ou configuração necessária no painel de controle da hospedagem dedicada para ativar o SSH, ou se há alguma indicação de que o recurso não está disponível para o seu plano específico?
+c - Não sei, quero falar com um atendente
+a - Entendi, parece que você está buscando uma ajuda mais direta. Você gostaria de seguir em frente e falar com um humano para resolver isso?
+c - sim
+a - Por favor aguarde enquanto direcionamos você ao setor desejado.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+a - Bom dia, Suporte Locaweb em que posso ajudar?
+c - Olá, bom dia, preciso de auxilio pra ativar o SSH na minha hospedagem dedicada
+c - No painel não aparece mais a opção
+a - Na hospedagem dedicada ele esta com a opção do SSH sempre ativa
+a - vc pode tenta só acessar direto
+c - Ah sim, os dados de acesso são os mesmo do ftp só que na porta 22?
+a - isso mesmo
+c - maravilha, deu certo
+c - era só isso mesmo, achei que precisava ativar igual na compartilhada
+c - muito obrigado
+a - ok
+a - de nada
+a - A Locaweb agradece seu contato
+
+},
+
+{
+Protocolo: 251001405468 >> Fila: Revenda_Cpanel
+c - Bom dia
+a - Olá Alpha Industria e Comercio de Eletrônicos LTDA! Tudo bem?  Para direcionar melhor o seu atendimento, farei algumas perguntas rápidas.Usamos botões interativos do WhatsApp — caso esteja no aplicativo para Desktop, será necessário continuar pelo app no celular ou pela versão web.
+a - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+a - Para continuar com seu atendimento, selecione uma das opções abaixo⤵️
+c - Suporte Técnico
+a - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: ltanet. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Agora me diga, com qual produto você precisa de ajuda? 😊É só digitar o número correspondente ⤵️
+c - 7
+a - Por favor digite o número correspondente ao assunto:
+c - 3
+a - Por favor digite o número correspondente ao assunto⤵️:
+c - 8
+a - Neste artigo abaixo você encontra informações sobre como instalar o WordPress em seu ambiente cPanel:[link]
+a - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+c - Falar com analista
+a - Por favor aguarde enquanto direcionamos você ao setor desejado.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+a - Olá! Tudo bem? Me chamo Gabriel Jesus e faço parte do time de suporte. Como posso te ajudar hoje?
+c - Ola Gabriel bom dia tudo bom?
+c - Rapaz estou com meu site fora do ar, poderia dar uma verificada pra mim o servidor da localweb caiu
+c - [link]
+c - 
+
+},
+
+{
+Protocolo: 251001405605 >> Fila: Suporte AEP
+c - oi
+a - Preciso identicar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: microprisma. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Certo, por favor digite o número correspondente ao assunto abaixo👇:
+c - 4
+a - Prezado cliente,O nosso boleto está de cara nova e com algumas novidades!Agora temos a opção de pagamento do boleto via pix!Basta escanear o QR Code e pronto! Um jeito rápido e fácil para realizar os seus pagamentos e a compensação bancária, poderá levar no máximo 1 hora para acontecer!Quer saber mais?Acesse [dominio]/ajuda e, no campo de busca, coloque: pagamento de boletos com o pix.
+a - Vou te transferir para o(a) analista de suporte técnico.Por favor, aguarde um momento.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+a - Bom dia, meu nome é Pedro, em que posso ajudar?
+c - Bom dia Pedro. Já consegui resolver aqui. Deu uma lentidão absurda, mas foi algo passageiro.
+a - Fico muito feliz por ter ajudado você! Se puder nos dar uma nota 10, será um grande incentivo para continuarmos melhorando nosso atendimento. Caso tenha algo a sugerir, estou à disposição! Locaweb agradece o contato!
+a - Pesquisa enviada para o cliente
+
+},
+
+{
+Protocolo: 251001405612 >> Fila: Email_Locaweb
+a - Olá! Sou o Rafael✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+c - preciso falar com humano
+a - Entendi, às vezes é mesmo melhor falar diretamente com alguém. Você gostaria que eu confirmasse se deseja seguir com a opção de falar com um humano?
+c - sim
+a - Por favor aguarde o retorno de um de nossos analistas.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+a - Bom dia!  Como posso ajudar ?
+c - Olaa bom dia eduardo.
+c - Eu falei contem com Murillo e Mauricio se eu nao me engano
+c - eles disseram que voce consegue ver o historico da conversa
+c - estou com problema de spoofing se nao me engano
+c - e ja solicitei ao pessoal a troca de senha [senha]
+c - mas ele falou sobre eu passar um codigo fonte
+c - hoje foi disparado email para empresas com anexo para pagamento q eh golpe
+c - e eu fiquei de mandar esses codigos fontes pra voces
+c - pq precisamos urgente ver isso
+a - Entendi, posso conferir os atendimentos anteriores sim, mas para agilizar o processo, você ja possui o código-fonte/cabeçalho de envio ?
+c - sim possuo
+c - ve o historico e me avisa q mando os codigos
+a - Ja estou validando o histórico, pode enviar o conteúdo enquanto isso.
+c - blz muito obrigado
+c - 
+c - o txt de hj foi um email que tinha anexo até informando da receita federal, o codigo fonte muito grande ai salvei como arquivo, a primeira foto é um de email padrao
+
+},

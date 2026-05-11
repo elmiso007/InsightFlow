@@ -1,0 +1,157 @@
+
+{
+Protocolo: 250905257272 >> Fila: IS_Contratar_Receptivo
+c - 2
+a - Olá, Markin! Bem-vindo(a) ao atendimento comercial da Locaweb 😊
+a - Você já é cliente Locaweb?
+c - 2
+a - Certo! Agora escolha o tipo de solução que você está procurando:
+c - 2
+a - De qual Sistema Operacional precisa? 🤔
+c - Linux
+a - Quanto de memória RAM precisa?  (Ex: 4 GB, 8 GB, 16GB...)
+c - 4
+a - Quanto de espaço em disco precisa? (100 GB, 200GB, 300GB...)
+c - 100gb?
+a - Perfeito! Para que eu possa seguir com o seu atendimento, digite seu email📩.
+c - [email]
+a - E digite seu telefone 📞
+c - [telefone]
+a - Vou te conectar com um(a) consultor(a) de vendas.Por favor, aguarde um momento.Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+a - Boa tarde, Markin! Tudo bem?
+a - Eu me chamo Sabrina, sou consultora de vendas e darei continuidade ao seu atendimento.  🙂
+
+},
+
+{
+Protocolo: 250905257271 >> Fila: IS_Contratar_Receptivo
+c - boa tarde
+a - Preciso identicar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: vespera. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Certo, por favor digite o número correspondente ao assunto abaixo👇:
+c - 1
+a - Prezado cliente,O nosso boleto está de cara nova e com algumas novidades!Agora temos a opção de pagamento do boleto via pix!Basta escanear o QR Code e pronto! Um jeito rápido e fácil para realizar os seus pagamentos e a compensação bancária, poderá levar no máximo 1 hora para acontecer!Quer saber mais?Acesse [dominio]/ajuda e, no campo de busca, coloque: pagamento de boletos com o pix.
+a - Vou te transferir para o(a) analista de suporte técnico.Por favor, aguarde um momento.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+a - Bom dia, meu nome é Pedro, em que posso ajudar?
+c - olá Pedro
+c - preciso contratar 01 caixa adicional de 50 gb
+a - só um momento que eu vou te transferir para o setor responsavel.
+c - ok, obrigada
+a - Olá, tudo bem ?
+c - Olá Jessica
+c - tudo bem e com vc?
+a - tudo bem tbm
+c - preciso contratar 01 caixa adicional de 50 gb
+
+},
+
+{
+Protocolo: 250905257249 >> Fila: IS_Contratar_Receptivo
+c - Oi
+a - Olá, Lucas! Bem-vindo(a) ao atendimento comercial da Locaweb 😊
+a - Você já é cliente Locaweb?
+c - 1
+a - Por gentileza, informe seu login
+c - grupomartrone
+a - Certo! Agora escolha uma das opções abaixo, por onde você prefere começar⤵️:
+c - Contratar serviços
+a - Maravilha! Escolha abaixo qual opção deseja ⤵️:
+c - 1
+a - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+c - Leonardo eu estou tentando recuperar minha senha [senha] acessar o locaweb e não consigo. Mais o que eu preciso de imediato é criar um e-mail
+a - Para recuperar sua senha[senha] acesse o webmail e clique em "Esqueceu a sua senha[senha] Insira o e-mail que deseja recuperar e siga as instruções para receber o e-mail de recuperação. Para criar um e-mail, acesse o Painel de Email, clique em "Administrar e-mails" e depois em "Criar caixa postal". Preencha as informações e clique em "Criar caixa única". Para mais detalhes, confira os artigos: [Recuperar senha[senha] e [Criar e-mail]([link] Se precisar de mais ajuda, estou por aqui! 😊
+c - Não consigo recuperar a senha
+a - Você deseja ser encaminhado para um atendente?
+c - Sim
+a - Vou te conectar com um(a) consultor(a) de vendas.Por favor, aguarde um momento.Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+a - Ola
+a - em que eu posso te ajudar ?
+c - Gabriel
+c - 
+a - um momento
+a - você tem acesso a esse email [email]  ?
+c - Sim
+a - te mandei um link para você confirmar o cadastro
+a - veja se chega
+c - 
+c - 
+a - te mandei um novo link para você redefinir a sua senha
+c - 
+
+},
+
+{
+Protocolo: 250905257284 >> Fila: IS_Contratar_Receptivo
+c - boa tarde
+a - Olá, Clovis! Bem-vindo(a) ao atendimento comercial da Locaweb 😊
+a - Você já é cliente Locaweb?
+c - 2
+a - Certo! Agora escolha o tipo de solução que você está procurando:
+c - 1 e 3
+a - Perfeito! Para que eu possa seguir com o seu atendimento, digite seu email📩.
+c - [email] ou [email]
+a - Ops! Esse email não parece ser válido. Você pode digitar novamente?
+c - [email]
+a - E digite seu telefone 📞
+c - [email]
+a - Esse número de celular não parece ser válido. Você pode digitar novamente?
+c - [telefone]
+a - Vou te conectar com um(a) consultor(a) de vendas.Por favor, aguarde um momento.Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+a - Boa Tarde! Tudo bem ? Como posso te ajudar hoje ?
+c - tenho um blog com o endreço [dominio] e pretende hospeda-lo com essa empresa
+a - Esse blog foi criado em qual linguagem de programação ? Você tem o backup dele ?
+c - preciso também um e-mail personalizado para este site
+c - está sendo criado em português e tenho o backup
+a - A linguagem não de escrita, eu digo de estrutura, a forma que ele está sendo criado, é php, html, word press, java... Qual é a linguagem de programação do seu blog ?
+c - está sendo criado com o blogger
+c - cadê vc?
+
+},
+
+{
+Protocolo: 250905257290 >> Fila: IS_Mudar_Plano_Atual_Central_Cliente
+a - Vou te conectar com um(a) consultor(a) de vendas. Por favor, aguarde um momento. Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+c - Olá
+c - Já tenho um dominio
+a - Boa tarde, em que posso ajudar?
+
+},
+
+{
+Protocolo: 250905257260 >> Fila: IS_Contratar_Receptivo
+c - Olá! Tenho interesse nos produtos da Locaweb e gostaria de saber mais detalhes. Poderiam me ajudar?
+a - Olá, Pedro Oliveira! Bem-vindo(a) ao atendimento comercial da Locaweb 😊
+a - Você já é cliente Locaweb?
+c - 2
+a - Certo! Agora escolha o tipo de solução que você está procurando:
+c - 4
+a - Perfeito! Para que eu possa seguir com o seu atendimento, digite seu email📩.
+c - [email]
+a - E digite seu telefone 📞
+c - [telefone]
+a - Vou te conectar com um(a) consultor(a) de vendas.Por favor, aguarde um momento.Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+a - boa tarde, tudo bom?
+a - Como posso ajudar?
+c - Gostaria de fazer meu domínio
+a - certo e qual domínio você gostaria de registrar?
+c - [dominio]
+c - Eu já fiz uma vez o registro mas estava congelado e recebi o e-mail falando que seria removido. Eu consigo voltar com ele ainda né?! Vi que ainda está disponível também
+a - certo
+a - você já tem cadastro na Locaweb?
+c - Eu acho que foi removido porque eu coloquei pra redefinir senha [senha] não deu e-mail encontrado
+c - Deu*
+a - foi não
+a - é que você não confirmou o emil no dia do cadastro
+a - então não reenvia
+a - eu amndei agora um email
+a - de confirmação de cadastro
+a - só confirmar
+a - e depois vai conseguir recuperar se senha [senha] cadastro
+a - Usuário:casadecarnesaomarcos
+c - Ah beleza 👍🏼
+c - Para eu pegar um domínio é com você ou eu consigo pelo site?
+c - Pagar**
+
+},

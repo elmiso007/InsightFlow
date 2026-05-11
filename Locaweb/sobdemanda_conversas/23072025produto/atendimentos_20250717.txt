@@ -1,0 +1,1446 @@
+
+{
+Protocolo: 2507177406 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - oi
+[Analista] - Olá André!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: aportamovel. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - ok
+[Analista] - Ola Bom Dia! Como posso lhe ajudar 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177603 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - bom dia
+[Analista] - Olá RH!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: psimarciobertolo. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - ok
+[Analista] - Ola Bom Dia! Como posso lhe ajudar 😃
+[Cliente] - bom dia
+[Cliente] - O site ja está respondendo: [dominio].brporém ainda não está seguro!
+[Cliente] - Já abri protocolo mas ainda não foi resolvido
+[Analista] - ja instalou o SSL  ?
+[Analista] - seu chamado foi respondido
+[Analista] - [empresa] David San (david.san) Olá, bom dia! espero que esteja bem! Infelizmente foi detectado que a falha reportada não tem uma solução de contorno no momento. Entretanto, nosso time segue atuando para sanar essa falha de forma definitiva. Por favor, não encerre este protocolo, até ter o nosso parecer técnico! E sempre que precisar, estaremos a disposição para qualquer dúvida ou esclarecimento! Atenciosamente, David San
+[Cliente] - não foi respondido e ja venceu o prazo
+[Analista] - qualquer duvida ou negativa quanto a resposta deve questionar isso no chamado assim a equipe que esta tratando ira receber
+[Analista] - foi sim olha ai em cima é resposta
+[Analista] - Deve acompanhar seu chamado em sua central
+[Analista] - Sempre que tiver dúvidas ou precisar de mais informações sobre um chamado aberto, basta responder ao mesmo, acessar o portal de atendimento e adicionar seus comentários. Dessa forma, você garante que todas as informações relevantes sejam mantidas em um único lugar e que o seu problema seja resolvido da forma mais rápida e eficiente possível.
+[Cliente] - Mas preciso de um prazo para sanar o problema pois estou com anuncio pago para divulgar o site
+[Analista] - pode perguntar isso dentro do chamado por favor
+[Analista] - somente eles podem lhe dar uma resposta  sobre
+[Analista] - Gostaríamos de ressaltar a importância de dar continuidade aos chamados abertos em nossa plataforma de suporte. Ao manter um único canal de comunicação para cada solicitação, garantimos que todas as informações relevantes sejam centralizadas e que o histórico do atendimento seja preservado.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179660 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - boa tarde
+[Analista] - Olá Hugo Pieroni!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: armisistemas. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Boa tarde! Tudo bem? Meu nome é Yhan e vou acompanhar sua solicitação ^^ Como posso te ajudar hoje?
+[Cliente] - Boa tarde Yhan, como vai?
+[Cliente] - estou tendo problemas nos meus sites, não sei se devido a alguma atualização, ja ocorreu anteriormente e o suporte ai corrigiu, conseguiria verificar pra mim
+[Analista] - Quais seriam os sites e o problema em questão?
+[Cliente] - Quando entro no site [dominio]
+[Cliente] - no site [dominio] fica em branco, esse é puro HTML
+[Cliente] - ocorreu em 2 de maio
+[Cliente] - 
+[Analista] - O suporte te explicou o que foi feito na última vez que entrou em contato?
+[Cliente] - falou que teve que refazer o ssl, mas no [dominio] nao tem ssl
+[Analista] - Provavelmente é exatamente isto, vou verificar
+[Analista] - Dois pontos Rodolfo. O primeiro deles: O site vgadvice já se encontra funcional novamente, era uma questão da sua pool, realizando um restart nela, já resolveu. Porém, o [dominio] é outra situação. o site do Sr. apresenta características de invasão, o que está causando problemas de acesso. Para normalizar a situação, você precisa, junto ao desenvolvedor do site, acessar o FTP e realizar uma limpeza do ambiente. O acesso ao FTP pode ser encontrado no painel de Hospedagem e é possível usar um programa como o Filezilla. Ações Recomendadas: - Avaliação com o Desenvolvedor: É importante que o desenvolvedor do tema esteja atento às possíveis brechas de segurança na aplicação utilizada. Para saber mais sobre vulnerabilidades em aplicações web, consulte a documentação: [link] - Verificação e Limpeza:     - Baixe o conteúdo do seu site e execute um antivírus atualizado para identificar arquivos maliciosos.     - Deixe apenas os arquivos necessários para o funcionamento do site após a verificação.     - Busque por arquivos com extensão ".suspect".     - Verifique arquivos suspeitos em pastas de uploads. - Manutenção:     - Mantenha as atualizações da plataforma, temas e plugins em dia.     - Evite utilizar extensões inseguras.     - Mantenha nomes e versões de sua aplicação ocultos.     - Exclua a conta de usuário [usuario] (ex.: admin).     - Exclua plugins e temas não utilizados.     - Utilize senha[senha] fortes. Para verificação, recomendamos este site: [link]     - Considere a utilização de autenticação de dois fatores para os usuário[usuario] cadastrados. Confira mais sobre isso na documentação: [link]     - Backups e Permissões:         - Crie rotinas de backup, mas não as mantenha na hospedagem.         - Configure permissões corretas em arquivos e diretórios, evitando a permissão 777.     - Plugins de Segurança:         - Considere utilizar plugins de segurança, como:             - Sucuri Security: [link]             - Wordfence: [link]          Para mais detalhes sobre o que pode ser verificado em sua aplicação, consulte nossa wiki sobre segurança: [link]          Existem ferramentas como a 6scan e Sucuri Site Check que ajudam a proteger, detectar e corrigir vulnerabilidades em seu site. Para mais informações, acesse:      - [link] - [[link]          Demais Recomendações:          - Para limpar um WordPress hackeado, consulte: [link]          Se você preferir não realizar esses procedimentos, pode solicitar um backup do site do dia em que estava normal e, junto ao desenvolvedor, substituir os arquivos corrompidos pelos arquivos limpos do backup. Para saber como solicitar o backup, acesse: [link]          Se precisar de mais assistência, estou à disposição!
+[Analista] - Perdão, confundi seu nome Odimilson, mil desculpas
+[Cliente] - consegue apagar os arquivos na raiz web pra mim?
+[Cliente] - 
+[Analista] - Você não consegue apagar?
+[Cliente] - 
+[Cliente] - os que conseguia ja apaguei
+[Cliente] - renomeei, mas nao consigo apagar
+[Analista] - Vou tentar ajustar as permissões, provavelmente o invasor mexeu nas permissões dos arquivos
+[Cliente] - blz
+[Analista] - Tem muitos arquivos, então seria necessário aguardar um pouquinho, ok?
+[Cliente] - ok
+[Analista] - Desculpa a demora Odmilson, Windows Server é meio demorado para ajustar este quesito. Sua página(sem ser a wordpress) já está no ar pelo menos
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179760 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - boa tarde
+[Analista] - Olá Tarcísio!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: bangnet. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Cliente] - oi
+[Analista] - Boa tarde, em que posso ajudar?
+[Cliente] - boa tarde . Meu site [dominio] está com domínio congelado
+[Cliente] - sabe me dizer por qual motivo?
+[Analista] - Vou verificar, só um minuto
+[Cliente] - obrigado
+[Analista] - Geralmente é relacionado a pendência na registro br
+[Analista] - E por isso, o dominio não é renovado
+[Cliente] - entendi
+[Cliente] - entao renovando ele volta ao normal certo
+[Analista] - Isso mesmo, aí volta a funcionar nromalmente
+[Cliente] - ah maravilha agradeço muito
+[Cliente] - muito obrigado
+[Analista] - A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação especifica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos a disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177795 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - ola
+[Analista] - Olá Suporte Aenova!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: jawa. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Analista] - /boasd
+[Analista] - Cliente para sua comodidade, ao gerar o boleto bancário, você encontrará a opção de pagamento via Pix. Basta abrir o aplicativo do seu banco de preferência, apontar a câmera do seu celular para o QR Code presente no boleto e realizar o pagamento. O prazo estimado de identificação do pagamento é de 15 minutos.
+[Analista] - Olá, bom dia. ME chamo Fellipe. Como posso te ajudar?
+[Cliente] - Olá,
+[Cliente] - Olá, bom dia!
+[Cliente] - Tudo bem
+[Cliente] - ?
+[Cliente] - Estou com uma duvida
+[Analista] - Claro. Qual seria?
+[Cliente] - Já fizemos a migração da hospedagem da [empresa] para a hostagator. Agora iremos cancelar as hospedagem dominio [dominio] e [dominio]
+[Cliente] - Se cancelar essas hospedagem vai perde todas as outras ?
+[Cliente] - 
+[Analista] - Então, o que você pode fazer, invés de cancelar a hospedagem inteira é remover somente estes domínios que não quer usar mais.
+[Analista] - Pois, se cancelar o plano como um todo, você vai perder sim as outras.
+[Cliente] - Entendi.
+[Cliente] - Como eu faço para remover isso ?
+[Analista] - Dentro desse painel, do lado dos domínios você pode clicar nos 3 pontinhos e vai ter a opção de remover.
+[Cliente] - Ententi.
+[Cliente] - Dai remove todos;
+[Analista] - Isso, você pode remover os específicos que não quer.
+[Analista] - Os outros se mantém.
+[Analista] - Ficou dúvida?
+[Cliente] - Não obrigado
+[Analista] - Por nada. Agradeço o seu contato e peço gentilmente para poder aguardar por aqui e avaliar o meu atendimento no link gerado ao final. Tudo bem?
+[Analista] - Muito obrigado, conto com a sua nota. Uma excelente quinta-feira!!! 😉
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507178045 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - .
+[Analista] - Olá Marco Túlio!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: siservmao. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Bom dia!  Como posso ajudar ?
+[Cliente] - Bom dia, não estou acessando o domínio [dominio]
+[Analista] - Em qual plataforma está tentando fazer o acesso
+[Cliente] - ??
+[Cliente] - Celular... computador... em diversos browsers
+[Analista] - Quis dizer a plataforma, o que exatamente está tentando fazer com o domínio, acessar o site? Alterar configurações ?
+[Analista] - Preciso que seja mais especifico para que eu consiga passar a verificar o que não está funcionando e como posso te auxiliar.
+[Cliente] - ???? Sim. Estou tentando acessar o site
+[Cliente] - E apresenta erro HTTP 503
+[Analista] - Certo, um momento
+[Analista] - Mais um momento
+[Cliente] - Ok
+[Analista] - Desculpe a demora, estou validando o motivo do erro
+[Cliente] - Ok
+[Cliente] - Ok
+[Analista] - O erro 503 geralmente está relacionado a versão do PHP que não está sendo reconhecida corretamente, estou fazer a verificação do motivo e fazendo testes para a correção no servidor, por isto está levando um pouco de tempo. Peço sua compreensão e desculpas pela demora.
+[Analista] - fazendo a verificação do motivo * Perdão.
+[Cliente] - O Site não é em PHP. é em ASP Clássic
+[Analista] - Um momento.
+[Analista] - Marco, foi corrigido, o site voltou ao ar. Poderia verificar ?
+[Cliente] - Momento
+[Cliente] - Normalizou! Obrigadoooo
+[Cliente] - e o que foi?
+[Analista] - O servidor estava fora, teria sido uma inconsistência também relacionado a reconhecer o site/configurações
+[Analista] - De nada!
+[Analista] - Possui mais alguma dúvida? Posso ajudar em algo mais ? 😊
+[Cliente] - Obrigado!
+[Analista] - Disponha. A [empresa] agradece o seu contato!  Não deixe de responder a pesquisa de satisfação sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor.  Precisando, estamos à disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507178279 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - ola
+[Analista] - Olá Marcela!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 2
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: tbcassessoria. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 2
+[Analista] - Seus serviços foram desativados por falta de pagamento?Se você ainda não realizou o pagamento, realize o pagamento através do endereço: [link] e reative os seus serviços clicando no botão: Liberar acesso temporário que fica abaixo da fatura em atraso.
+[Analista] - Caso preferir, realize o pagamento e a reativação dos seus serviços através da sua Central do Cliente, conforme os tutoriais abaixo: [link] [link] tempo para concluir a reativação total dos seus serviços, levará de 1h00 até 3h00 no máximo.
+[Analista] - ⚠️IMPORTANTE! O botão de reativação só fica disponível uma única vez por fatura, ou seja, se você já solicitou a reativação dos serviços mas não realizou o pagamento e eles foram desativados, não será possível uma nova reativação enquanto não constar o pagamento no sistema.Veja mais detalhes em: [link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Olá, eu sou Wellion ;D. Como posso ajudar? Obs: nosso sistema está programado para desconectar o atendimento em 6 minutos por inatividade 😃
+[Cliente] - olá bom dia!
+[Cliente] - Eu solicitei a reativação do email, ele foi reativado, porém sem e-mail nenhum
+[Analista] - Conforme verifiquei, seu serviço está ativo. Como não está conseguindo visualizar os e-mails, vou te transferir para nosso suporte técnico para verificar essa questão. Só um momento!
+[Cliente] - obrigada
+[Analista] - Olá! Tudo bem? Como posso ajudar?
+[Cliente] - meu serviço caiu hoje por falta de pagamento. Fiz o pagamento e reativie, porém ao reativar não retornou nenhum email.
+[Analista] - Você tem acesso ao painel de e-mail?
+[Analista] - [link]
+[Cliente] - sim
+[Analista] - Certo
+[Analista] - Você sabe como ativar e desativar caixa postal?
+[Cliente] - não
+[Analista] - Acessa esse link do painel que te mandei
+[Analista] - Clica em "Administrar e-mails"
+[Analista] - E depois na aba "Caixas Postais"
+[Cliente] - certo
+[Cliente] - o que faço?
+[Analista] - Encontra uma caixa postal e clica no nome em azul
+[Cliente] - ok fiz isto
+[Analista] - Aí ele vai ter um botão escrito "Editar dados" com uma setinha pra baixo
+[Analista] - Você vai clicar na setinha, e vai clicar em 'desativar caixa postal'
+[Analista] - Lembre-se, não pode excluir a caixa postal, só desativar
+[Analista] - Depois de 1 min, você reativa a caixa postal novamente
+[Analista] - E verifica via Webmail se o conteúdo dela voltou
+[Cliente] - voltou, obrigada
+[Analista] - Imagina!
+[Analista] - Fora isso, poderia ajudar de alguma outra forma?
+[Cliente] - somente isto obrigada
+[Analista] - A [empresa] agradece seu contato, desejamos um bom dia! Se puder avaliar meu atendimento, agradeço imensamente!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507178472 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: web >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Analista] - Desculpe, não entendi!
+[Analista] - Por favor, digite o número correspondente ao assunto:
+[Cliente] - Suporte técnico
+[Analista] - Configurar seu e-mail nunca foi tão fácil!Você sabia que hoje em dia o Outlook e outros programas de e-mail fazem a configuração praticamente sozinhos?Isso mesmo! Basta garantir que a entrada SRV esteja corretamente criada na sua zona de DNS — e pronto, nada de ficar decorando servidores de entrada e saída, portas ou outros detalhes técnicos.Confira o passo a passo completo de como criar a entrada SRV: [link]
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: . Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - ATENÇÃO! O e-mail oficial para envio de boletos / faturas através da [empresa] é [email] Também temos o e-mail [email] Caso tenha recebido e-mail sobre assuntos relacionados a sua fatura, que não sejam os acima, por gentileza, desconsidere. Para mais informações sobre GOLPE VIRTUAL acesse: [link]
+[Analista] - Validação de API boleto
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Hospedagem de Sites, Criador, SSL, Registro
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Hospedagem Windows
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Gerenciar Sites e Domínios
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - Conseguiu obter o que procura com as informações acima?
+[Cliente] - Não, falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Cliente] - ola
+[Analista] - Olá, como posso te ajudar?
+[Cliente] - Olá bom dia,  Meu site está abrindo com uma mensagem de segurança, vi no painel que está tudo ok em relação a renovação automática que foi feita em 13/07 mas parece que não refletiu já que meus clientes ao acessar o site aparece conforme arquivo anexo.  Agradeço a atenção e fico no aguardo
+[Analista] - Me confirma o seu domínio, por favor
+[Cliente] - [dominio]
+[Analista] - Sabe me dizer também o seu logjn?
+[Cliente] - israelvalem2
+[Cliente] - israelvalentim2
+[Cliente] - desculpe
+[Analista] - Perfeito, um momento
+[Cliente] - ok
+[Analista] - Aguarde mais um pouco, por gentileza. Continuo verificando, tudo bem?
+[Analista] - Certo, consegue testar novamente o acesso ao site por favor?
+[Cliente] - vou verifciar
+[Cliente] - verificar
+[Cliente] - um instante
+[Analista] - Ok
+[Cliente] - o que era?
+[Analista] - O certificado que estava dentro do seu site estava desatualizado, então eu atualizei ele aqui. Vi que abri um chamado para isso, vou pedir que finalize ele, ok?
+[Analista] - Ajudo em algo mais?
+[Cliente] - isso por favor
+[Cliente] - deixa eu só ver mais um item aqui
+[Analista] - Ok
+[Analista] - Poxa, estamos a algum tempo sem interações, nos próximos minutos vamos precisar encerrar este atendimento. Posso ajudar em algo mais?
+[Cliente] - obrigado pela atencao
+[Cliente] - tudo certo
+[Analista] - Oi! Foi um prazer atender você hoje! Se você puder, gostaria de pedir que me avaliasse com uma nota 10. Sua opinião faz toda a diferença e me ajuda a melhorar ainda mais.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179759 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: web >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Gerenciar Sites e Domínios
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - Conseguiu obter o que procura com as informações acima?
+[Cliente] - Não, falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Olá, tudo bem? Me chamo Matheus e vou seguir com o seu atendimento! Em que posso te ajudar hoje?
+[Cliente] - Boa tarde Matheus tudo bem
+[Cliente] - matheus eu queria tirar uma duvidas com voce
+[Cliente] - eu desenvolvi um site e queria saber como posso esta fazendo o upload dos arquivos aqui para a local web utilizei html. css e js para desenvolver
+[Cliente] - teria como realizar tal aplicação
+[Cliente] - pois temos um dominio de site porem o site tivemos que reformula-lo
+[Analista] - Boa tarde, tudo certo? Você desenvolveu  o site inteiro nessas linguagens? Se for o caso você precisaria subir o site agora no FTP do seu site.
+[Cliente] - isso desenvolvi ele integramente utilizando essas linguagens, no caso ainda conseguiria continuar com o dominio que possuo atualmente correto dominiu do site atual [link] eu ainda conseguiria utilizar esse mesmo dominiu?
+[Analista] - Sim, você ainda vai conseguir utilizar esse mesmo domínio.
+[Cliente] - otimo que maravilha
+[Cliente] - a mais uma duvida é eu percibi que aqui no painel voces mencionam o wordexpress o nosso antigo site foi desenvolvido utilizando ele, dai queria saber o seguinte
+[Cliente] - o meu cliente ele precisaria escrever algumas postagnes para uma aplicaçao de blog dentro do proprio site, porem nao queria dar acesso direto as linguagens, para evitar algum erro de desconfiguração no site, teria alguma aplicaçao de csm, disponivel aqui para ele realizar tais postagens
+[Cliente] - cliente que eu menciono e os responsaveis por os setores ficais contabeis e folha para atualizar de alguma noticia ou novidade que esteja acontecendo relacionado ao universo contabil
+[Cliente] - dai nao queria dar acesso direto a linguagem para esses gestores desses setores
+[Cliente] - ?
+[Analista] - Sobre a sua dúvida em relação ao WordPress e à possibilidade de permitir que seu cliente faça postagens para um blog sem dar acesso direto às linguagens de programação, você está buscando um CMS (Content Management System - Sistema de Gerenciamento de Conteúdo) para essa finalidade. No caso, entendi que você não quer dar acesso direto à linguagem (código) para esses gestores. De forma direta, nós não temos uma aplicação CMS "pronta" que se integre ao seu site HTML, CSS e JS já existente dessa maneira para a postagem de blogs. O que pensaria inicialmente é no FTP Multi. Com ele, você consegue criar um usuário [usuario] tem acesso a pastas e diretórios específicos do FTP, o que daria a eles acesso aos arquivos, mas não diretamente à postagem em um CMS sem o risco de mexer no código. O WordPress, que você mencionou, é um CMS completo que permite criar e gerenciar um blog, e seus gestores poderiam fazer postagens sem acessar o código. No entanto, ele precisaria ser instalado em seu site, e o conteúdo seria gerenciado por ele.
+[Cliente] - entendi entendi
+[Analista] - Ficou alguma dúvida? Ajudo em algo mais?
+[Cliente] - mas muitissimo obrigado  matheys
+[Cliente] - matheus caso surja alguma outra duvia entro em contato de inicio e somente isso
+[Analista] - Isso, você pode iniciar o contato conosco novamente
+[Analista] - Oi! Foi um prazer atender você hoje! Se você puder, gostaria de pedir que me avaliasse com uma nota 10. Sua opinião faz toda a diferença e me ajuda a melhorar ainda mais.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179895 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olpa
+[Cliente] - Ola
+[Analista] - Olá Marcelo Kildare de Oliveira!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - Suporte
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: dreamscomunicacao. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 9
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Olá, tudo bem?? Eu sou o Gabriel, e estou aqui para acompanhar a sua solicitação! Como posso te ajudar hoje? 😃
+[Cliente] - Olá Gabriel tudo bem.
+[Cliente] - Minha questão é simples, e não tem a opção na hora de tirar as dúvidas e vou te explicar.,
+[Cliente] - O Webmail está com algum problema?
+[Analista] - Não, esta com problema nele ?
+[Cliente] - E-mail: [email]Senha: BrasiL@go2025
+[Cliente] - Sim não consigo entrar neste e-mail.
+[Cliente] - Acabei de trocar a senha[senha]
+[Cliente] - E não consigo acessar. Da Login errado.
+[Analista] - Somente neste em especifico ?
+[Cliente] - Acredito que sim.
+[Analista] - Esse endereço de meias esta  correto ?
+[Analista] - O senhor alterou a senha [senha] onde ?
+[Cliente] - pelo Painel de controle
+[Cliente] - E-mail: [email]Senha: BrasiL@go2025
+[Cliente] - pera ai
+[Cliente] - tem um erro no e-mail
+[Cliente] - perdão.
+[Analista] - Tranquilo! Qual seria o correto ?
+[Cliente] - Foi a menina que passou errado
+[Cliente] - e não notei.
+[Analista] - Ah, mas conseguiu acessar agora o e-mail que deseja ?
+[Analista] - Ainda esta ia ?
+[Cliente] - Sim
+[Cliente] - Obrigado
+[Analista] - A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação específica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos à disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179893 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá
+[Analista] - Olá Elder Pimenta!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: elderpimenta. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Boa tarde! Tudo bem? Meu nome é Yhan e vou acompanhar sua solicitação ^^ Como posso te ajudar hoje?
+[Cliente] - Meu site está fora do ar por conta de certificado expirado
+[Cliente] - Eu enviei ontem os novos certificados
+[Cliente] - E disse para a pessoa que me atendeu, que criou o chamado, que eu estava com medo do site sair do ar por não estar com o certicado renivado
+[Cliente] - *renovado
+[Analista] - Certo, mas o prazo de resposta de qualquer chamado é de um dia útil.
+[Cliente] - Mas então porque a pessoa que me atendeu disse que nao iria sair do ar?
+[Cliente] - Porque ele não me disse que tem o prazo e que eu deveria ter feito antes?
+[Cliente] - Os médicos estão aqui precisando do sistema para atender os pacientes
+[Cliente] - Os sistemas lá são de atendimento de pessoa com cancer e cirurgias
+[Cliente] - Pode me ajudar a resolver logo esse chamado?
+[Analista] - O chamado foi aberto ontem, o time ainda vai responder seu chamado hoje.  Se os certificados tem o prazo de expiração para o dia 17, dia 17 os certificados se tornam obsoletos
+[Analista] - Tem que aguardar resposta do time, a solicitação não é pequena, foram solicitados uma quantidade consideravelmente grande de subdomínios
+[Cliente] - Entendo
+[Cliente] - Mas vc pode me ajudar a acelerar esse processo?
+[Cliente] - Se vc conseguir pelo menos os subdomínios:clinicaamocirurgiaamoJá seria suficiente
+[Cliente] - Os demais eu posso aguardar sem grandes prejuízos
+[Cliente] - Por favor! 🙏
+[Cliente] - .
+[Cliente] - .
+[Analista] - Por se tratar de um procedimento que requer a instalação manual do certificado dentro da sua hospedagem, nós, do suporte de atendimento, não conseguimos realizar a ação por falta de acessos. O máximo que consigo fazer, seria pedir prioridade no chamado, porém, não consigo te garantir, pois a solicitação ainda está dentro do prazo! Este tipo situação deve ser tratada com antecedência. Me passa um número de telefone e nome completo, por favor
+[Cliente] - Elder Pimenta
+[Cliente] - ([telefone]
+[Cliente] - Eu agradeço
+[Cliente] - Qual o horário do prazo final de atendimento desse chamado?
+[Analista] - Até o final do dia
+[Cliente] - .
+[Cliente] - Tem o horário?
+[Analista] - Hoje, até as 6, que seria o prazo do dia útil(horário comercial)
+[Cliente] - Ok, e coma urgência?
+[Analista] - Eu solicitei a prioridade, mas novamente, não há garantia pois ainda está no prazo!
+[Cliente] - Ok
+[Analista] - Bom, por agora, restou alguma dúvida?
+[Cliente] - Não, só isso mesmo
+[Analista] - A [empresa] agradece seu contato! Não se esqueça de responder a pesquisa de satisfação que será encaminhada no final deste atendimento, ela diz a respeito da forma como eu te atendi e me ajuda a melhorar meu atendimento ^^ Tenha um bom dia!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179549 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - P;
+[Cliente] - Olá
+[Analista] - Olá Baddini!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: wintecnologia1. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 2
+[Analista] - Você pode acessar o FTP, através de um programa como o Filezilla, pelo gerenciador de arquivos da [empresa] ou até utilizar seu navegador.Veja as instruções neste tutorial:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Olá, tudo bem? Me chamo Matheus e vou seguir com o seu atendimento! Em que posso te ajudar hoje?
+[Cliente] - Boa tarde, tem um site que está com problema de acesso ao FTP
+[Analista] - Boa tarde, tudo certo? Poderia nos enviar um print do erro gerado?
+[Cliente] - O servidor é o ftp.bandabaddiniclie1.hospedagemdesites.ws
+[Cliente] - usuário [usuario]
+[Cliente] - 
+[Cliente] - Erro: 530 User cannot log in, home directory inaccessible
+[Cliente] - tentei pelo FTPWeb e o erro retornado é "Conta inválida"
+[Analista] - Por favor, aguarde um momento enquanto eu verifico essa informação, Ok ?
+[Cliente] - Ok
+[Analista] - Certo, poderia testar novamente agora?
+[Analista] - Se ele der o mesmo erro me informe por favor
+[Cliente] - só um minuto
+[Analista] - Fico no aguardo em caso de novas dúvidas!
+[Cliente] - agora funcionou, muito obrigado!
+[Analista] - Posso ajudar com mais alguma coisa?
+[Cliente] - Só isso mesmo, muito obrigado Matheus
+[Analista] - Oi! Foi um prazer atender você hoje! Se você puder, gostaria de pedir que me avaliasse com uma nota 10. Sua opinião faz toda a diferença e me ajuda a melhorar ainda mais.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177084 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá
+[Analista] - Olá Matheus Santos!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: matheussantoss. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 2
+[Analista] - Você pode acessar o FTP, através de um programa como o Filezilla, pelo gerenciador de arquivos da [empresa] ou até utilizar seu navegador.Veja as instruções neste tutorial:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Analista] - Oi, Bom dia! Tudo bem, como posso ajudar?
+[Cliente] - Bom dia
+[Cliente] - 
+[Cliente] - 
+[Cliente] - Não consigo entrar no FTP alguns dias já
+[Cliente] - Já abri chamado desde o dia 14
+[Cliente] - Mas ninguém responde
+[Cliente] - Preciso que me ajude aqui a resolver urgente
+[Cliente] - Preciso atualizar muitas coisas importantes de sites de clientes e não consigo
+[Analista] - vou verificar, só um momento
+[Cliente] - Elyas por favor 🙏🏻🙏🏻
+[Cliente] - Não sei mais o que fazer
+[Analista] - Pelo que verifiquei parece que o incidente aberto para tratar o problema do seu chamado foi resolvido, poderia alterar a senha [senha] FTP pra [empresa]@102030 pra mim simular por aqui o acesso?
+[Cliente] - Está dando o mesmo erro, veja no video
+[Cliente] - 
+[Cliente] - Me ajuda por favor a resolver isso
+[Analista] - Você alterou pelo seu painel de hospedagem? não é pra inserir direto no filezila essa senha [senha] só troca ela no seu painel de hospedagem pra mim testar por aqui
+[Cliente] - Altero essa senha [senha] uma outra que eu queira e passo pra vc, isso?
+[Analista] - só altera a senha [senha] essa que te passei mesmo, essa é uma senha [senha] teste
+[Cliente] - 
+[Cliente] - Feito!
+[Cliente] - 
+[Cliente] - Agora entrou 🙌🏻🙌🏻
+[Analista] - Boa, aqui também foi. Pode alterar para uma senha [senha] mesmo agora
+[Cliente] - Posso testar aqui alterando pra ver se não dará problema?
+[Analista] - pode sim
+[Cliente] - Deu certo
+[Cliente] - Obrigado Elyas
+[Analista] - Sem problemas, teria alguma outra duvida por agora?
+[Cliente] - Apenas isso
+[Cliente] - Obrigado
+[Analista] - Por nada, tenha um excelente dia 😃 se puder avaliar meu atendimento vai ajudar bastante. Precisando estamos a disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177131 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - 1
+[Analista] - Olá Clarissa Catalano!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: meuconvite. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - Ok
+[Cliente] - Oi!
+[Analista] - Olá tudo bem, como posso ajudar?
+[Cliente] - Oi! Bom dia!
+[Cliente] - O meu site está dando erro desde ontem.
+[Cliente] - Meus clientes estão reclamando muito por não conseguirem acessá-lo.
+[Cliente] - Somente agora verifiquei o chamado solicitando a exclusão de alguns arquivos.
+[Analista] - qual seria o site?
+[Cliente] - [dominio]
+[Analista] - certo, só um momento
+[Cliente] - Oi!
+[Cliente] - Ainda está aí?
+[Analista] - sim, só mais um momento ainda estou verificando
+[Cliente] - Ok
+[Analista] - Para continuarmos preciso que informe o(a) Login_usuario, por favor.
+[Analista] - perdão, desconsidera essa mensagem
+[Analista] - verifiquei que o site está desativado por conta do chamado aberto numero [telefone] na sua central do cliente, nesse caso acessa a sua central do cliente > suporte e ajuda > meus chamados pra verificar as informações nele
+[Cliente] - Eu já verifiquei.
+[Cliente] - Iniciei a conversa falando sobre isso.
+[Cliente] - Vou excluir os arquivos mas não posso ficar com o site.
+[Cliente] - Ficar com o site desativado.
+[Cliente] - Estou com vários clientes tentando incluir os textos no site.
+[Cliente] - Reclamação ontem o dia inteiro.
+[Analista] - perdão, não tinha visto essa mensagem, mas nesse caso você vai precisar fazer os ajustes e solicitar a ativação no proprio chamado mesmo, a equipe que faz essa analise e ativa o site é a mesma que responde o chamado, então não tenho permissão pra reativar o site por aqui
+[Cliente] - Eu não posso ficar com o site sem funcionar, amigo!
+[Cliente] - Esperar a interação no chamado é coisa de 4 horas.
+[Cliente] - Vou ficar a manhã inteira sem site!
+[Analista] - sim, pois é nescessario aguradar a equipe do chamado fazer a reativação do site
+[Analista] - posso pasar uma prioridade, mas é nescessario aguardar no chamado
+[Cliente] - Eu não estou conseguindo nem enviar a resposta no chamado.
+[Cliente] - Está dando erro.
+[Analista] - testa de uma guia anonima ou outro navegador
+[Cliente] - Consegui adicionar a mensagem ao chamado mas não posso esperar a resposta não.
+[Cliente] - Isso não é bacana da parte da [empresa]
+[Cliente] - Meu negócio está sendo prejudicado.
+[Cliente] - Tenho turmas grandes com urgência na postagem das mensagens m
+[Cliente] - Se eu não receber esses textos com agilidade vai prejudicar a minha produção dos convites.
+[Cliente] - Com quem devo falar a respeito?
+[Analista] - Entendo, mas não há o que fazer nesse caso, o site só foi desativado pois está aberto 08.07.2025 onde não houve interação e por esse motivo, foi nescessario a desativação do site. oo que consigo fazer nesse caso é só passar uma prioridade para o caso, mas você vai ter que aguardar até que nossa equipe valide e reative o seu site
+[Cliente] - Meu amigo, acho que você não está entendendo.
+[Cliente] - Meu negócio está sendo prejudicado.
+[Cliente] - E isso não é legal!
+[Cliente] - Entendo que fui avisada através do chamado mas a correria do dia a dia e esse período aqui na minha empresa é muito tumultuado.
+[Cliente] - Não consegui nem responder ao chamado.
+[Cliente] - E aí vocês simplesmente bloqueam o site?
+[Analista] - Eu entendo, mas eu não posso reativar o seu site pois que vai fazer esse procedimento é a equipe que responde o chamado, e eles não tem um contato direto, você vai ter que agurdar o chamado
+[Cliente] - Vocês não tem ideia do transtorno que estão causando!
+[Analista] - eu entendo mas não posso fazer nenhuma ação de ativação do seu site no momento, você vai precisar aguardar uma resposta no chamado pois é outra equipe que faz essa ação
+[Cliente] - E essa outra equipe não é acessível?
+[Cliente] - Eles ficam isolados do mundo?
+[Analista] - eles vão responder no seu chamado, só o que consigo é deixar o chamado com a prioridade pra que seja respondido o mais breve possivel
+[Cliente] - Tem que ter um meio de falar com eles fora da Central do Cliente!
+[Cliente] - As respostas por lá são muito demoradas!
+[Cliente] - Eu já tive experiência em outras situações.
+[Cliente] - E não posso esperar esse tempo todo.
+[Cliente] - Entenda, meu negócio está sendo prejudicado!
+[Analista] - somente via chamado, eu entendo que isso está gerando transtorno mas eu não psso reativar seu site, você já fez a sua interação no chamado é vai precisar aguardar uma resposta até que nossa equipe faça a reativação dele.
+[Cliente] - Nossa... estou muito irritada!
+[Cliente] - Impressionante!
+[Cliente] - Estamos numa era de comunicação instantânea através de vários meios e você me informa que a única forma de falar com a a equipe de chamados é pela Central do Cliente?
+[Cliente] - Eles trabalham numa bolha?
+[Cliente] - Ahhh... me ajuda aí!
+[Cliente] - É claro que você tem acesso a eles! Claaaaaro!
+[Cliente] - O que vejo aqui é falta de empatia e boa vontade.
+[Analista] - já passei uma prioridade para o caso, você vai precisar aguardar pois terá uma resposta o mais breve possivel para informar a reativação do seu site
+[Cliente] - O ser humano precisa se colocar mais no lugar do outro.
+[Cliente] - Estou te informando que estou sendo prejudicada profissionalmente.
+[Cliente] - Que os meus clientes estão insatisfeitos.
+[Analista] - Entendo Clarissa, acabaram de responder a prioridade que havia passado, o site já deve estar no ar novamente e será feita uma nova verificação sobre o espaço utilizado no dia 21
+[Analista] - Como estou no aguardo de seu retorno há um tempo, compreendo que não deseja continuar com este atendimento. Sendo assim, por falta de interação, estou encerrando este atendimento. Agradecemos pelo seu contato e permanecemos à disposição!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179402 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá, gostaria de resolver algumas dúvidas. Poderiam me ajudar?
+[Analista] - Olá Organização Central Contabilidade!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: orgcentral. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 5
+[Analista] - Hoje em dia os spammers utilizam técnicas para enviar e-mail forjando o remetente das mensagens, técnica também conhecida como Spoofing.É muito importante entender o que está por trás dessa prática, por isso indicamos a leitura deste artigo que aborta o tema:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - preciso de ajuda
+[Analista] - Opção inválida. Escolha uma das opções disponíveis
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - 9
+[Analista] - Opção inválida. Escolha uma das opções disponíveis
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - oi
+[Analista] - Opção inválida. Escolha uma das opções disponíveis
+[Cliente] - 1
+[Cliente] - boa tarde
+[Analista] - Para continuarmos preciso que informe o(a) Customer_id, por favor.
+[Cliente] - o que é isso?
+[Analista] - Olá, boa tarde tudo bem ?
+[Cliente] - Falar com analista
+[Analista] - Olá, em que posso ajudar ?
+[Cliente] - Boa tarde, tudo bem e você?
+[Analista] - tudo bem!
+[Cliente] - Temos um site que acessamos aqui
+[Cliente] - Que encaminha um código de verificação
+[Cliente] - Não estou conseguindo receber o e-mail dele
+[Cliente] - Sempre recebemos
+[Analista] - entendi, só um momento enquanto te encaminho ao nosso suporte ok?
+[Analista] - para verificar
+[Analista] - orgcentral (Cód. 2021114) // boa tarde, atendimento suporte
+[Analista] - Olá, tudo bem? Me chamo Alan, como posso te ajudar hoje?
+[Cliente] - Tudo bem e você?
+[Cliente] - Tomos um site que acessamos para pegar informações
+[Cliente] - Ele encaminha um e-mail
+[Cliente] - Sempre recebemos
+[Cliente] - Agora não estamos recebendo
+[Cliente] - O que pode estar ocorrendo?
+[Cliente] - Na terça feira tivemos problemas com o nosso domínio
+[Analista] - Em qual site ocorre o problema?
+[Cliente] - E tivemos os e-mails bloqueados
+[Cliente] - Econtador
+[Cliente] - Site a alterdata
+[Cliente] - Colocamos até como endereço seguro
+[Analista] - Consegue me enviar o domínio corretamente?
+[Cliente] - Sim
+[Cliente] - Um momento
+[Cliente] - [link]
+[Cliente] - Desculpe ele corrigiu
+[Cliente] - Econtador
+[Cliente] - No lugar de encontrados
+[Cliente] - [link] br
+[Analista] - Então este site não esta conosco, o IP e Zona DNS retornado é para fora de nossa estrutura
+[Analista] - E este domínio não se encontra em seu cadastro
+[Cliente] - Mas não consigo receber e-mails dele?
+[Analista] - No caso você acessa o site para ele te enviar o e-mail?
+[Cliente] - Sim
+[Cliente] - Ele fala que enviou o código de verificação no e-mail cadastrado
+[Analista] - Me informa o exato e-mail que eles utilizam para realizar este envio e o seu e-mail que deveria receber
+[Cliente] - [email]
+[Cliente] - [email]
+[Cliente] - É sistemas
+[Cliente] - No lugar de sistema
+[Cliente] - Desculpe
+[Analista] - Via logs da estrutura, puxei tentativas de envios entre essas contas hoje e ontem e não me foi retornado nada... Notei que pela estrutura não consta nenhum bloqueio, inclusive eles conseguem enviar normalmente para outros clientes Eles teriam de verificar se o envio realmente ocorreu... Eles teriam que nos disponibilizar um cabeçalho de envio para facilitar a busca desta mensagem. [link]
+[Cliente] - Ok vou falar pra eles
+[Analista] - Por hora, ajudo em algo mais? Tem alguma duvida?
+[Cliente] - Agradeço
+[Analista] - Estarei te encaminhando minha pesquisa de atendimento, fico grato se conseguir responder! 😃 Caso tenha demais duvidas estamos a disposição, basta nos chamar novamente! A [empresa] agradece seu contato! ❤️
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177463 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá, gostaria de resolver algumas dúvidas. Poderiam me ajudar?
+[Analista] - Olá Guilherme Silva Web!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: cadedomaquinas. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - ok
+[Cliente] - aguardando
+[Analista] - Olá. Bom dia! Tudo bem? Me chamo Fellipe. Como eu posso te ajudar?
+[Cliente] - Bom dia Felipe
+[Cliente] - estou com um problema um site que subi para o um subdominio, voce pode me ajudar?
+[Analista] - Qual site e qual o problema?
+[Cliente] - [link]
+[Cliente] - criei esse subdominio e ja enviei os arquivos para o servidor
+[Cliente] - porem o site não carrega css, e demais dados
+[Cliente] - tive problemas no htaccess, mas ja conseguir resolver... não estou conseguindo entender porque ele não carrega os dados corretamente
+[Analista] - Um momento, por favor.
+[Cliente] - ok
+[Cliente] - não estou achando que configurei o htaccess direito
+[Cliente] - mas eu uso em outros servidores e funcionam
+[Analista] - Entendo, isso pode ser realmente a forma de configuração. Vi que você inseriu ele num sistema Windows também, certo.
+[Analista] - Estou validando algumas informações aqui.
+[Cliente] - Ok, aguardo
+[Cliente] - vou subir um arquivos web.config pra testar, ok?
+[Analista] - Certo, sem problemas.
+[Cliente] - Não deu certo hehe
+[Cliente] - se eu alterar de Windows para Linux, ele vai interpretar corretamente meu htaccess?
+[Cliente] - todos os dominios la estão como linux, so o pontoflex esta com windows
+[Cliente] - alguma sugestão?
+[Analista] - Um momento que estou analisando aqui.
+[Cliente] - Aguardo!
+[Cliente] - aguardo!
+[Analista] - SIgo verificando.
+[Analista] - O sistema onde roda certinho essa aplicação, também são sistemas operacionais windows?
+[Cliente] - vou eu verificar
+[Analista] - Certo....
+[Analista] - É que vi que você utiliza composer.json e um composer.loack
+[Analista] - lock*
+[Cliente] - isso
+[Analista] - Normalmente são recursos usados no Linux, mas vou confirmar se isso não seria caso de uma Hospedagem Dedicada.
+[Cliente] - tem como eu alterar o servidor da pontoflex de windows para linux?
+[Cliente] - ai resolve isso
+[Analista] - Olha eu validei com o nosso time nível 2 aqui sobre o composer em si. Ele tem alguns módulos que não estão dentro do nosso servidor compartilhado. Esse seu caso seria mesmo uma dedicada para você usar.
+[Cliente] - não vou alterar esse plano  não
+[Cliente] - se tiver jeito vamos alterar a hospedagem do windos para linux
+[Cliente] - todos os outros dominios são linux, só esse ai que eh Windows
+[Analista] - Como falado, não roda na compartilhada ou seja, nem linux e nem mesmo Windows.
+[Cliente] - esse site com htaccess so funciona no linux
+[Cliente] - Não estou entendo não
+[Cliente] - [link]
+[Cliente] - esse dominio ai, esta no seus servidores e funciona com esse tipo de arquivo que trabalho
+[Analista] - Bom, não é garantia de funcionamento. Você pode realizar a migração para Linux e testar, mas caso continue da mesma forma, foi como falado, incompatibilidade com módulos específicos.
+[Cliente] - Entendo
+[Cliente] - como faço a migração?
+[Analista] - Você tem email vinculado?
+[Cliente] - tem sim
+[Cliente] - ai complica neh
+[Cliente] - tem um so registrado
+[Cliente] - tem uma outra hospedagem com voces, [dominio]
+[Cliente] - não estou encontrado aqui
+[Analista] - Precisaria ter o backup dela caso não queira perder o conteúdo, somente.
+[Cliente] - Não vou mexer não, porque é um email de importação
+[Cliente] - vou registrar outro dominio e aponto os dns
+[Analista] - Esse domínio que mencionou está inserido dentro de outro que é o  [dominio]
+[Cliente] - menos dor de cabeça hehe
+[Analista] - Tem que ir em administrar no  [dominio]
+[Analista] - E clicar na aba de domínios.
+[Cliente] - entendi
+[Cliente] - estranho, esse maquinalaser nunca usamos, ele ficou como principal
+[Analista] - É aleatório isso de domínio principal mesmo. Ele não influencia em nada além de questões de visualização no painel mesmo.
+[Cliente] - Show de bola
+[Cliente] - mas beleza, te agradeço pela força
+[Cliente] - não vou migrar o servidor, deixa do jeito que esta
+[Analista] - Certo então. Ajudo com mais alguma outra questão?
+[Cliente] - por enquanto não
+[Cliente] - Bom dia pra voce e bom trabalho!
+[Analista] - Por nada. Agradeço o seu contato e peço gentilmente para poder aguardar por aqui e avaliar o meu atendimento no link gerado ao final. Tudo bem?
+[Analista] - Muito obrigado, conto com a sua nota. Uma excelente quinta-feira!!! 😉
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177422 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá, gostaria de resolver algumas dúvidas. Poderiam me ajudar?
+[Analista] - Olá Lucas Marciano!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: bioorganic. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 7
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 2
+[Analista] - Para consultar os dados de acesso ao seu banco de dados siga estes passos:a) Acesse o Painel de Hospedagem em [link] No site que contém o seu banco de dados clique em Administrar Site.c) Clique em Banco de dados e selecione o banco desejado.
+[Analista] - Temos também diversos artigos com dicas sobre métodos de acesso aos bancos de dados providos pela [empresa].Segue alguns dos mais procurados, mas você também pode utilizar o mesmo Sistema de Ajuda para buscar outros assuntos relacionados ao tema.
+[Analista] - [link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - ok
+[Analista] - Bom dia, tudo bem? Como posso ajudar?
+[Cliente] - Tudo bem e você ?
+[Cliente] - Quero saber como consigo acessar a linguagem de programação de um dominio
+[Analista] - Irei transferir o atendimento ao setor responsável
+[Cliente] - Ok
+[Analista] - Olá bom dia muito prazer, como posso ajudar?
+[Cliente] - Tudo bem e você ?
+[Cliente] - Quero saber como consigo acessar a linguagem de programação de um dominio
+[Analista] - Um dominio é apenas um nome que você contrata na web ele não possui linguagem de programação.
+[Cliente] - 
+[Analista] - Para editar o site associado ao seu domínio na [empresa], siga estas etapas: 1. **Acesse o Painel de Controle da [empresa]**:    - Use suas credenciais para fazer login[login] 2. **Localize a Seção de Hospedagem**:    - Vá para a área de hospedagem onde seu site está configurado. 3. **Identifique o Gerenciador de Arquivos ou FTP**:    - Você pode editar os arquivos do site diretamente pelo gerenciador de arquivos no painel ou usar um cliente FTP. 4. **Verifique a Linguagem de Programação**:    - Normalmente, a linguagem de programação usada está nos arquivos do site. Verifique arquivos como `.php`, `.html`, `.js`, etc. 5. **Edite os Arquivos do Site**:    - Faça as alterações necessárias nos arquivos do site. Se precisar de mais detalhes sobre como acessar ou usar ferramentas específicas, por favor, me avise!
+[Cliente] - Como sei qual o nome de host ?
+[Analista] - Encontra essa parte no seu painel de hospedagem:
+[Analista] - 
+[Cliente] - Já encontrei
+[Analista] - Perfeito
+[Analista] - Esta fazendo essa conexão via FTP mesmo?
+[Analista] - E qual o software de conexão?
+[Cliente] - 
+[Cliente] - Nessa tela
+[Cliente] - 
+[Analista] - Os dados para acesso estão no painel de hospedagem
+[Analista] - São esses aqui
+[Cliente] - 
+[Analista] - Altera a senha [senha] tenta acessar
+[Cliente] - 
+[Analista] - verifica o erro primeiramente antes de testar a alteração de senha
+[Cliente] - 
+[Analista] - Qual o site ?
+[Cliente] - [link]
+[Analista] - Tenta acessar via firezila
+[Analista] - Clica em avançando ou tenta pela url alternativa
+[Cliente] - 
+[Analista] - Tenta conectar com essas informações  Host: [dominio] Usuário: bioorganic Senha: [empresa]@102030
+[Cliente] - Deu certo
+[Analista] - Perfeito posso ajudar em algo mais  ?
+[Cliente] - 
+[Analista] - Certo, verifica se você pode acessar o ftp web por favor
+[Cliente] - 
+[Analista] - Certo mas verifica primeiro se o web ftp está funcionando
+[Cliente] - 
+[Analista] - Tenta acessar esse painel aqui
+[Cliente] - 
+[Analista] - @Gustavo.Araujo WEB ftp funcionou
+[Cliente] - 
+[Analista] - Perfeito, referente ao seu código acredito que ele esteja na pasta web
+[Cliente] - 
+[Analista] - Isso mesmo, posso ajudar em algo mais ?
+[Cliente] - Não, obrigado
+[Analista] - De nada !  Tenha um ótimo dia. A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação especifica sobre o meu atendimento, ela é de extrema importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos aqui
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177639 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá
+[Analista] - Olá Marcello!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: marcellocordeiro. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 6
+[Analista] - Alterar a plataforma de um site Windows para Linux ou vice-e-versa é uma tarefa que requer muito cuidado, para que não se perca arquivos, bancos de dados, e-mails e demais serviços inclusos no site.Por esse motivo, desenvolvemos este tutorial que aborda todos esses detalhes:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 8 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - Ok
+[Analista] - Olá, tudo bem? Me chamo Matheus e vou seguir com o seu atendimento! Em que posso te ajudar hoje?
+[Cliente] - Bom dia Matheus, tudo bem?Sou o Marcello da ouvidoria/qualidade. Estamos testando o atendimento com a octadesk
+[Cliente] - Aproveitando, teve algum incidente?
+[Cliente] - Viu alguma coisa estranha? Deu algum bug?
+[Analista] - Bom dia, acredito que no momento não notei nada de incorreto, acredito que está tudo certo aqui
+[Cliente] - Maravilha
+[Cliente] - Fexow, man
+[Cliente] - Qualquer coisa avisa o coordenador, por favor
+[Cliente] - Bom serviço ae!
+[Analista] - Obrigado, vou finalizar aqui.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507177643 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: web >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Analista] - Oi! 👋Se você tá querendo saber como deixar seu site mais seguro com aquele cadeadinho charmoso, você veio ao lugar certo! 😄Aqui vai um guia rapidinho pra você não se perder:- Quer emitir o SSL da [empresa]? Dá uma olhadinha nesse passo a passo que preparamos: [link]
+[Analista] - - Precisa de um certificado pra um site que não é hospedado aqui? Sem problemas! Confere esse link: [link] E se você está no espírito do faça-você-mesmo, aprenda a fazer tudo sozinho com o Let’s Encrypt aqui: [link]
+[Analista] - Se por acaso eu não acertei precisamente na sua dúvida, não tem problema!Me informe o número do assunto que você precisa de ajuda, e vamos juntos encontrar a solução ideal para você:
+[Cliente] - Voltar ao Menu Anterior
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Hospedagem Windows
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Gerenciar Sites e Domínios
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - Conseguiu obter o que procura com as informações acima?
+[Cliente] - Não, falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Este atendimento está programado para finalizar em 6 minutos por inatividade.Por favor me envie um "Ok" ou qualquer outra interação para manter o diálogo ativo.
+[Cliente] - ok
+[Cliente] - oi
+[Cliente] - oláa
+[Analista] - Olá, bom dia, tudo bem? Como posso ajudar?
+[Cliente] - tudo bem?
+[Cliente] - meu site está fora do ar há dois dias
+[Cliente] - [dominio]
+[Cliente] - eu havia feito um atendimento pelo chat
+[Cliente] - e o atendente havia me passado a seguinte instrução: "pode retornar o contato que emitimos o certificado, ele gerado na hora, ai depois disso pode ativar o proxy novamente"
+[Cliente] - pois ele solicitou desativar a proxy no Cloudfare
+[Cliente] - 
+[Analista] - Certo, só um momento enquanto eu verifico, tudo bem?
+[Cliente] - obrigado
+[Cliente] - preciso resolver assim que possível...
+[Analista] - Verifiquei que você possuí um chamado em aberto referente a esse problema, o time já está tratando e assim que solucionado, você será informado em uma nova interação, tudo bem?
+[Cliente] - infelizmente não posso esperar
+[Cliente] - o que você sugere? que eu desative o cloudfare?
+[Cliente] - preciso vender a consultoria e meu site está fora do ar há dois dias
+[Analista] - É que não seria um problema voltado ao proxy que você estava utilizando, realmente foi um problema que ocorreu ao emitir o certificado ao site, que o time já está verificando oque causou para corrigir
+[Cliente] - sim, mas não posso esperar mais
+[Cliente] - por que esse procedimento não pode ser feito agora?
+[Analista] - Porque deu esse problema, que é necessário a ação de um time superior para corrigir, e após será instalado o certificado.
+[Cliente] - Leonardo, veja...
+[Cliente] - Eu não estou podendo enviar o site da consultoria pros clientes
+[Cliente] - estou perdendo oportunidades
+[Cliente] - a previsão era que ficasse pronto na terça
+[Cliente] - e tive que abrir outro chamado
+[Analista] - Lamento pelo inconveniente, mas de fato precisa aguardar a devolutiva do time responsável ao chamado Mounir, o caso já está sendo tratado por eles.
+[Cliente] - qual a data pra resolver?
+[Cliente] - não pode passar dessa manhã
+[Cliente] - você pode escalar referente a demora?
+[Analista] - De fato não conseguimos progredir por aqui Mounir, precisa aguardar a devolutiva ao chamado que já está tratando o problema.
+[Cliente] - entendo que não estão tratando
+[Cliente] - por ser algo simples
+[Cliente] - como você pode escalar?
+[Analista] - Se ocasionou um problema passível de um chamado não é algo simples, caso fosse, resolveria nesse atendimento para o senhor.
+[Analista] - Fora isso, algo mais?
+[Cliente] - deixar registrado uma reclamação então.. como faço?
+[Analista] - Você pode enviar a sua reclamação para a ouvidoria, seria no e-mail abaixo: [email]
+[Analista] - Algo mais?
+[Cliente] - seria isso
+[Analista] - Tudo bem! Qualquer duvida permanecemos a disposição, desejo um ótimo dia!! A [empresa] agradece o contato 😉
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179569 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: web >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Hospedagem de Sites, Criador, SSL, Registro
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Hospedagem Windows
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Gerenciar Sites e Domínios
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - Conseguiu obter o que procura com as informações acima?
+[Cliente] - Não, falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Cliente] - o site [dominio] esta dando erro 404
+[Analista] - Boa tarde, tudo bem?  Só um momento enquanto analiso o que pode ter ocorrido
+[Cliente] - obrigado
+[Cliente] - isso começõu ontem
+[Analista] - Só mais um momento
+[Analista] - Obrigado por aguardar e desculpe a demora. Eu analisei aqui e o site está fora do ar, pois o time interno identificou que foi identificado um formulário vulnerável no seu site e foi necessário desativar o site temporariamente.  Você pode verificar melhor na sua central do cliente, na aba meus chamados, lá terá mais informações e orientações bastando analisar e interagir no próprio chamado
+[Cliente] - ok
+[Cliente] - obrigado
+[Analista] - Por nada! A [empresa] agradece seu contato 🙂
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 2507179280 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - boa tarde
+[Analista] - Olá, Sindhosvet-SP! Eu sou Giba, assistente virtual da [empresa]. Vou te ajudar a encontrar a melhor solução para o seu negócio. Vamos começar? 😉
+[Analista] - Você já é cliente [empresa]?
+[Cliente] - 1
+[Analista] - Por gentileza, informe seu login
+[Cliente] - sinpavet
+[Analista] - Certo! Agora escolha uma das opções abaixo, por onde você prefere começar⤵️:
+[Cliente] - Contratar serviços
+[Analista] - Maravilha! Escolha abaixo qual opção deseja ⤵️:
+[Cliente] - 3
+[Analista] - Certo! Agora escolha uma das opções abaixo, por onde você prefere começar⤵️:
+[Cliente] - 2
+[Analista] - Em Sites e Aplicações temos diversas soluções. Qual seria a melhor para você?
+[Cliente] - 2
+[Analista] - Perfeito! Para que eu possa seguir com o seu atendimento, digite seu email.
+[Cliente] - [email]
+[Analista] - Vou te conectar com um(a) consultor(a) de vendas.Por favor, aguarde um momento.Importante: Se não houver interação por 6 minutos, o chat será encerrado. Fique à vontade para conversar, e vamos juntos encontrar a melhor solução para o seu negócio 🚀
+[Analista] - Olá Sindhosvet-SP, em que posso te ajudar?
+[Analista] - Boa Tarde! Tudo bem ? Como posso te ajudar hoje ?
+[Cliente] - Boa tarde Jean
+[Cliente] - Uma dúvida: tínhamos um site com vcs…não consigo mais achar…não sei se deixaram de pagar ou algo asssim…e caso não tenhamos mais, gostaria de saber como ativar ou contratar novamente. 😊
+[Analista] - Um momento, preciso verificar aqui.
+[Cliente] - Ok, obrigada
+[Analista] - O seu plano está ativo conosco, precisa validar com o suporte a questão do site não está no ar.
+[Analista] - Deseja que eu te transfira para falar com o suporte técnico ?
+[Cliente] - Sim, por favor
+[Analista] - Ok, vou te transferir para o setor responsável, um momento.
+[Analista] - Ola sou o Rafael, do Suporte Técnico da [empresa]. Estou aqui para te ajudar com qualquer questão da que você tenha. Como posso te auxiliar hoje?
+[Cliente] - Olá Rafael, tudo bem? Preciso atualizar nosso site do sindicato. Mas não consegui acessar
+[Cliente] - E queria saber se o site está ativo
+[Analista] - Certo, qual seria o site em questão por gentileza?
+[Cliente] - [dominio]
+[Analista] - Certo, pelo o que verifiquei esse domínio > [dominio] não está registrado, está registrado somente o >> [dominio]
+[Cliente] - Pode ser esse…não lembro rsrs
+[Analista] - O .[dominio], está disponível pra contratação
+[Analista] - Certo, vou verificar o site que tem conosco, um momento
+[Analista] - Verifica se esse é o domínio por gentileza: [link]
+[Cliente] - Isso mesmo
+[Cliente] - Tem alguma pendência com vcs?
+[Analista] - Não, está tudo pago em dia, estou verificando qual era o site que estava desenvolvido em sua Hospedagem
+[Analista] - Verifica se o conteúdo do site era esse por gentileza: [link]
+[Cliente] - Isso mesmo
+[Cliente] - Vou atuallizar. Tem alguma opção pra conseguir deixar o site mais atrativo? Tipo algum plano a parte pra ter acesso a mais opções?
+[Analista] - Tem esse também: [link]
+[Cliente] - Esse é como era  antes
+[Analista] - Então, no caso, vocês possuem um plano de Hospedagem, e dentro desse plano vocês tem direito ao nosso Criador de Sites, ele é bem simples. Seria mais uma ferramenta de arrasta e solta mesmo
+[Cliente] - Os dois são os mesmos(eu acho) rsrs
+[Cliente] - Certo
+[Cliente] - Tem outro plano um pouco melhor não sei…
+[Cliente] - Pra dar um upgrade
+[Cliente] - Ou to falam do besteira rsrs não entendo muito
+[Analista] - Então, no caso, na sua Hospedagem, você pode utilizar uma ferramenta chamada "Wordpress", ele é um criador de sites, CMS mais utilizado no ambiente web. Porém a sua Hospedagem é uma Hospedagem Windows, ela foi contratada ali por volta de 2004. O wordpress ele exige uma Hospedagem com a versão do PHP de forma nativa acima de 7.4, Isso pra rodar o site sem travamentos e tudo mais. A sua Hospedagem vai somente até a versão 7.0 e o PHP não roda de forma nativa, ele roda de forma emulada. Então se você optar por fazer o site pelo Wordpress, eu te recomendaria contratar uma Hospedagem Linux, onde o ambiente é 100% atualizado rodando a versão do PHP até a 8.3
+[Cliente] - Rsrs tudo grego pra mim mas entendi…no caso eu consigo ter uma versão melhor
+[Cliente] - Dependendo do meu note?
+[Cliente] - Ou computador
+[Cliente] - Ou só do Windows?
+[Analista] - Não, o note não interferem, a sua Hospedagem aqui com a [empresa] é Windows, Hospedagem Windows ela é um pouca antiga......
+[Cliente] - Ahhhh
+[Cliente] - Podemos fazer a contratação dessa hospedagem melhor?
+[Analista] - Então, Windows ela é recomendada para sites feitos em .ASP, .NET. Que são linguagens de programação antigas
+[Cliente] - O que eu preciso ter? Ou fazer? Rsrs
+[Analista] - Bom, você pode tentar utilizar o nosso criador de sites, que você tem direito na sua Hospedagem, ou realizar um upgrade para uma Hospedagem Linux, onde você consegue rodar o Wordpress, que é um criador de sites mais avançado, não é nosso, apenas disponibilizamos para você utilizar. O wordpress é mais robusto pois ele realiza uma conexão com o banco de dados, então ele é mais pra sites institucionais e tudo mais.
+[Cliente] - Não sei se te ajuda mas o nosso propósito é ter um site com informações do sindicato e somente atualizarei alguns documentos que ficam disponíveis pra quem acessar.
+[Analista] - Ah, no caso não é um site muito grande então, certo? Eu te recomendaria a tentar utilizar o nosso criador de sites mesmo, posso te deixar um vídeo feito por nós que explica 100% a utilização dele
+[Cliente] - Tipo não terá e-mails etc
+[Cliente] - Pois é… o q seria interessante pra mim é se tivesse algo em relação ao design…me envia o vídeo então por favor. ☺️
+[Cliente] - E muito obrigada pela ajuda 🙏🏼🫂
+[Analista] - Tem sim, nosso criador de sites te disponibiliza designs prontos, então você consegue utilizar algum design e só ir editando de forma desejada. Segue abaixo o vídeo para utilização dessa ferramenta: [link]
+[Cliente] - Valeu
+[Analista] - Por nada! De momento eu te oriento com alguma outra informação?
+[Cliente] - Só não tô conseguindo fazer o login [login] site da [empresa]
+[Cliente] - Mas fui no esqueci minha senha[senha] coisa te chamo ☺️
+[Analista] - Você diz pra acessar a central do cliente?
+[Analista] - Certo
+[Cliente] - Isso
+[Analista] - Certo, pelo o que verifiquei aqui o e-mail de recuperação de senha [senha] essa conta é o e-mail > [email], então se você tiver acesso a essa caixa postal você consegue realizar a alteração da senha [senha] central do cliente
+[Cliente] - Isso mesmo
+[Cliente] - Obrigada
+[Analista] - Certo, eu agradeço demais o seu contato conosco. Vou te transferir pra pesquisa de satisfação sobre o meu atendimento, se tiver um minutinho bem rápido para responder essa pesquisa, eu agradeço!! Essa nota ajuda demais o meu crescimento operacional. Excelente semana!
+},
+{
+Protocolo: 2507179713 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: web >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Analista] - Oi, boa tarde!! Tudo bem, como posso ajudar?
+[Cliente] - Boa Tarde
+[Cliente] - Tudo bem
+[Cliente] - Ref. a hospedagem do dominio = [dominio]
+[Cliente] - 
+[Cliente] - Fiz todos os procedimento de instalação
+[Analista] - Qual dominio?
+[Cliente] - Agora o Status fica só = FALHA
+[Cliente] - [dominio]
+[Cliente] - Cód.Cliente: [telefone]
+[Analista] - Um momento
+[Cliente] - OK
+[Cliente] - Ai ainda?
+[Analista] - Sim, verificando
+[Cliente] - OK no Aguardo
+[Analista] - Então o uso do WordPress em servidor Windows não é o mais recomendado, porque o ambiente Windows é mais compatível com linguagens como ASP e .NET. O WordPress, por ser baseado em PHP, costuma funcionar melhor em servidores Linux, que oferecem maior compatibilidade e desempenho para esse tipo de aplicação. Mas se voce quiser como no painel deu erro, voce pode tentar fazer essa instalação manual: [link]
+[Cliente] - Certo
+[Cliente] - Mais não quero fazer nada manual
+[Cliente] - Quero usar os recursos da LocaWeb
+[Cliente] - Como faço para trocar então Windows para Linux?
+[Analista] - Você vai entrar no seu painel de hospedagem. Pode excluir a sua hospedagem atual, que é o seu site no servidor Windows — assim, o seu domínio será desvinculado de lá. Ou então, você pode apenas acessar essa hospedagem Windows e desvincular o domínio dela, criando uma nova hospedagem. Não é necessário contratar outro produto, tá? Quando me refiro a 'hospedagem', estou falando da criação de um novo site.
+[Cliente] - Sim como esta tudo vazio
+[Cliente] - Isso afeta os email
+[Cliente] - ?
+[Analista] - Voce tem emails criados nessa hospedagem?
+[Cliente] - Utilizando 15 caixas postais
+[Analista] - Nesse caso voce tem as opções de excluir so o dominio da hospedagem e o email vai ficar com o dominio provisorio, mas nisso voce não vai perder as suas caixas de email ou voce pode fazer o backup dos emails para não perder nada.
+[Cliente] - 
+[Cliente] - Aqui?
+[Cliente] - Mais esse dominio que esta nessa hospedagem tem como migrar ele?
+[Analista] - Sim, dessa forma você desvincula o domínio [dominio] da hospedagem e ele ficará com o domínio provisório
+[Analista] - Seria essa questão
+[Analista] - Sim, você posteriormente criará uma nova hospedagem em um ambiente Linux vinculado a esse domínio
+[Cliente] - Certo
+[Cliente] - Mais e os Email?
+[Cliente] - 
+[Cliente] - Posso deletar então que não vou perder as caixas postal?
+[Analista] - Ficaram com o domínio provisório momentaneamente até o Sr. criar novamente a hospedagem com o domínio [dominio]
+[Cliente] - A entendi
+[Cliente] - Momento que vou fazer aqui
+[Analista] - Essas caixas ficarão com o provisório, pode excluir sim
+[Cliente] - Deletado
+[Cliente] - Criando a nova Hospedagem
+[Cliente] - Selecionei = Linux
+[Cliente] - Ativando
+[Analista] - Boa
+[Analista] - Agora é so aguardar a ativação dessa hospedagem e fazer a instalção do WP
+[Cliente] - Certo
+[Cliente] - Esse processo demora?
+[Cliente] - [dominio] Ativo
+[Analista] - A ativação é de 15 minutos a 1 hora, se nesse tempo não ativar, pode retorna o contao
+[Analista] - *contato
+[Cliente] - Já subiu a hospedagem
+[Cliente] - Como migro as caixas postal?
+[Analista] - Voce teria que fazer o backup do seus emails:
+[Analista] - [link]
+[Analista] - E depois criar essas caixas de novo na sua nova hospedagem e fazer a sincronia das mensagens para não perder
+[Cliente] - ué mais quando te perguntei lá traz se conseguia fazer a transferencia voce falo que sim
+[Analista] - Eu não disse que a [empresa] faz migração de email
+[Cliente] - Pergunta: Mais esse dominio que esta nessa hospedagem tem como migrar ele? Resposta: Sim, dessa forma você desvincula o domínio [dominio] da hospedagem e ele ficará com o domínio provisório
+[Analista] - Mas a pergunta aqui é dos dominios
+[Analista] - O dominio voce ja migrou pra nova hospedagem e o seu email ficou com o dominio provisorio
+[Cliente] - Não foi isso que entendi
+[Cliente] - Mais vamos lá agora ja esta feito.
+[Cliente] - Criei o banco MySQL
+[Cliente] - Só que ao logar no painel está com uma MSG que é para atualizar ele
+[Analista] - Ele já esta ativo?
+[Cliente] - Informação da versão: 4.7.7, última versão estável: 4.9.11
+[Analista] - Boa. Pode ir na parte de aplicativos e ativar o WP
+[Cliente] - Mais e a versão do Banco está muito antiga
+[Analista] - Essa é versão padrão do banco de dados da hospedagem compartilhada, não tem como ser alterada
+[Cliente] - é possivel migrar para a Dedicada?
+[Analista] - Sim. Voce faria o mesmo processo que a gente fez nesse atendimento, e teria que ter a hospedagem dedicada contratada
+[Cliente] - 
+[Cliente] - Ainda com erro no Linux
+[Analista] - Pode olhar o seu site, agora foi instalado o WP
+[Analista] - Ai agora so é um bug de painel mesmo
+[Analista] - 
+[Analista] - Mais alguma dúvida?
+[Cliente] - Certo
+[Cliente] - Nao apareceu essa imagem para mim ainda
+[Cliente] - 
+[Analista] - Tenta um guia anonima, por gentileza
+[Cliente] - 
+[Cliente] - Também nao
+[Analista] - Voce consegue tentar em um 4G ou outra internet
+[Analista] - ?
+[Analista] - Por que até no google pra mim abriu
+[Analista] - 
+[Cliente] - OK
+[Cliente] - Obrigado
+[Analista] - Deu certo?
+[Cliente] - 1 Faço o BKP 2 Cria a caixa postal na hospedagem 3 Faço o restaure dos email pelo outlook Certo?
+[Analista] - Isso mesmo
+[Analista] - Mais alguma dúvida?
+[Cliente] - OK
+[Cliente] - Obrigado
+[Analista] - De toda forma, agradeço sua atenção! E espero poder ajudá-lo em outra oportunidade.
+[Analista] - A [empresa] agradece seu contato 🙂 (O atendimento foi encerrado)
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 25071724438 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - olá boa tarde
+[Analista] - Olá Bruno Gomes!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: bgomesc. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+},
+{
+Protocolo: 25071725752 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - boa tarde
+[Cliente] - boa tarde
+[Analista] - Olá [codigo_de_barras]!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: ctsj. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Cliente] - ok
+[Cliente] - ok
+[Cliente] - Ok
+[Analista] - Boa noite, sou o Everton do suporte, posso ajudar?
+[Cliente] - Boa noite Everton, eu já consegui falar pelo telefone
+[Cliente] - Não resolveu mas foi aberto um protocolo
+[Analista] - Perfeito.
+[Analista] - A [empresa] agradece tenha uma boa noite.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 25071729896 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - Olá.
+[Analista] - Olá ANTONIO MESSIAS DA ROCHA FILHO!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: tonirochafilho. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - Falar com atendente
+[Analista] - Essa opção não é válida. Escolha uma das opções disponíveis.
+[Cliente] - 7
+[Analista] - a) Acesse o Painel de Hospedagem em [link] Selecione a opção Administrar Site do domínio desejado.c) Clique em Arquivos e FTP e, depois, em Permissão de Arquivos, clique em Gerenciar.Veja também mais detalhes sobre esse procedimento em[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Olá, tudo bem? Como posso te ajudar?
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 25071732209 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - 2
+[Analista] - Olá REVER CONSULTORIA LTDA!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: reverconsulting. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Boa noite, com sua licença, como podemos auxiliar?
+[Cliente] - Boa Noite , preciso de uma ajuda para liberar em meu DNS o registro do Configuração SPF/DKIM para [dominio]
+[Cliente] - poderia me auxiliar com isso ?
+[Analista] - Deixe-me verificar, um momento, por favor.
+[Analista] - Desculpe a demora, no caso o serviço de e-mail que possui na zona DNS não seria [empresa]. Nessa caso, você precisa realizar esses apontamentos acessando a zona DNS e verificar esses apontamentos com sua provedora de serviço de e-mail
+[Cliente] - Minha zona Dns fica com a [empresa]
+[Analista] - Sim, fica, entretanto o serviço de e-mail informado na zona DNS seria o da microsoft, então é necessário acessa-la na [empresa] e realizar os apontamentos desse caso.
+[Analista] - Por falta de interação, estamos encerrando esse diálogo. A [empresa] agradece seu contato.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 25071832409 >> Data: 2025-07-17 >> Fila: Hospedagem_Windows >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Hospedagem >> Produto: Hospedagem
+[Cliente] - ola
+[Analista] - Olá Vagner!  Eu sou o Giba, seu assistente virtual da [empresa].😊Pode contar comigo para tirar suas dúvidas e facilitar sua experiência por aqui!
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] utilize a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor digite o número correspondente ao assunto ⤵️:
+[Cliente] - 1
+[Analista] - Preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: odssolutions. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual assunto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 1
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Por favor digite o número correspondente ao assunto⤵️:
+[Cliente] - 1
+[Analista] - Um site é definido como um espaço reservado no servidor [empresa], dedicado a armazenar os arquivos, caixas postais, bancos de dados e páginas.Cada site tem uma instalação independente e um domínio principal.É possível, no entanto, configurar vários outros domínios apontando para o mesmo site, esses são os domínios adicionais.
+[Analista] - O gerenciamento de Sites e Domínios poderá ser feito através do Painel da Hospedagem que pode ser acessado em [link] entender melhor as possibilidades de configuração de sites e domínios, recomendamos estes tutoriais:[link]
+[Analista] - As informações acima ajudaram? Se precisar de mais apoio, estou aqui! 😊
+[Cliente] - Falar com analista
+[Analista] - Já viu como é fácil acessar seu FTP através do FileZilla?Temos um vídeo com todas as informações que você precisa para realizar o download e o acesso através do software[link]
+[Analista] - Ainda deseja falar com o analista?
+[Cliente] - Sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+},

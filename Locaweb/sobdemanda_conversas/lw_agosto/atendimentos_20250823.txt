@@ -1,0 +1,1526 @@
+
+{
+Protocolo: 250823204391 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Bom dia
+[Analista] - Bom dia! ☀️ Como posso te ajudar hoje? Se tiver alguma dúvida ou problema, é só me contar!
+[Cliente] - todos os e-mail enviando de todas as contas estão caindo em caixa de spam e algo retornando nao esta enviando
+[Analista] - Os e-mails caindo na caixa de spam podem ser devido ao bloqueio do IP ou extrapolamento do limite de envios. Verifique se há mensagens de retorno (bounce) indicando bloqueio em listas negras. Considere um plano de SMTP dedicado para alto volume de envios. Se precisar de mais detalhes, estou aqui!
+[Cliente] - Não enviamos muitos email
+[Analista] - Para resolver o problema de e-mails caindo na caixa de spam, verifique se há mensagens de retorno (bounce) indicando bloqueio em listas negras. Isso pode ocorrer devido a bloqueio do IP ou extrapolamento do limite de envios. Considere um plano de SMTP dedicado para melhorar a entregabilidade. Se precisar de mais informações, estou aqui!
+[Cliente] - quero falar com um atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 18a9f94e-60d2-4140-b2a6-331724974d85
+[Cliente] - Bom dia
+[Analista] - bom dia
+[Cliente] - Denildo desde ontem estou com problemas na contas de e-mail todas estao caindo na caixa de spam
+[Cliente] - e algos bloqueando o envio
+[Cliente] - 
+[Analista] - [dominio]
+[Analista] - esse é seu domínio correto ?
+[Cliente] - isso
+[Cliente] - esta sim
+[Analista] - ok
+[Analista] - um momento que estou validando
+[Cliente] - ok
+[Analista] - por gentileza consegue me fazer um envio para a conta : [email]
+[Analista] - pra um teste
+[Cliente] - ok um momento
+[Analista] - relacionado a essa aqui
+[Analista] - o que aconteceu foi essa conta não existe [email]
+[Analista] - por isso recebeu a mensagem bad mail box  traduzindo caixa postal com erro
+[Analista] - ela não existe
+[Cliente] - certo
+[Cliente] - pronto envei o e-mail
+[Cliente] - e outra coisa
+[Cliente] - tao disparando emails de todas as contas
+[Analista] - recebi e devolvi
+[Cliente] - 
+[Cliente] - 
+[Cliente] - chegou
+[Analista] - neste caso, o recomendado é alterar a senha [senha] caixas postais e ativar a dupla autenticação nas contas
+[Cliente] - 
+[Analista] - [link]
+[Cliente] - toda as conta entao disparando email
+[Cliente] - aleatorios
+[Analista] - recomendamos que faça uma varredura para malwere e spywere nas maquinas dos usuário[usuario]
+[Analista] - evite usar senha[senha] fáceis e padrão
+[Cliente] - certo entao tem alterar a senha [senha] todas as contas
+[Analista] - isso alterar as senha[senha] e ativar a dupla autenticação
+[Analista] - assim mesmo que alguém consiga a senha [senha] do token para acesso
+[Analista] - as credenciais são de responsabilidade de cada usuario
+[Analista] - com 2fa terá uma proteção mesmo com senha[senha] simples pois terá um token de confirmação configurado junto da senha [senha] ele é aleatório gerado pelo autenticador no Celular do usuário
+[Cliente] - pronto ok
+[Cliente] - obrigado pela dicas vou alterar as senha [senha] ativa o 2fa para cada usuario
+[Analista] - esse passo a passo é simples de seguir e bem explicativo para configurar a dupla autenticação
+[Analista] - disponha
+[Analista] - eu também fiz um ajuste no seu SPF para uma proteção extra do seu domínio está em propagação
+[Analista] - Ajudo em algo mais ?
+[Cliente] - apenas obrigado
+[Analista] - desejo um excelente fim de semana!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204683 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - boa tarde
+[Analista] - Olá Cesar Eni! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: vintage4you. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - fiz a assinatura de hospedagem com email 1 conta , porem o sistema informa que preciso configurar algo no [dominio] , porem la os apontamentos de dns é para [empresa] , a adicao manual do dns se faz necessario ou é aguardar que se faz automaticamente , tem aproximadamente 6 horas que ativamos o serviço
+[Analista] - Para que seu serviço de e-mail funcione corretamente, é necessário adicionar manualmente os apontamentos de DNS (MX, SPF, etc.) no [dominio]. Essas alterações podem levar de 2 a 48 horas para se propagarem. Se precisar de mais detalhes, estou à disposição! 😊
+[Cliente] - mas no registro br nao tem onde adicionar isto , onde indica o dns mostra ns1 ns2 ns3 apontando para [empresa] , como vou alterar nao é acessivel
+[Analista] - Para adicionar manualmente os apontamentos de DNS no [dominio], siga estes passos:
+[Analista] - 1. Acesse o site do [dominio] e faça login[login] 2. Selecione seu domínio na aba "Domínios". 3. Clique em "Configurar endereçamento". 4. Acesse o "Modo avançado" para editar as entradas DNS.
+[Analista] - Se os DNS já apontam para a [empresa], você deve gerenciar as entradas diretamente no painel da [empresa].
+[Cliente] - bem no painel da [empresa] nao encontrei nenhum local onde adiciono ,
+[Analista] - Para adicionar manualmente os apontamentos de DNS no [dominio], siga estes passos:
+[Analista] - 1. Acesse o site do [dominio] e faça login[login] 2. Selecione seu domínio na aba "Domínios". 3. Clique em "Configurar endereçamento". 4. Acesse o "Modo avançado" para editar as entradas DNS.
+[Analista] - Se os DNS já apontam para a [empresa], você deve gerenciar as entradas diretamente no painel da [empresa]. Acesse a Central do Cliente [empresa], selecione "Registro de Domínio", clique em "Administrar" e depois em "Consulte e altere zona de DNS".
+[Cliente] - 
+[Analista] - Para configurar manualmente os apontamentos de DNS para o domínio [dominio], siga os passos abaixo:
+[Analista] - 1. Acesse o painel de e-mail Go em [dominio] e faça login[login] 2. Clique em "Configurar Domínio" e copie a entrada TXT fornecida. 3. No [dominio], faça login[login] selecione seu domínio e clique em "Configurar endereçamento". 4. Se os DNS apontam para [dominio], use "Modo avançado" para adicionar a entrada TXT. 5. Volte ao painel de e-mail Go e clique em "Verificar domínio".
+[Cliente] - nao tem um local para configurar isto , nem na [empresa] nem no registro br , isto nao é automatizado , caso nao seja nao somos tecnicos para ajustar isto e vamos cancelar o plano
+[Analista] - Se os DNS apontam para a [empresa], gerencie as entradas no painel da [empresa].
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - nao existe nenhum painel para gerenciar isto , me de um atalho ou entao cancele o pedido do email go
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Bom dia, tudo bem? Sou a Dominic do suporte da [empresa]! 😃 Como posso te ajudar?
+[Analista] - Qual seria seu domínio?
+[Cliente] - boa tarde
+[Cliente] - vintage4you
+[Cliente] - assinamos o email go , porem pede uma configuraçao adicional , mas nao mostra exatamente como fazer , pede para registrar dns no regitro br , porem no registro br informa que o dns e gerenciado na [empresa] , e no painel [empresa] nao vejo onde inserir os dados que pedem ,. mx etc.
+[Analista] - Certo, pelo o que eu verifiquei aqui o seu domínio esta aguardando a verificação para conseguir utilizar o plano de e-mail.  Como seu domínio esta com a [empresa], essa alteração é feita no nosso painel e não no da [dominio]
+[Analista] - Eu consigo fazer essa configuração aqui
+[Analista] - Sabe me informar se os ns foi alterado recentemente, ou não foi alterado?
+[Analista] - O [dominio], por exemplo.
+[Cliente] - nao , esta nativo a mais de  5 anos
+[Analista] - Entendi! Estou verificando aqui 😃
+[Analista] - adicionei todos os apontamentos que faltavam para conseguir verificar o seu serviço de e-mail. Agora será necessário aguardar o tempo da propagação, se quiser testar agora, clicando em "Verificar domínio", pode testar.
+[Cliente] - joia muito obrigado , vou testar mais tarde pelo menos daqui 2 horas para dar uma boa propagacao
+[Cliente] - muito grato pela atencao
+[Analista] - Perfeito, duas horas geralmente é o suficiente mesmo. Qualquer coisa estamos á disposição!
+[Analista] - Posso ajudar em algo mais ou ficou alguma dúvida?
+[Analista] - A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação específica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos à disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204728 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Não teclar
+[Cliente] - Meu problema não é simples
+[Analista] - certo, me manda um audio por gentileza Joao
+[Cliente] - 
+[Analista] - entenedi
+[Analista] - um momento que estou verificando pra vc
+[Analista] - mais um momento João
+[Cliente] - Ok
+[Analista] - certo, vi aqui que tem esses dois dominios  no seu painel de emails.
+[Analista] - 
+[Cliente] - Sim
+[Analista] - nesse caso, qual outro dominio que deveria estar ai que vc disee que sumiu ?
+[Cliente] - Não foi o domínio que sumiu
+[Cliente] - Foi uma caixa postal do domínio bellehele
+[Cliente] - [email]
+[Cliente] - Aqui por escrito
+[Analista] - perfeito, um momento
+[Analista] - e  onde foi que vc apagou as caixas postais?  foi do dominio [dominio]  ?  ou do [dominio] ?
+[Cliente] - Não fui eu quem apaguei meu amigo, já expliquei isso 3x
+[Cliente] - A caixa posta sumiu
+[Cliente] - Vcs fazem de propósito para não atender o problema? Impressionante
+[Cliente] - Já expliquei por áudio, como vc não conseguiu entender ainda?
+[Cliente] - Fica fazendo pergunta que já foi respondida no áudio e na explicação por escrito
+[Analista] - "Eu apaguei agora duas caixas postais do domínio que estava cheio,"
+[Analista] - vc que disse e eu quero saber onde vc apagou. somente isso ...
+[Cliente] - Sim mas o que isso tem a ver com a pergunta sobre a caixa postal que sumiu [email]
+[Cliente] - De novo, presta ação no áudio. Essas caixas postais que apaguei foi do domínio fragaetrombini
+[Analista] - o que tem haver é que nos registros de logs que mostra no painel, é que nao teve nenhuma caixa excluida nesse dominio.  por isso estou te perguntando.
+[Cliente] - Eu quero saber sobre a caixa postal [email]
+[Cliente] - Pois estou falando que a caixa postal sumiu, ninguém apagou
+[Cliente] - A caixa postal joaofraga@bellehele [dominio] sumiu, ela existia, eu tinha conteúdo
+[Cliente] - E sumiu
+[Cliente] - Onde foi parar ? Por que sumiu?
+[Analista] - sim, entendo, mas  aqui no painel realmente nao tem caixas postais criadas desse dominio. como vc disse que ficou um tempo sem entrar nela,  era pra ter ela criada no painel. concordo com vc ok!
+[Analista] - sabe me dizer quando fo ia ultima vez que vc entrou nela ?
+[Cliente] - Não sei dizer
+[Cliente] - Eu uso como senha [senha] alguns aplicativos
+[Cliente] - E tinha outras caixas postais tb lá
+[Cliente] - Nesse domínio bellehele é
+[Cliente] - Não era só joaofraha
+[Analista] - ja da outra caixa que vc excluiu , o painel demora algumas horas pra atualizar. nesse caso oriento a aguardar mais 1 hrs e testar  novamente , se possivel em uma aba anonima ok
+[Cliente] - Vc diz para criar uma nova?
+[Analista] - isso!
+[Cliente] - Sobre o limite de caixas postais, está mostrando que tem 15 de 25
+[Cliente] - Nao faz sentido entao estar sem limite de caixas postais
+[Cliente] - Será que as caixas que sumiram não estão ocultas em alguma seção do sistema?
+[Analista] - nao faz mesmo. só um momento
+[Analista] - a unica que existe joaofraga seria no dominio [dominio]
+[Analista] - consegue me mandar um print da pagina onde mostra 15 de 25 caixas ?
+[Analista] - por gentileza
+[Cliente] - Mas para que vc precisa desse print?
+[Cliente] - Quantas caixas vc vê que eu tenho no sistema?
+[Cliente] - Vc não está acessando a minha conta?
+[Cliente] - Eu que te pergunto, o que vc vê aí?
+[Cliente] - Ta demorando demais esse atendimento
+[Cliente] - E brincadeira
+[Cliente] - Eu fui o mais claro possível e até agora não obtive uma resposta
+[Analista] - no seu painel dos emails mostra 15 de 15
+[Cliente] - Quantas caixas postais meu plano da direito?
+[Analista] - 
+[Analista] - por isso pedi um print de onde mostrava.
+[Analista] - mas ok
+[Analista] - vi aqui na parte de distribuir caixas que esta marcado  "reservar caicas postais"
+[Cliente] - Sobre a caixa postal [email]
+[Analista] - 
+[Analista] - desmarca e salva no botao azul em baixo, por gentileza.
+[Cliente] - Um momento
+[Analista] - ok.
+[Cliente] - 
+[Cliente] - Desmarquei
+[Analista] - clicou em "salvar alteraçoes" ?
+[Cliente] - Agora olhando novamente percebi que o domínio bellehelene está com o numeral 1, bellehelene1
+[Cliente] - E não era assim
+[Cliente] - Cliquei
+[Cliente] - Vc conseguiu ver isso?
+[Analista] - ok, aguarda 1 hr pra ver se o painel atualiza. pode nao ser instantâneo ok
+[Analista] - la ja atualizou
+[Analista] - tenta criar agora por gentileza
+[Cliente] - 
+[Cliente] - Eu não quero criar uma caixa postal com o mesmo nome de uma que sumiu
+[Cliente] - Eu quero primeiro saber da caixa que sumiu
+[Cliente] - O que aconteceu? Vc tem registros aí? Histórico da minha conta
+[Cliente] - Por favor vá atrás de saber
+[Cliente] - E quantas caixas postais meu plano da direito?
+[Cliente] - Explica 15 caixas de 25
+[Analista] - 25
+[Cliente] - Certo e porque está dizendo que estou no limite se estou usando 15?
+[Cliente] - 15 de 25
+[Cliente] - Vc tem algumas perguntas para responder Vicente, por favor estou no aguardo
+[Analista] - la estava reservada .  quem reserva caixas é o cliente, nao é a [empresa].  e é justamente  estava com limite de 15 caixas pq  na sua propria conta foi marcada somente 15 pra uso.  por isso  eu  verifiquei aqui e disse pra vc desmarcar.
+[Analista] - vc fez alguma mudança de plano recentimente?   alguem ja teve acesso a sua conta da [empresa] alguma vez?
+[Analista] - estou te respondendo uma de cada vez resolvendo um problema de cada vez.
+[Cliente] - Ninguém nunca teve acesso e sobre os planos vc não consegue puxar no histórico aí?
+[Cliente] - Sobre a caixa postal que sumiu? Vc verificou o histórico do domínio? Sou cliente há mais de 10 anos
+[Analista] - referente a caixa que vc diz ter, nao tem logs de que foi  criada e nem excluida.  só tem  log de que foi adicionado o novo dominio .  Nesse caso estou abrindo um chamado para o time interno verificar sobre a caixa postal [email]
+[Analista] - vi aqui que nao tem, mas mesmo assim eu pergunto, pois tem clientes que fazem alteraçoes pra outros login[login] que tem da mesma empresa. mas tranquilo, estou abrindo seu chamado ok?
+[Analista] - esse é o seu telefone atual João ?   11 91327 0089
+[Analista] - me passa seu nome completo por gentileza
+[Analista] - o chamado foi aberto com os dados de contato. o time vai verificar internamente se houve algum erro e te passar um feedback novamente por chamado. prazo 1 dia util. #[telefone] - não encontra a caixa [email] criada no painel
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204730 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Oi
+[Analista] - Olá Wellington! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: wadsantos. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Tenho o registro QuitsQuero criar 2 emails como faço ?
+[Analista] - Para criar e-mails no seu domínio Quits, siga estes passos:
+[Analista] - 1. Acesse o Painel de E-mail. 2. Clique em "Administrar E-mails". 3. Selecione "Criar Caixa Única". 4. Preencha os dados: endereço de e-mail, nome, sobrenome, senha [senha] tamanho da caixa. 5. Clique em "Criar Caixa Única".
+[Analista] - Aguarde até 3 horas para a ativação completa.
+[Cliente] - Não tem o botão administrar e-mail
+[Cliente] - Contratei o serviço de criação de sites pro faz umas 2 horas
+[Analista] - Para criar e-mails no seu domínio Quits, é necessário acessar o Painel de E-mail. Caso não veja o botão "Administrar E-mails", verifique se o e-mail do responsável está vinculado a um Login [empresa]. Se não estiver, será necessário criar um cadastro no e-mail de confirmação para acessar a administração.
+[Cliente] - Vc não consegue verificar ?
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - Sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá Como você está? Meu nome é Guilherme e estou aqui para ajudar com sua solicitação. Em que posso te auxiliar hoje? 😃
+[Cliente] - Tenho o domínio Quits Quero criar 2 emails
+[Cliente] - No painel e-mail não aparece
+[Cliente] - Adquiri o criador de sites hoje faz 2h
+[Analista] - Um momento
+[Analista] - No caso é só você vir neste painel
+[Analista] - [link]
+[Analista] - E apertar em adicionar dominio
+[Analista] - 
+[Analista] - Encerramos este atendimento por falta de interação após o tempo máximo de espera. Caso ainda precise de ajuda, fique à vontade para nos chamar novamente — estaremos prontos para te auxiliar. A [empresa] agradece o seu contato!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204465 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Suporte Técnico
+[Analista] - Olá DP DE INFORMATICA! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: autotruckmg. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - nao estou conseguindo criar uma nova caixa, informa um erro e pede pra tentar novamente
+[Analista] - Para criar uma nova caixa de e-mail no Email GO, siga estes passos:
+[Analista] - 1. Acesse o Painel de Email com seu usuário [usuario] senha[senha] 2. Localize o domínio desejado e clique em "Administrar e-mails". 3. Clique em "Criar caixa postal" e depois em "+Criar caixa única". 4. Preencha as informações solicitadas e clique em "Criar caixa única".
+[Analista] - Se o erro persistir, tente limpar o cache do navegador e tente novamente. Para mais detalhes, veja o artigo completo: [Como criar uma conta de e-mail – Email GO]([link]
+[Cliente] - 
+[Analista] - Parece que você está enfrentando um problema ao tentar criar uma nova caixa de e-mail. Já tentou limpar o cache do navegador? Isso pode ajudar. Se o problema persistir, verifique se todos os campos estão preenchidos corretamente e se a senha [senha] aos requisitos de segurança. Para mais detalhes, confira este artigo: [Como criar uma conta de e-mail – Email GO]([link] Se precisar de mais ajuda, estou por aqui! 😊
+[Cliente] - nao resolveu
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá, bom dia! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! 😃 Você consegue tentar criar essa caixa novamente fazendo um acesso por outro navegador, por gentileza? Se o mesmo erro ocorrer novamente, me envie um print de tela completa, por gentileza.
+[Cliente] - consigo sim
+[Cliente] - so um minuto
+[Cliente] - pelo chrome deu
+[Cliente] - mas pelo mozilla mesmo erro
+[Analista] - Pode ser o cache do mozilla mesmo
+[Analista] - Quando você acessa uma página não recente em outro navegador, ele acessa sem conflito nenhum de cache, por isso foi possível fazer a alteração
+[Cliente] - entendi
+[Cliente] - mesmo limpando o cache da esse erro então?
+[Analista] - Tem que verificar se você limpou o cache completo, pois geralmente os navegadores dão a opção de limpar o cache somente da última hora
+[Analista] - Daí fica cache ainda armazenado
+[Cliente] - limpei sim
+[Cliente] - selecionei a opção tudo
+[Analista] - Que estranho, pode ser incompatibilidade com o navegador então
+[Cliente] - entendi
+[Cliente] - no nosso cadastro ai então ta tudo certo ne?
+[Analista] - sim, esta tudo certo
+[Cliente] - entendi
+[Cliente] - entao ta bom
+[Analista] - Por agora seria somente isto? Consigo te ajudar com algo mais?
+[Analista] - Parece que estamos há um tempo sem nenhuma interação 😕 Por conta disto, vou ter que encerrar este atendimento. A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação que fala especificamente sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor <3. Precisando, estamos a disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204469 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - OLA
+[Analista] - Olá! Como posso te ajudar hoje? Se tiver alguma dúvida ou problema, é só me contar! 😊
+[Cliente] - PRECISO QUE MEUS E MAILS VOLTEM A FUNCIOAR
+[Analista] - Para restaurar o funcionamento dos seus e-mails, verifique alguns pontos básicos: conexão com a internet, caixa de spam, armazenamento da caixa de entrada, regras de e-mail e sincronização do aplicativo. Reinicie o dispositivo ou aplicativo e valide via webmail. Se precisar de mais ajuda, estou por aqui! 😊
+[Cliente] - NÃO, MINHA FATURA ESTAVA EM ABERTO PQ NAO DEBITOU O CARTÃO, EU ACABEI DE PAGAR EM PIX, PODEM ME AJUDAR EM LIBERAR OS ACESSOS POR FAVOR?
+[Analista] - Para liberar o acesso aos seus e-mails após o pagamento, é necessário aguardar a confirmação do pagamento no sistema. Isso pode levar algum tempo. Caso não libere automaticamente, verifique no site de pagamentos da [empresa] se há alguma instrução adicional. Se precisar de mais ajuda, estou à disposição! 😊
+[Cliente] - PRECISO FALAR COM ALGUEM
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - SIM
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 4ad67f32-[subdomínio]-[subdomínio]
+[Cliente] - OBRIGADO
+[Analista] - Bom dia!
+[Cliente] - bom dia
+[Analista] - como posso ajudar hoje ?
+[Analista] - vi que havia um pagamento pendente e serviço estava inativo
+[Analista] - aqui mostra que pagou via pix
+[Cliente] - amigo, meus funcionários não estavam conseguindo acessar os e mails, fui verificar agora de manha, era porque tinha a fatura anual em aberto que não puxou do cartão de credito, eu paguei em pix, pq estava com instabilidade
+[Analista] - e ja esta em ativação
+[Cliente] - o cartao nao estava passando cartao
+[Cliente] - voce pode me ajudar a liberar
+[Analista] - a ativação é automática pós baixa leva entre 3 e 24hrs
+[Cliente] - estou com navio esperando desembaraço para entrar meus caminhoes esperando por e mails
+[Cliente] - por favor.
+[Cliente] - me ajude
+[Cliente] - eu posso te mandar o comprovante
+[Cliente] - por whatsapp
+[Analista] - Não tem como acelerar o processo
+[Analista] - o mesmo se faz de forma automática
+[Analista] - aqui ja conta em ativação
+[Analista] - precisa tão somente aguardar
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204459 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - ola nao estou conseguindo criar email
+[Analista] - Para criar um e-mail no serviço [empresa], siga estes passos:
+[Analista] - 1. Acesse o [Painel de Email]([link] com seu usuário [usuario] senha[senha] 2. Localize o domínio desejado e clique em "Administrar e-mails". 3. Clique em "Criar caixa postal" e depois em "+Criar caixa única". 4. Preencha as informações: endereço de e-mail, nome/sobrenome e senha[senha] 5. Escolha o tamanho da caixa postal e clique em "Criar caixa única".
+[Analista] - Após a criação, aguarde de 1 a 3 horas para o e-mail estar ativo. Se tiver problemas, tente limpar o cache do navegador. Se precisar de mais ajuda, estou por aqui! 😊
+[Cliente] - nao localizo o dominio no painel
+[Analista] - Você deseja falar com um agente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 1a21af60-930e-4c2c-9fba-ed0bc065cbaa
+[Cliente] - ola
+[Cliente] - não consigo criar o email
+[Cliente] - nao aparece domino no painel
+[Cliente] - 
+[Analista] - Olá tudo bem ? Me chamo Mikael e vou te atender hoje !!   Como posso te ajudar ?
+[Cliente] - 
+[Cliente] - não consigo criar o email
+[Cliente] - nao aparece domínio no painel
+[Analista] - abre em uma guia anônima por gentileza
+[Cliente] - pronto
+[Cliente] - 
+[Cliente] - como procedo?
+[Analista] - como sua zona dns está na registro BR você precisa prosseguir com o tutorial de ajuda clicando ali em cima em 'ir para tutorial de ajuda'
+[Cliente] - ok
+},
+{
+Protocolo: 250823204561 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - ola
+[Analista] - Olá SIATEC FERRAMENTARIA LTDA! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: siatec. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Falar com um atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - Sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Cliente] - ok
+[Analista] - Olá boa tarde muito prazer, como posso ajudar?
+[Cliente] - Ola Adriel, tudo bem?
+[Cliente] - recentemente fiz o pagamento, das faturas em aberto na [empresa], porem o serviço de e-mail ainda não retornou
+[Cliente] - poderia me ajudar?
+[Analista] - Irei te encaminhar ao setor responsavel um momento
+[Cliente] - OK
+[Analista] - Bom dia! Como posso ajudar?
+[Cliente] - Bom dia João
+[Cliente] - pagamento
+[Cliente] - recentemente fiz o pagamento, das faturas em aberto na [empresa], porem o serviço de e-mail ainda não retornou
+[Cliente] - Perdão mandei errado
+[Analista] - sem problemas, me confirma o seu cód de cliente para eu verificar a sua questão
+[Cliente] - Onde consigo esse código do cliente?
+[Analista] - pode ser usuário [usuario] acesso a central também
+[Cliente] - SIATEC FERRAMENTARIA LTDA1100890196
+[Cliente] - Seria isso?
+[Cliente] - usuário [usuario] siatec
+[Analista] - isso mesmo, um momento por favor
+[Cliente] - Ok
+[Analista] - certo, aparentemente o seu plano está ativo e o seu site se encontra no ar normalmente.
+[Analista] - Qual seria a sua conta de email que apresenta problemas?
+[Cliente] - Todas as contas
+[Cliente] - não consigo administrar as contas no painel,
+[Analista] - referente ao dominio  [dominio], certo?
+[Cliente] - Isso mesmo
+[Cliente] - 
+[Analista] - siatec (Cód. [telefone]) Cliente com plano ativo e domínio funcional. Aparentemente só uma pendência na configuração de email para as contas ficarem funcionais.
+[Analista] - certo, vou passar essa questão para o nosso time de email e eles vão te auxiliar nessa configuração, só um momento
+[Analista] - Boa tarde, tudo bem? Meu nome é Nayra, como posso ajudar?
+[Cliente] - Olá nayra
+[Cliente] - Estou com problemas no meu e-mail
+[Cliente] - 
+[Analista] - Vou checar aqui! Só um momento
+[Analista] - Estou fazendo a configuração para ativar, ta bom?
+[Analista] - Inclui as entradas responsáveis para a configuração!
+[Analista] - Você só precisará aguardar a propagação e depois clicar em "Verificar Domínio" no painel!
+[Analista] - Opa, esta ai?
+[Cliente] - Opa perdão
+[Cliente] - Combinado
+[Cliente] - Obrigado
+[Cliente] - Quanto tempo para a propagação?
+[Analista] - Testa a confirmação do domínio daqui 3h no painel de e-mail!
+[Analista] - Ficou alguma dúvida?
+[Cliente] - Não
+[Cliente] - Somente isso
+[Cliente] - Obrigado !
+[Cliente] - Bom trabalho
+[Cliente] - E obrigado pela atenção
+[Analista] - Por nada 😀 Tenha um bom fim de semana
+[Analista] - Ao final deste atendimento, você receberá uma pesquisa de satisfação. Caso possa dedicar um minuto para avaliar o suporte prestado, ficarei muito agradecida 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204769 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - falar com atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 6694a246-ac35-4218-b67a-bba45d5c5c34
+[Analista] - Olá Como você está? Meu nome é Guilherme e estou aqui para ajudar com sua solicitação. Em que posso te auxiliar hoje? 😃
+[Cliente] - preciso configurar a zona dns do meu domínio [dominio]
+[Cliente] - para habilitar para eu criar os e-mails
+[Cliente] - nao está tudo verdinho para eu avancar
+[Analista] - Oi daniel
+[Analista] - te atendi mais cedo
+[Cliente] - sim a ultima instrução nao tinha ficado verde
+[Cliente] - favor confere se todos estão verde
+[Analista] - Chegou a apertar aqui na próxima etapa em administrar e-mails
+[Analista] - Pode levar até 24h para propagar os apontamentos na zona DNS
+[Cliente] - sim
+[Cliente] - aparece para mim que os 2 últimos nao estão verdes
+[Analista] - Você pode apertar em administrar e-mails, geralmente já habilita mesmo sem estar tudo verde, porém caso não for precisa aguardar a propagação de 1 a 24h mesmo
+[Cliente] - ok 1 instante vou ver
+[Cliente] - nao habilita essa opcao para mim
+[Cliente] - nao consigo entrar
+[Analista] - Entendi, nesse caso precisa aguardar a propagação mesmo
+[Cliente] - ok grato
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204576 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Desculpe, não entendi!
+[Analista] - Por favor, digite o número correspondente ao assunto:
+[Cliente] - Suporte técnico
+[Analista] - Por favor digite o número correspondente ao produto:
+[Cliente] - Email [empresa], Exchange ou Email GO
+[Analista] - Por favor digite o número correspondente ao assunto:
+[Cliente] - Email [empresa] (Locamail)
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - falar com humano
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 6981e083-ac4c-48b6-bf84-ff73e1518bb2
+[Cliente] - preciso do numero de telefone para contactar suporte tecnico 24 horas
+[Analista] - ([telefone] - São Paulo
+[Analista] - 0800 055 5932 - Outras regiões
+[Cliente] - Pode me passar o link para configurar email no celular, no caso um modelo Galaxy A52s 5giga
+[Cliente] - Pode me passar o link para configurar email no celular, no caso um modelo Galaxy A52s 5G
+[Analista] - [link]
+[Cliente] - obrigada e desligando
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204575 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Cliente] - Ola
+[Analista] - Olá Fernando Santana! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: heraengenharia. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 3
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Não estou conseguindo configurar o Outlook para baixar o e-mails, segui todas as instruções mas recebo erro
+[Cliente] - 
+[Cliente] - 
+[Analista] - Para configurar seu e-mail no Outlook manualmente, siga estes passos:
+[Analista] - 1. No Outlook, acesse "Arquivo" e depois "Configurações de Conta". 2. Escolha "Configuração manual" e selecione "POP ou IMAP". 3. Preencha:    - Nome: Seu nome    - E-mail: Seu e-mail completo    - Tipo de Conta: IMAP ou POP    - Servidor de Entrada/SMTP: [dominio]    - Nome de usuário: [usuario] e-mail completo    - Senha: Sua senha
+[Analista] - 4. Em "Mais Configurações", na aba "Servidor de Saída", marque "Meu servidor de saída (SMTP) requer autenticação".
+[Analista] - Se ainda houver problemas, pode ser necessário configurar a entrada DNS "Autodiscover" ou criar um novo perfil no Outlook.
+[Cliente] - 
+[Cliente] - 
+[Cliente] - Esta tudo correto,  mas não autentica
+[Analista] - Para configurar seu e-mail no Outlook manualmente, siga estas etapas:
+[Analista] - 1. No Outlook, vá para "Arquivo" e depois "Configurações de Conta". 2. Escolha "Configuração manual" e selecione "POP ou IMAP". 3. Preencha:    - Nome: Seu nome    - E-mail: Seu e-mail completo    - Tipo de Conta: IMAP    - Servidor de Entrada: [dominio]    - Porta: 993    - Método de Criptografia: SSL/TLS    - Servidor de Saída (SMTP): [dominio]    - Porta: 465    - Método de Criptografia: SSL/TLS    - Nome de usuário: [usuario] e-mail completo    - Senha: Sua senha
+[Analista] - 4. Em "Mais Configurações", na aba "Servidor de Saída", marque "Meu servidor de saída (SMTP) requer autenticação".
+[Analista] - Se o problema persistir, pode ser necessário configurar a entrada DNS "Autodiscover" ou criar um novo perfil no Outlook.
+[Cliente] - Pode parar de mandar mensagem pronta por favor
+[Cliente] - Já fiz toda configuração
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - Sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá tudo bem ? Me chamo Mikael e vou te atender hoje !!   Como posso te ajudar ?
+[Cliente] - Olá mikael
+[Cliente] - Consegue ler as mensagens anteriores?
+[Cliente] - Já fiz todas as configurações e recebo erro de autenticação
+[Analista] - sim, não está conseguindo configurar no outlook, correto ?
+[Cliente] - Isso
+[Cliente] - Mas já segui todas as instruções,  não sou leigo, trabalho com tecnologia
+[Analista] - consegue acessar o webmail normalmente ?
+[Cliente] - Sim webmail está acessando
+[Analista] - está usando o Outlook new ?
+[Cliente] - O da Microsoft store
+[Analista] - poderia me enviar um print do icone do aplicativo, por favor
+[Cliente] - 
+[Cliente] - 
+[Analista] - esse é o Outlook new, infelizmente ele está com problema para cadastras as contas, recomendamos o Outlook classic ou usar o Webmail da [empresa] mesmo. Nas mensagens que enviou anteriormente as configurações estão certas, possivelmente poderia ser um erro de senha[senha] porém você mesma confirmou que pelo Webmail acessa normalmente, concluindo que o problema é essa versão do Outlook.
+[Cliente] - Vc tem um link do Outlook classic?
+[Analista] - infelizmente não temos, mas você pode achar pela loja da
+[Analista] - Microsoft*
+[Analista] - ou pelo site deles
+[Cliente] - Mas gente, vocês deveriam resolver isso, deve ter um volume grande de usuário[usuario] passando por isso
+[Analista] - sim, são diversos usuário[usuario] passando por isso, infelizmente, porém é um problema no Software da Microsoft não em nossos serviços
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204596 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Cliente] - Boa tarde
+[Analista] - Olá Diorge Marlon! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: bruno8581. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 3
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Olá tudo bem
+[Cliente] - Estou tentando fazer o upgrade de meu plano pois preciso de mais 2 emails go
+[Cliente] - porem não consigo
+[Cliente] - 
+[Analista] - Para fazer o upgrade do seu plano e adicionar mais 2 e-mails Go, acesse sua Central do Cliente. Clique em "Ver Detalhes do Plano e Periodicidade", depois em "Contratar Adicionais". Escolha as caixas desejadas e siga para confirmar. Após o pagamento, o adicional será ativado em até 3 horas.
+[Cliente] - Já tentei umas 4 vezes assim rsrsrs!
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - Pode ser. Mas me tira uma duvida antes.
+[Cliente] - Eu já tenho 2 emails. Para eu acessar eles através do gmail, eu já tenho que ter uma conta, correto. No gmail?
+[Analista] - Para acessar seus e-mails [empresa] através do Gmail, você precisa ter uma conta no Gmail. Depois, siga os passos para configurar a conta [empresa] no Gmail, como descrito no artigo: acesse "Configurações" no Gmail, vá em "Contas e importação", e adicione sua conta de e-mail [empresa].
+[Cliente] - Okkk
+[Analista] - Posso te ajudar com mais alguma coisa?
+[Cliente] - Se me direncionar para o atendente. Preciso comprar esses emails hoje
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá boa tarde muito prazer, como posso ajudar?
+[Cliente] - Olá Adriel
+[Cliente] - Vi  aqui que consegui criar os emails que eu precisava
+[Cliente] - Deu certo
+[Cliente] - Que bom
+[Analista] - Que boom! Posso ajudar em algo mais ?
+[Cliente] - Somente!
+[Cliente] - Muito Obrigado!!!
+[Analista] - Certo ! Tenha um ótimo dia. A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação especifica sobre o meu atendimento, ela é de extrema importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos aqui
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204403 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Olá, gostaria de resolver algumas dúvidas. Poderiam me ajudar?
+[Analista] - Olá [telefone] CESAR FLEURY MORAES! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - email [dominio], não consigo utilizar .
+[Analista] - Para seguir com o atendimento, é necessário escolher um número válido do menu acima para continuar.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: riopardosolar. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - Olá, gostaria de resolver algumas dúvidas. Poderiam me ajudar?4
+[Cliente] - 4
+[Analista] - Para seguir com o atendimento, é necessário escolher um número válido do menu acima para continuar.
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - NÃO CONSIGO UTILIZAR O EMAIL @TOKTEL.COM.BR. Quando tento, apesar de colocar senha [senha] ele fala que necessário algo
+[Analista] - Para resolver o problema com o e-mail @[dominio], sugiro tentar alterar a senha [senha] painel de e-mail em vez do webmail. Acesse o Painel de E-mail [empresa], vá em "Caixas Postais", selecione o e-mail desejado e clique em "Alterar Senha". Certifique-se de que a nova senha [senha] aos requisitos de segurança. Se o problema persistir, me avise!
+[Cliente] - já feito e não resolveu
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - SIM
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Bom dia, tudo bem? Meu nome é Nayra, como posso ajudar?
+[Cliente] - O email @[dominio] esta funcionando, o email @[dominio] não
+[Analista] - Qual o erro exibido?
+[Cliente] - quando tento cadastrar no software de email do Windows vai ate a senha[senha] depois diz que preciso de aplicativo.
+[Cliente] - "algo deu errado, talvez precise de uma senha [senha] aplicativo"
+[Analista] - Pode enviar um prinT?
+[Cliente] - 
+[Analista] - Esse é o Outlook New?
+[Cliente] - não sei dizer, do Windows 11
+[Analista] - Consegue me enviar um print do ícone desse Outlook?
+[Analista] - Dessa forma consigo saber
+[Cliente] - 
+[Analista] - Esse é o Outlook New.. Por isso os problemas! Como ainda é um software que esta em desenvolvimento, muitos recursos que o Classic tem, o New não possui, interferindo no seu uso para as caixas postais. Caso possa seguir a configuração no Outlook Classic seria melhor! Nosso time segue em busca de um posicionamento oficial da Microsoft sobre o tema. Enquanto isso não ocorre, a nossa orientação segue sendo a recomendação da utilização de outra versão de software, podendo ser o Outlook Classic.
+[Cliente] - mas o [dominio] funcionou direitinho
+[Analista] - As mensagens no Webmail dessas contas estão sincronizando também?
+[Cliente] - sim
+[Analista] - O Outlook New permite o gerenciamento de contas criando novos perfis?
+[Cliente] - sim
+[Cliente] - mas vou instalar o thunderbird
+[Analista] - Tudo bem
+[Analista] - Ainda que o Sr tenha conseguido configurar as outras contas do domínio [dominio], ainda estamos enfrentando problemas com o software!
+[Analista] - Tentar a configuração no Thunderbird será bom
+[Analista] - Ou até mesmo na versão do Outlook Classic!
+[Cliente] - 
+[Cliente] - Mesma mensagem.  Alterei a senha[senha] porém. Nada.
+[Analista] - Em nome de usuário [usuario] o seu e-mail todo
+[Cliente] - Mesma mensagem após colocar o email todo
+[Cliente] - 
+[Analista] - Tenta acessar o Webmail com essa senha [senha] da caixa
+[Analista] - Deu certo?
+[Cliente] - 1 minuto
+[Cliente] - não funciona.
+[Analista] - No Webmail também não acessou?
+[Analista] - Altera a senha [senha] painel novamente para: [empresa]@102030, somente para teste
+[Analista] - Ola?
+[Analista] - Por falta de interação, estou encerrando o atendimento. Caso fique dúvidas, entre em contato novamente!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204348 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Bom dia.
+[Analista] - Olá Jorge! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: rimeseguros. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Bom dia Leonardo…meus serviços estão desligados, mas já consta meu pagamento e não tenho mais nada em atraso. Poderia redonectar meus serviços de hospedagem e email, por favor?
+[Analista] - Para reativar seus serviços de hospedagem e e-mail, acesse o site [link] Insira seu usuário [usuario] domínio, passe pela verificação "Não sou um robô" e clique em "Consultar Faturas". Em seguida, clique em "Reativar serviços". A reativação pode levar até 3 horas. Se precisar de mais ajuda, estou por aqui! 😊
+[Cliente] - Não existe a opção de reativar serviços
+[Analista] - Você deseja falar com um agente?
+[Cliente] - Sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Ola, Boa noite, seja bem vindo(a), como posso te auxiliar?
+[Cliente] - Bom dia Leonardo…meus serviços estão desligados, mas já consta meu pagamento e não tenho mais nada em atraso. Poderia redonectar meus serviços de hospedagem e email, por favor?
+[Analista] - o senhor pagou faz quanto tempo?
+[Cliente] - Já tem mais de 5 horas
+[Cliente] - Baixou o débito na hora, mas os serviços não voltaram.
+[Analista] - 
+[Analista] - 
+[Analista] - 
+[Analista] - 
+[Analista] - pelo que vi aqui esta tudo no ar ja
+[Analista] - site e paineis
+[Analista] - email tambem tudo certinho
+[Analista] - qualquer coisa testa em uma guia anonima sem cache
+[Cliente] - Deixa eu testar
+[Cliente] - Pra mim ainda não está funcionando
+[Analista] - testou em guia anonima? e o que ainda não funciona no caso? se puder me encaminhar um Print por gentileza
+[Cliente] - Testei
+[Cliente] - 
+[Cliente] - 
+[Analista] - testa  o site em outro navegador para ver
+[Cliente] - 
+[Analista] - testei pelo microsoft tambem aqui esta abrindo
+[Analista] - webmail padrão no ar tambem
+[Analista] - Provavelmente algum bloqueio de rede
+[Cliente] - Já fiz isso
+[Analista] - testa dados moveis
+[Analista] - serviços estão todos ativos
+[Cliente] - 
+[Cliente] - Estão ativos mas não estão funcionando
+[Cliente] - 
+[Analista] - veja, testei do meu celular particular com dados moveis
+[Analista] - 
+[Analista] - aqui o caso e problema de senha[senha] tem que trocar por este painel [link]
+[Analista] - 
+[Cliente] - Não consigo acessar essa parte
+[Cliente] - 
+[Analista] - ai seria a central do cliente
+[Cliente] - 
+[Analista] - você não consegue acessar o painel administrador de email [link]
+[Analista] - você vai acessar esse link acima com os mesmos dados, usuario e senha
+[Cliente] - Não consigo acessar
+[Analista] - qual erro que da?
+[Analista] - se puder testar pelo computador tambem por gentileza
+[Cliente] - 
+[Analista] - so aguardar carregar os dominios agora
+[Analista] - quando carregar clica em ''administrar''
+[Analista] - Devido estar aguardando à algum tempo, entendo que não deseja seguir com nosso atendimento.  Dessa forma irei encerrar nosso contato por falta de interação.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204449 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - bom dia
+[Analista] - Bom dia! ☀️ Como posso te ajudar hoje? Se tiver alguma dúvida ou problema, estou aqui para ajudar!
+[Cliente] - queria desativar a autenticação co, codigo do login [login] email
+[Analista] - Para desativar a autenticação de dois fatores no Email Go, siga estes passos:
+[Analista] - 1. Acesse o painel do Email Go e identifique o domínio desejado. 2. Clique em "Administrar e-mails". 3. Vá para a aba "Configurações" e clique em "Segurança". 4. Desmarque "Autenticação de dois fatores obrigatória" e clique em "Salvar". 5. Confirme a ação.
+[Analista] - Pronto! A autenticação foi desativada.
+[Cliente] - ja foi feito mais nao resolveu
+[Analista] - Para desativar a autenticação de dois fatores no Email Go, siga estes passos: Entre no painel do Email Go, clique em "Administrar e-mails", vá para "Configurações" e "Segurança". Desmarque "Autenticação de dois fatores obrigatória" e clique em "Salvar". Confirme a ação. Se isso não resolver, me avise!
+[Cliente] - atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é c478f406-85ad-4d1d-[subdomínio]
+[Cliente] - bom dia
+[Analista] - Olá, bom dia! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! Como posso te ajudar hoje? 😃
+[Cliente] - precisava desativar a autenticação em 2 fatores dos email
+[Cliente] - ja desativei na plataforma mais ainda continua pedindo
+[Analista] - Ele ainda continua pedindo de todas as caixas?
+[Cliente] - sim
+[Analista] - Vou redefinir aqui, um segundinho
+[Analista] - Testa um novo acesso, por gentileza
+[Cliente] - agora deu
+[Cliente] - obrigado
+[Analista] - Por nada! Por agora seria somente isto? Consigo te ajudar com algo mais?
+[Cliente] - sim
+[Analista] - Precisando, estamos à disposição! 😉 A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação específica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204438 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - Bom dia
+[Analista] - Olá Daniel! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Cliente] - Tudo bem ?
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - 
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - Não consegui processar sua mensagem. Por favor, acesse o link que enviamos para continuar.
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: martinsempresas. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - ola Leonardo tudo bem ?
+[Cliente] - estou tentando configurar o email [empresa] no outlook dos computadores
+[Analista] - Para resolver o erro de conexão com o servidor SMTP no Outlook, siga estas etapas:
+[Analista] - 1. Verifique se o domínio do seu e-mail possui uma entrada DNS chamada Autodiscover. Se não, configure-a ou faça a configuração manual.
+[Analista] - 2. No Outlook, acesse "Arquivo" > "Configurações de Conta" > "Definições de servidor".
+[Analista] - 3. Selecione "Configuração manual" e escolha "POP ou IMAP".
+[Analista] - 5. Em "Mais Configurações", na aba "Servidor de Saída", marque "Meu servidor de saída (SMTP) requer autenticação".
+[Analista] - 4. Preencha as configurações manuais:    - Servidor de Entrada: [dominio]    - Servidor de Saída (SMTP): [dominio]    - Porta SMTP: 587    - Criptografia: SSL/TLS
+[Analista] - Se o problema persistir, verifique a estabilidade da sua conexão de rede e reinicie o Outlook. Caso precise de mais ajuda, me avise! 😊
+[Cliente] - nao esta dando certo
+[Cliente] - 
+[Analista] - Você deseja falar com um agente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá bom dia muito prazer, como posso ajudar?
+[Cliente] - ola Adriel
+[Cliente] - Tudo bem ?
+[Cliente] - segui dois passo a passo para configurar o email [empresa] no outlook dos computadores
+[Cliente] - [link]
+[Cliente] - esse video
+[Cliente] - 
+[Cliente] - que me levou a isso
+[Cliente] - [link]
+[Cliente] - esse video
+[Cliente] - 
+[Cliente] - que me levou a isso
+[Cliente] - olhei a parte tambem da entrada dns e aparentemente esta tudo normal
+[Analista] - Me manda um print das configurações por favor
+[Cliente] - em qual aba ?
+[Cliente] - 
+[Cliente] - esta ?
+[Analista] - Essas configurações aqui
+[Cliente] - 
+[Analista] - Clica em mais configurações e me manda um print
+[Cliente] - 
+[Cliente] - 
+[Cliente] - 
+[Analista] - O servidor de saida precisa ser o 465 e no caminho da pasta raiz você precisa escrever INBOX
+[Cliente] - Vou tentar
+[Cliente] - deu certo
+[Cliente] - qual o proximo passo ?
+[Cliente] - 
+[Analista] - Abre o outlook
+[Cliente] - ok
+[Cliente] - seria nesse lugar ?
+[Analista] - Não
+[Cliente] - na web ?
+[Analista] - FEcha o outlook e abre o classic
+[Analista] - No aplicativo mesmo
+[Cliente] - ja esta no classic
+[Analista] - Só abrir o outlook então
+[Analista] - Abrir como se vocêfosse enviar uma mensagem
+[Cliente] - 
+[Cliente] - tentei mandar um email direto pra ele e nao chegou nada
+[Cliente] - seria isso mesmo ?
+[Cliente] - 
+[Cliente] - exclui para cadastrar de novo
+[Cliente] - ainda aparece esse erro
+[Analista] - Tem o tempo de sincronização
+[Analista] - Você precisa esperar
+[Cliente] - certo
+[Cliente] - qual o prazo ?
+[Analista] - Depende da quantidade de mensagem que você possui
+[Analista] - Posso ajudar em algo mais ?
+[Analista] - Poxa, eu esperei o tempo máximo sem interação, por isso estarei encerrando o chat, fique tranquilo para entrar em contato conosco novamente quando estiver disponível. Se eu te ajudei, vou pedir para que me ajude respondendo a pesquisa de satisfação caso eu tenha lhe ajudado. Obrigado e boa tarde!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204475 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - falar com atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é bfaf3f44-6570-4b90-b8ba-b3bc28a29535
+[Cliente] - Ontem abri um chamado pq não estou conseguindo enviar email, todos voltam, entrei em contato com [empresa] que alegou ser do dns e mandaram entrar em contato com meu TI, assim o fez e ele me enviou prints alegando estar tudo normal e que a [empresa] não esta conseguindo realizar entrega , preciso que isso seja resolvido URGENTE
+[Cliente] - 
+[Cliente] - 
+[Cliente] - preciso que verifiquem o que esta ocorrendo
+[Cliente] - A minha configuração esta no email apontam para [empresa]
+[Cliente] - conforme evidenciado no print
+[Cliente] - ou seja a configuração do meu email esta [empresa], somente meu site funciona no servidor dele
+[Analista] - Qual o seu dominio ?
+[Cliente] - instituto.serpa
+[Cliente] - estou recebendo email normalmente, só não consigo enviar
+[Analista] - .[dominio]
+[Cliente] - [dominio]
+[Cliente] - [email] e [email]
+[Analista] - O prinit que você me mandou está mostrando o MX que é o apontamento responsável por receber os email, verifiquei que você não possui o txt da [empresa] que ´outro apontamento responsável por enviar email
+[Analista] - 
+[Analista] - [link]
+[Cliente] - não entendi, quero só que resolvam
+[Analista] - Certo para resolver peça pro seu TI adicionar esse apontamento que informei
+[Cliente] - muito dificil vcs jogarem a responsabilidade para outro que não tem  haver com isso
+[Cliente] - ate dois dias atras estava tudo funcionando
+[Analista] - Você alterou sua zona DNS para um local fora da [empresa]
+[Cliente] - Não alterei
+[Analista] - Logo não posso fazer nenhum tipo de alteração pois não tenho acesso
+[Analista] - Sua zona de DNS está propagando ou seja é um fato que foi alterada, pode não ter sido o senhor mas foi alterada
+[Analista] - A resolução do seu problema é adicionar o apontamento TXT na sua zona de DNS como informei
+[Analista] - Posso ajudar em algo mais ?
+[Cliente] - bom se não resolverem uma coisa que não foi alterada, vou tomar minhas providencias
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204631 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - ola
+[Cliente] - preciso de3 ajuda
+[Analista] - Olá Janaina! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: login[login] Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - estou com muita lentidão ao acessar os emails
+[Analista] - Para resolver a lentidão ao acessar seus e-mails, siga estas dicas:
+[Analista] - 1. Verifique sua conexão com a Internet, pois uma conexão lenta pode afetar a sincronização. 2. Confira se sua caixa de entrada não está cheia, excluindo e-mails antigos ou grandes. 3. Reinicie o aplicativo de e-mail ou o dispositivo para corrigir possíveis falhas.
+[Analista] - Se o problema persistir, me avise! 😊
+[Cliente] - ainda esta com problema
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Cliente] - ok
+[Analista] - Olá, boa tarde! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! Como posso te ajudar hoje? 😃
+[Cliente] - estou acessando o painel administrativo da minha conta [empresa]
+[Cliente] - esta com muita lentidão
+[Cliente] - estão com algum problema ?
+[Analista] - Você está acessando o [link] ?
+[Cliente] - sim
+[Cliente] - estou tentando lista todas caixas de email
+[Cliente] - não abre
+[Analista] - Do domínio [dominio] ?
+[Cliente] - nao
+[Cliente] - [dominio]
+[Analista] - Consegui abrir por aqui, carregou normalmente
+[Analista] - Checa se sua conexão com a internet está normalizada e testa um acesso por uma guia anônima, por gentileza
+[Cliente] - 
+[Cliente] - 
+[Analista] - Simulei por aqui da mesma forma, e carregou sem problemas, fiz pelo Chrome
+[Analista] - Você consegue checar por algum outro navegador?
+[Cliente] - vou olhar agora
+[Analista] - Não parece ser algo geral, pois o servidor está operando normalmente
+[Analista] - 
+[Cliente] - nem no chrome abre
+[Analista] - Tenta simular novamente e me manda a URL completa do link para qual ele redireciona, exemplo: [link]
+[Analista] - E tenta simular com o inspecionar aberto em "Network" ou "Redes" conforme o passo a passo deste vídeo em anexo.
+[Analista] - Parece que estamos há um tempo sem nenhuma interação 😕 Por conta disto, vou ter que encerrar este atendimento. A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação que fala especificamente sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor <3. Precisando, estamos a disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204492 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - ola
+[Analista] - Olá ELIAS SILVA CRUZ! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: eliasocruz. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - preciso que seja feito o reset do authenticator da caixa [email]
+[Analista] - Para resetar o authenticator da caixa [email], você precisa acessar o painel do seu e-mail e procurar pela opção de redefinição do 2FA. Caso não consiga, me avise para que eu possa ajudar com mais detalhes.
+[Cliente] - n consegui
+[Cliente] - gostaria de falar com um atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá, bom dia! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! Como posso te ajudar hoje? 😃
+[Cliente] - Bom dia
+[Cliente] - preciso que seja feito o reset do authenticator da caixa [email]
+[Analista] - Somente desta caixa, certo?
+[Cliente] - sim
+[Analista] - Certo, só um segundo
+[Analista] - Testa um novo acesso, por gentileza
+[Cliente] - pedi para o funcionário testar na maquina dele
+[Cliente] - pode fechar o atendimento
+[Cliente] - se não der certo eu abro outro
+[Analista] - Certo, sem problemas! Estaremos à disposição! 😉 A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação específica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos à disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204488 >> Data: 2025-08-23 >> Fila: Email_Exchange >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Exchange
+[Cliente] - Bom dia!
+[Analista] - Olá Maria Estela de Mendonça Vianna! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: estelamendonca. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 2
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Atendente
+[Analista] - Você deseja falar com um agente?
+[Cliente] - Sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá bom dia muito prazer, como posso ajudar?
+[Cliente] - Bom dia!
+[Cliente] - Não estou recebendo e-mails
+[Cliente] - Domínio
+[Cliente] - [dominio]
+[Analista] - Seu dominio está desativado por falta de pagamento
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204495 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Cliente] - preciso de ajuda
+[Analista] - Olá Velasco Treinamento e Desenvolvimento Ltda! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: velascosolucoes1. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - Não consigo acessar meu email pela [empresa]
+[Analista] - Para acessar seu e-mail pela [empresa], siga estes passos:
+[Analista] - 1. Acesse no seu navegador: [dominio] ou [dominio]. 2. Digite seu e-mail e senha[senha] 3. Clique em "Entrar".
+[Analista] - Caso não lembre a senha[senha] você pode realizar a recuperação de senha[senha] Se precisar de mais ajuda, estou por aqui!
+[Cliente] - pede para eu ativar a protecao com Itoken
+[Analista] - Para ativar a proteção com iToken no seu e-mail [empresa], você pode seguir as instruções do artigo sobre autenticação de dois fatores. Caso o código de autenticação não chegue ao seu e-mail, verifique este guia: [Código de autenticação de dois fatores não chega no e-mail]([link] Se precisar de mais ajuda, estou por aqui!
+[Cliente] - ja baixei e nao dá certo
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá, bom dia! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! 😃 Qual seria seu endereço de e-mail?
+[Cliente] - bom dia, tudo bem? Não consigo acessar meus email pela [empresa], pede para autenticar e nao consigo avançar
+[Analista] - Entendi! Quais seriam os e-mails?
+[Cliente] - lucia@velascosolucoes,[dominio]
+[Cliente] - 
+[Cliente] - baixei o zoho e continua o problema
+[Analista] - Tenta acessar novamente, por gentileza.
+[Cliente] - agora deu certo
+[Cliente] - tenho mais um problema, tenho uma conta monitorada e os email que eu envio para essa conta no computador da minha empresa nao estao chegando.
+[Cliente] - [email]
+[Cliente] - chega no meu celular, mas nesse compoutador nao recebe
+[Analista] - Você configurou esta conta no Outlook deste computador?
+[Cliente] - sim, mas recentemente mudei de celular e comecou dar conflito na minha conta, falei com vocês e alterei a minha senha [senha] na [empresa]
+[Analista] - Foi a senha [senha] caixa [email] ou da [email] ?
+[Cliente] - lucia
+[Cliente] - você consegue visualizar qual a senha [senha] velasco?
+[Analista] - Acessando esta conta pelo Webmail, está recebendo normalmente?
+[Analista] - [link]
+[Cliente] - vou tentar porque era minha secertaria quem usava so um minuto
+[Cliente] - Não consigo entrar, a senha [senha] eu tenho esta errada
+[Cliente] - Se eu for no email monitorado eu consigo mudar e acessar?
+[Analista] - consegue sim, peço que verifique pelo webmail se os e-mails estão chegando lá
+[Cliente] - esqueci, qual o campo mesmo que eu entro para ver os emails monitorados?
+[Cliente] - nao estou conseguindo acessar o painel de cliente, esta com erro
+[Analista] - Você deve acessar o painel de e-mail: [link]
+[Cliente] - consegui
+[Cliente] - quando eu entro na velasco@velasco entra no meu email lucia@
+[Cliente] - agora entrei
+[Cliente] - consegui
+[Cliente] - o que eu preciso fazer para que dê certo no outllok?  Eu tenho mac e na empresa é microsoft
+[Analista] - Lá no Outlook, você terá que colocar a senha [senha] que você alterou, dentro das configurações.
+[Analista] - Abra o painel de controle do seu computador: -> Vá até o Menu Iniciar do Windows; -> Pesquise por: Painel de controle; -> No painel de controle, verifique no canto superior direito a opção "Exibir por" e deixe-a como "Ícones grandes"; -> Após colocar como ícones grandes, procure por uma opção chamada "Mail (32 bits)" ou "Mail Microsoft Outlook"; -> Abrindo esta opção, vai aparecer uma janela com três botões, clique no botão "Contas de e-mail"; -> Procure por sua conta de e-mail listada e clique duas vezes sobre ela.
+[Cliente] - Muito obrigada, verifiquei agora que esta chegando no email da [empresa]. Vou fazer a alteracao que você explicou acima
+[Analista] - Por nada! Ficou alguma dúvida neste processo? Consigo te ajudar com algo mais?
+[Cliente] - Foi excelente, muito obrigada pela sua paciência e atenção
+[Analista] - Disponha! Fico feliz em te ajudar! 😉 A [empresa] agradece o seu contato! Não deixe de responder a pesquisa de satisfação específica sobre o meu atendimento, ela é muito importante para que eu possa construir um atendimento cada vez melhor. Precisando, estamos à disposição 😃
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204514 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Cliente] - bom dia
+[Analista] - Olá lincoln Romero! Tudo bem? 🙂 Que bom falar com você por aqui! Para direcionarmos melhor o seu atendimento, farei algumas perguntas rápidas. Elas são necessárias para conectar você ao setor mais adequado  para te atender.Usamos botões interativos do WhatsApp — caso esteja usando o aplicativo para desktop, será necessário continuar pelo app no celular ou pela versão web
+[Analista] - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+[Analista] - Por favor, selecione abaixo o setor com o qual deseja falar ⤵️
+[Cliente] - Suporte Técnico
+[Analista] - Antes de continuar, preciso identificar o seu cadastro! Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+[Analista] - [link]
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: linrom48. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 3
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - falr com atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Bom dia
+[Analista] - como posso ajudar ?
+[Cliente] - Bom Denildo gostaria de colocar a pagina do meu site com meu dominio como faço
+[Analista] - desenvolveu seu site com que aplicação ?
+[Analista] - criador de sites ?
+[Cliente] - sim
+[Analista] - momento
+[Cliente] - [link]
+[Analista] - [dominio]
+[Analista] - adicionei
+[Analista] - esta em propagação
+[Analista] - 3 a 24hrs
+[Cliente] - maravilha
+[Cliente] - obrigado
+[Analista] - quando propagar ssl vai instalar automatico
+[Analista] - disponha
+[Analista] - ótimo fim de semana!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204628 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - atendimento humano
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 7e43f461-b4e1-47c8-af25-dfeb61d632c5
+[Analista] - Boa tarde
+[Analista] - como posso ajudar hoje?
+[Cliente] - Boa tarde Danilo, não estou conseguindo vincular meu email [empresa] com meu outlokk
+[Cliente] - quero fazes um aliases
+[Analista] - dominio?
+[Cliente] - quero que meu email que ja uso do outook receba e envie mensagem com email da [empresa]
+[Analista] - qual seu dominio?
+[Analista] - [dominio] ?
+[Cliente] - @[dominio]
+[Analista] - ok
+[Analista] - peço um momento por gentileza
+[Cliente] - ok
+[Analista] - Adriano
+[Analista] - obrigado por aguardar
+[Analista] - me informa qual versao do seu outlook ?
+[Analista] - e se possível me manda um print de como esta configurado por gentileza
+[Cliente] - claro
+[Cliente] - so um momento
+[Cliente] - 
+[Analista] - show
+[Analista] - [link]
+[Analista] - segue esse passo a passo acima por gentileza para configurar
+[Cliente] - ok
+[Analista] - surgindo dúvida mande aqui o print
+[Cliente] - certo
+[Cliente] - agradeço
+[Cliente] - eu nao acho nesse primeiro passo
+[Cliente] - nao aparece nada com "informações"
+[Analista] - [link]
+[Analista] - segue por esse
+[Cliente] - 
+[Cliente] - o que eu coloco aqui?
+[Analista] - sua senha [senha] email
+[Analista] - meu expediente esta finalizando terei que encaminhar a outro analista
+[Analista] - ajudar com outlook
+[Analista] - Deu tudo certo ?
+},
+{
+Protocolo: 250823204642 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - abrir caixa única responde dado incorreto
+[Analista] - Não entendi sua dúvida. Poderia me fornecer mais informações, por favor?
+[Cliente] - abrir caixa única falha
+[Analista] - Não entendi sua dúvida. Poderia me fornecer mais informações, por favor?
+[Cliente] - caixa unica
+[Analista] - Não entendi sua dúvida. Poderia me fornecer mais informações, por favor?
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 5665692c-0358-4d03-[subdomínio]
+[Cliente] - olá boa tarde
+[Analista] - Ola me chamo Vicente. Tudo bem? como posso te ajudar hoje?
+[Cliente] - cada vez que tento abrir caixa unica mostra mensagem 'alguma coisa errada'
+[Cliente] - email ativado ok. Dados preenchidos ok. Não entendo a razão de 'alguma coisa errada'. O formulário está entrando com defeito? Meu wifi é lento?
+[Cliente] - meu plano autoriza apenas caixa unica, mas não consigo abrir
+[Analista] - mas  no caso vc diz na parte de criar o email na opção" criar caixa unica" ?   ou seria na hora vc entrar na sua caixa usando o link [link] ?
+[Cliente] - na parte de criar o email na opção "criar caixa única' .... tentei 50 vezes após preencher todos os dados exigidos e gerar senha [senha] habilitar a opção CRIAR no final ... mas após mostra cartaz vermelho de erro acima 'alguma coisa errada'....
+[Cliente] - olá vicente.... sumiu ....recém voltou
+[Cliente] - alguma ideia de solução?
+[Analista] - vc chegou a testar em uma aba anonima ?
+[Cliente] - por segurança apenas fiz uso das telas em sequência ... pois não tenho dispositivo token... porém a segurança dois fatores está desativada
+[Cliente] - gerando nova aba ou anônima, a sequência corta-se e dará erro...
+[Cliente] - aba nova limpa o link do título https://
+[Analista] - me manda um print por gentileza do erro na aba anonima
+[Cliente] - faço mais uma tentativa.
+[Analista] - mas antes de clicar em "criar caixa"  me manda um print com os dados preenchidos por gentileza
+[Cliente] - 
+[Cliente] - após apertar botão azul, devolve o formulário vazio
+[Analista] - vc esta colocando um caracter  *
+[Cliente] - utilizei senha [senha] automaticamente pelo aplicativo]
+[Analista] - tira ele por gentileza coloca o @  ou somente o que mostra ai no painel
+[Cliente] - as indicações são para colocar caráteres especiais... então não é para obedecer isso?
+[Cliente] - nem tampouco nas geradas automáticamente?
+[Cliente] - tento mais uma vez com @
+[Analista] - vou fazer essa anotação sobre essa senha [senha]
+[Analista] - ok
+[Analista] - mas a pagina nao é a aba anonima
+[Cliente] - 
+[Analista] - ?
+[Cliente] - gerando aba vazia só volta à inicio ... Vou apertar botão azul agora...
+[Cliente] - apertei botão azul, aparecendo novamente a mensagem de erro e o formulário vazio.
+[Cliente] - não tenho vpn ativada.
+[Analista] - certo, me manda um print por gentileza do erro
+[Cliente] - 
+[Cliente] - eis
+[Analista] - abre a aba anonima por gentileza
+[Analista] - tres pontinho ao lado direito canto superior
+[Analista] - janela inprivate ou aba anonima
+[Cliente] - abri aba in private... anônima... Sugere novo login[login]
+[Analista] - isso
+[Analista] - pode logar novamente
+[Analista] - como nao foi feito em aba anonima como solicitei, precisa que faça mais um teste, tudo bem ?
+[Cliente] - ok
+[Cliente] - farei na aba anônima deixando aba aqui aberta
+[Analista] - me diz uma coisa, ao preencher o formulario, vc esta digitando em cada caixa, ou esta digitando a primeira letra e depois vc clica pra preencher automatico ?
+[Cliente] - 
+[Cliente] - MESMA COISA... formulario em branco após digitar em cada caixa...
+[Analista] - perfeito.
+[Analista] - ?
+[Cliente] - oi Vicente ... irei fazer mais uma vez  na aba anônima
+[Analista] - consegue me falar se sim ou nao? preenche automatico ou digita ate o final ?
+[Cliente] - fiz mais uma vez, digitando cada caráter até a senha [senha] * ... e mais uma vez ... a tela mostrou o mesmo formulário em branco com a mensagem de erro...
+[Cliente] - estou usando win10 apenas com o Window defender SEM antivirus adicional
+[Cliente] - VPN desativado
+[Cliente] - 
+[Cliente] - o email está ativo... porém nem imagino o que está acontecendo
+[Analista] - perfeito, agradeço os testes
+[Cliente] - eu agradeço gentileza e paciência
+[Analista] - vou seguir com um chamado interno pra ajuste.  vc tem outro navegador ai pra fazer o ultimo teste ?  indicamos  o navegador Edge
+[Cliente] - estou usando o Edge
+[Analista] - imagina!  eu que tenho que agradecer sua paciência e compreensão !rs
+[Analista] - a certo!
+[Analista] - entao, faz no google por gnetileza
+[Cliente] - ok...farei no Chrome...
+[Cliente] - deixo aberto aqui...
+[Cliente] - oi Vicente.... recém apareceu uma tela substituindo a do formulário em branco ... mostrando que a caixa única foi criada.... Lento, mas conseguiu... parabéns...
+[Cliente] - envio tela em um minuto.,..
+[Analista] - nossa perfeito!
+[Cliente] - 
+[Analista] - esse foi pelo chrome  certo ?
+[Cliente] - agradeço infinitamente caro Vicente, então a dica é usar janela anônima no edge e deixar um tempinho para o sistema responder
+[Cliente] - não nem.. abri o chrome...
+[Cliente] - ia abrir fechando o edge e percebi a nova tela
+[Analista] - imagina!  eu creio que possa ser algo voltado ao nevegador, no caso seria o cache. nao é normal acontecer, mas acontece ! rs
+[Analista] - a entendi!
+[Analista] - olha, caso ocorra novamente nos avise ok
+[Analista] - ficou alguma duvida ?
+[Cliente] - certo, já aconteceu eu esvaziar o cache do navegador antes de continuar...e tive sucesso... mas nem cheguei a fazer isso hoje
+[Cliente] - tudo bem Vicente, Deus abençõe teu serviço
+[Analista] - agora que vc criou, deve aguardar de 2 a 3 hrs pra funcionar 100% ok
+[Cliente] - ok... tudo bem... percebi que o sistema é meio tartaruga, mas no final, ele funciona
+[Cliente] - muito obrigado então... fechamos aqui...
+[Analista] - imagina!
+[Analista] - otima tarde
+[Analista] - Peço que me avalie ao finalizar o atendimento, tudo bem?  Muito obrigado !
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204679 >> Data: 2025-08-23 >> Fila: Email_Go >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: EMAIL_GO
+[Analista] - 🔒 (Autenticado)- Maravilha! Você esta conectado como: elloempresaria2025. Aguarde um momento, estou buscando algumas informações para o atendimento.
+[Analista] - Agora me diga, com qual produto você precisa de ajuda! 😊É só digitar o número correspondente ⤵️
+[Cliente] - 4
+[Analista] - Escolha o número que representa o assunto que você precisa de ajuda ⤵️:
+[Cliente] - 1
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - configurar e-mail
+[Analista] - Para configurar seu e-mail, siga este passo a passo:
+[Analista] - 1. Acesse o menu de Preferências do Sistema > Contas de Internet. 2. Selecione "Adicionar Outra Conta..." e preencha com seu nome, e-mail e senha[senha] 3. Configure o servidor de entrada (IMAP/POP3) e saída (SMTP) com:    - Host: [dominio]    - Porta: 993 (IMAP) ou 995 (POP) para entrada, 465 para saída    - SSL/TLS e autenticação por senha [senha]
+[Analista] - Após isso, clique em salvar. Se precisar de mais detalhes, estou aqui para ajudar! 😊
+[Cliente] - não consegui
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde enquanto direcionamos você ao setor desejado.
+[Analista] - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+[Analista] - Olá, boa tarde! Tudo bem?? Eu sou o Jhonatan, e estou aqui para acompanhar a sua solicitação! Como posso te ajudar hoje? 😃
+[Cliente] - Boa tarde Jhonatan, não consigo criar meu email
+[Cliente] - meu domínio é [dominio]
+[Analista] - Entendi! Consegue acessar seu painel de e-mail, clicar em "Configurar domínio" e após isto clicar em "Editar" para digitar "[dominio]" sem o "www." no começo, por gentileza? Painel de e-mail: [link]
+[Analista] - 
+[Analista] - Edite e coloque [dominio] sem o "www."
+[Cliente] - vou fazer, só um minuto
+[Cliente] - isso?
+[Analista] - @Dominc.Sampaio
+[Analista] - Isso mesmo! Só clicar em alterar agora
+[Analista] - @Dominc.Sampaio
+[Cliente] - 
+[Cliente] - e agora?
+[Analista] - Agora, pode ir para a sua página inicial deste painel
+[Analista] - E clique em "Administrar e-mails" para criar suas caixas de e-mail
+[Cliente] - 
+[Cliente] - aqui?
+[Cliente] - depois tem como configurar para receber e enviar pelo gmail?
+[Analista] - Isso mesmo, é necessário agora somente clicar em "Criar caixa" para você criar suas contas de e-mail, ok?
+[Analista] - Tem como sim, nós temos nosso acesso principal pelo Webmail: [link] E também é possível configurar no Gmail, segue um guia: [link]
+[Cliente] - ok. estou configurando
+[Analista] - @Dominc.Sampaio
+[Cliente] - 
+[Analista] - Ótimo! Agora você já tem sua primeira caixa criada. Para acessar ela você pode utilizar o Webmail e já pode configurar no Gmail, de acordo com aquele guia que te passei:
+[Analista] - [link]
+[Cliente] - blz. estou fazendo
+[Analista] - Certo! Por agora, teria mais alguma dúvida? Consigo te auxiliar em algo mais?
+[Cliente] - isso é obrigatório?
+[Analista] - Não é necessário
+[Cliente] - e como saio dessa tela?
+[Cliente] - não estou conseguindo avançar
+[Analista] - Um momento
+[Analista] - Testa novamente.
+[Cliente] - agora foi
+[Cliente] - não recebi esse código
+[Analista] - No Webmail não consta nada?
+[Cliente] - 
+[Analista] - Em qual parte do processo você parou no Gmail?
+[Cliente] - eu fiz um teste pelo gmail e consegui enviar um email
+[Analista] - Teria o print da tela em que você está
+[Analista] - No caso a conta já foi configurada?
+[Cliente] - mas qundo enviei um email para o [email] não foi
+[Cliente] - cheguei até aqui
+[Analista] - Ele retornou algum erro?
+[Cliente] - não deu erro, parece até que foi enviado normalmente
+[Cliente] - 
+[Analista] - Não consta nada na caixa de entrada ou spam?
+[Cliente] - acabei de verificar, nada
+[Cliente] - 
+[Cliente] - 
+[Analista] - E no Gmail onde a conta foi configurada?
+[Cliente] - agora chegou
+[Cliente] - 
+[Analista] - Certo, está conseguindo?
+[Cliente] - consegui enviar pelo webmail
+[Analista] - Certo, e a configuração no Gmail você conseguiu realizar?
+[Cliente] - parece que sim
+[Cliente] - tem um delay no recebimento dos emails?
+[Analista] - Tem um tempo tolerante de 7 a 9 minutos
+[Cliente] - pode ser isso
+[Cliente] - parece que está tudo certo
+[Analista] - Seria somente isso mesmo, ajudo em algo mais?
+[Cliente] - você pode enviar um email para testar, por favor
+[Analista] - Claro
+[Analista] - Para contato, certo?
+[Cliente] - esse eu enviei, e foi tudo certo
+[Cliente] - isso
+[Analista] - Feito
+[Cliente] - só recebi no webmail
+[Cliente] - acho que o gmail está meio lento....
+[Analista] - Teria o print pelo o Gmail?
+[Cliente] - respondi o seu email pelo webmail
+[Analista] - Recebi aqui
+[Cliente] - achei.....
+[Analista] - Chegou no Gmail?
+[Cliente] - chegou
+[Cliente] - é que está indo para essa caixa
+[Cliente] - blz
+[Analista] - Está tudo certinho?
+[Cliente] - blz
+[Cliente] - acho que deu certo
+[Analista] - Teria mais alguma dúvida que eu possa estar ajudando?
+[Cliente] - só isso mesmo. muito obrigado
+[Analista] - Vou pedir um minutinho da sua atenção, se puder me ajudar com 10 na avaliação fico agradecido. Deus te abençoe e ótimo final de semana.
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204738 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - ola falar com atendente
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 2a752d56-8016-42e9-[subdomínio]
+[Cliente] - ok
+[Analista] - Olá Como você está? Meu nome é Guilherme e estou aqui para ajudar com sua solicitação. Em que posso te auxiliar hoje? 😃
+[Cliente] - ola guilherme eu ja adicionei meu domínio a hospedagem
+[Cliente] - [dominio] esse é o novo domínio que vou trabalhar
+[Cliente] - agora precio habilitar o email
+[Cliente] - preciso habilitar o email e configurar o dns desse novo domínio voce consegue configurar o dns para mim
+[Cliente] - voce consegue configurar o dns do [dominio] para que possa criar as caixas de email?
+[Analista] - Um momento, estou configurando
+[Cliente] - ok
+[Cliente] - ok
+[Cliente] - conseguiu
+[Analista] - Sim
+[Analista] - Mas pode levar até 24h para atualizar, você pode ir aqui para pular para criação
+[Cliente] - ok obrigado
+[Cliente] - vou fazer isso
+[Cliente] - grato vou aguardar
+[Analista] - posso ajudar em algo mais?
+[Cliente] - no
+[Cliente] - grato
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204774 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: web >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - Olá! Sou o Leonardo✨. A fim de agilizar seu atendimento, peço que me informe detalhadamente sua dúvida ou problema e, se possível, anexe um print do erro. Sou um assistente virtual, e adoraria tentar te ajudar.
+[Cliente] - FALAR COM ATENDENTE
+[Analista] - Você deseja ser encaminhado para um atendente?
+[Cliente] - sim
+[Analista] - Por favor aguarde o retorno de um de nossos analistas.
+[Analista] - Seu numero de protocolo é 171c7f68-8a98-412f-9663-41d7b74725e6
+[Cliente] - ola
+[Cliente] - Ola, Estou tentando alterar a minha caixa de e-mails de 10gb para 30gb, porém nao aparece a opçao de 30gb.
+[Analista] - Um momento, irei verificar seu plano
+[Cliente] - Tenho 5 caixas de 30gb e estou usando somente 3.
+[Cliente] - 
+[Analista] - Pode ir na aba de alteração de tamnho das caixas postais ?
+[Analista] - Por gentileza
+[Cliente] - sim
+[Cliente] - 
+[Analista] - aperta em 10
+[Cliente] - Nao abre a opcao 30gb
+[Analista] - o que aparece?
+[Cliente] - nada
+[Analista] - Qual é o dominio?
+[Cliente] - [dominio]
+[Cliente] - daniel@
+[Cliente] - tentei em outras caixas de email e nao aparece a opcao 30gb.
+[Analista] - Aparece as outras opções mas não a de 30?
+[Cliente] - aparece somente 10gb
+[Analista] - E quando você aperta na seta para baixo?
+[Cliente] - nada
+[Cliente] - nao aparece nada
+[Analista] - Qual navegador está utilizando?
+[Cliente] - safari
+[Analista] - Tenta pelo chrome
+[Analista] - por favor
+[Cliente] - OK, um momento
+[Cliente] - agora sim,
+[Cliente] - muito obrigado.
+[Analista] - Perfeito
+[Analista] - Posso ajudar em algo mais?
+[Cliente] - somente
+[Analista] - Se você puder responder à pesquisa de satisfação sobre o meu atendimento, isso será de grande ajuda para avaliarmos a qualidade do serviço prestado,. A [empresa] agradece o seu contato e a sua colaboração!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
+{
+Protocolo: 250823204768 >> Data: 2025-08-23 >> Fila: Email_Locaweb >> Canal: whatsapp >> Setor: Suporte >> Equipe: Suporte Email >> Produto: Email Locaweb
+[Analista] - [link]
+[Cliente] - O nome segue e-mail.[empresa]
+[Analista] - Não, boa parte deles não tem
+[Analista] - os que tem no material mostra
+[Analista] - tem um video e as imagens
+[Analista] - posso te acompanhar se tiver duvida enquanto esta fazendo
+[Cliente] - eu posso cancelar minha assinatura e vcs extornarem o valor?
+[Cliente] - porque de fato nem usei...
+[Cliente] - só preciso de uma endereço de e-mail profissional pq uma empresa esta pedindo rs
+[Analista] - Precisa verificar com nosso time financeiro segunda apartir dar 08:00
+[Cliente] - ta certo..obrigada
+[Cliente] - precisava de atendimento tecnico
+[Cliente] - pra fazer passo a passo
+[Analista] - Estou aqui para isso
+[Cliente] - ver esse iforme de fato nao me ajuda mto..já havia visto
+[Cliente] - Mensagem não suportada
+[Analista] - Como eu disse posso se tiver alguma duvida enquanto esta realizando posso te auxiliar
+[Cliente] - depois dessa configuração TXT que vc me passou e que eu já fiz, qual é o próximo?
+[Analista] - Desculpa minha ferramenta não possibilida visualizar esse tipo de mensagem
+[Cliente] - o link tutorial que vc me passou
+[Analista] - Sim, conseguiu ver o video?
+[Cliente] - não seria mais fácil vc me passar os dados pra preencher?
+[Analista] - Pode seguir o material mesmo, primeiro os TXT, depois MX
+[Analista] - depois CNAME
+[Analista] - Posso te enviar por aqui tambem sem problema
+[Cliente] - joia...melhor
+[Cliente] - porque só tenho uma tela
+[Analista] - A proxima é TXT
+[Analista] - nome em branco
+[Analista] - Conteudo v=spf1 include:_spf[dominio] -all
+[Cliente] - feito
+[Analista] - TXT novamente
+[Analista] - Nome _dmarc
+[Analista] - Conteudo 	v=DMARC1; p=none;
+[Cliente] - feito
+[Analista] - Tipo MX
+[Analista] - Prioridade 20
+[Analista] - Conteudo 	[dominio]
+[Cliente] - nome deixa em branco?
+[Cliente] - feito
+[Analista] - Todas MX não tem
+[Cliente] - joai
+[Analista] - Tipo MX
+[Cliente] - Mensagem não suportada
+[Analista] - Prioridade 10
+[Analista] - Conteudo	[dominio]
+[Cliente] - feito
+[Analista] - Tipo MX
+[Analista] - Prioridade 10
+[Analista] - [dominio]
+[Cliente] - feito
+[Analista] - Tipo MX
+[Analista] - Prioridade 20
+[Analista] - [dominio]
+[Cliente] - feito
+[Analista] - agora tipo cname
+[Analista] - Nome: pop
+[Analista] - Conteudo [dominio]
+[Cliente] - feito
+[Analista] - nome smtp
+[Analista] - conteudo [dominio]
+[Cliente] - feito
+[Analista] - nome: imap
+[Analista] - conteudo [dominio]
+[Analista] - cname
+[Cliente] - feito
+[Analista] - cname
+[Analista] - nome: mail
+[Analista] - conteudo [dominio]
+[Cliente] - feito
+[Analista] - cname
+[Analista] - nome webmail
+[Analista] - conteudo [dominio]
+[Cliente] - feito
+[Analista] - CNAME
+[Analista] - nome calendario
+[Analista] - conteudo: [dominio]
+[Cliente] - feito
+[Analista] - Pronto
+[Analista] - foram todas
+[Cliente] - maravilha
+[Analista] - Só ir nesse painel em configurar dominio [link]
+[Analista] - E ir tentando verificar
+[Cliente] - acredita que o tempo de acesso expirou?
+[Analista] - Pode levar de 1 a 24h para propagar os apontamentos
+[Analista] - As vezes acontece mesmo
+[Cliente] - estou refazendo
+[Analista] - Ok
+[Cliente] - oi..
+[Cliente] - atualizei tudo
+[Analista] - Perfeito
+[Cliente] - depois como configuro?
+[Analista] - Só apertar em configurar dominio, as configurações foram essas que fizemos
+[Analista] - então é só avançar
+[Cliente] - perfeito
+[Analista] - Posso ajudar em algo mais?
+[Cliente] - não não...vou esperar verificar
+[Cliente] - muito obrigada pela sua ajuda
+[Analista] - Se você puder responder à pesquisa de satisfação sobre o meu atendimento, isso será de grande ajuda para avaliarmos a qualidade do serviço prestado,. A [empresa] agradece o seu contato e a sua colaboração!
+[Analista] - Sua opinião vale muito pra gente! Seu atendimento foi concluído!Que tal nos contar como foi sua experiência?É rapidinho e faz toda a diferença! 💬👇Clique link para responder nossa pesquisa! [link]
+},
