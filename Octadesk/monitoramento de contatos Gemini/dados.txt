@@ -1,0 +1,162 @@
+
+{
+Protocolo: 2512231144707 >> Fila: Suporte Conversas
+a - Oi Bertoldo, tudo bem?Aqui é o Caique Alves, da [empresa]. Estou entrando em contato pois vi que você tem uma condição comercial que está vencendo hoje e queria alinhar melhor os próximos passos.Você pode falar agora?
+c - Olá, posso falar sim
+c - Vou detalhar o caso.
+a - Claro!
+c - Ao baixar o relatório na plataforma, não está vindo o campo etapa .Esse de classificação que foi criado, está.
+c - [subdomínio]
+a - Bertoldo, poderia clicar sobre os três pontinhos e me enviar uma imagem da configuração do campo
+a - Por favor
+c - Segue
+
+},
+
+{
+Protocolo: 2512231144700 >> Fila: Suporte - TOP MRR
+a - 🐙 Como eu posso te ajudar hoje?
+c - Quero contratar o [empresa]
+a - Olá!Seja bem-vindo à [empresa], a única plataforma de atendimento completa com inteligência artificial que o seu time precisa.Vamos te direcionar a um de nossos especialistas para você saber os detalhes.
+a - Mas antes, precisamos de algumas informações sobre você e a sua empresa ✍️
+a - Pode me dizer o seu nome?
+c - Ana
+a - E qual é o seu e-mail de trabalho?
+c - [email]
+a - Poderia informar um e-mail comercial? Caso não possua, informe o mesmo.
+c - [email]
+a - Qual o nome da sua empresa?
+c - Farmacia ionica
+a - Qual o site da sua empresa?
+c - nao sei
+a - Última pergunta, Ana! Quantos colaboradores fazem parte do time da sua empresa?
+c - 11 a 50 funcionários
+a - Ana, estou te conectando com alguém do time.
+a - Bom dia, Ana! Tudo bem?
+a - Sou o Heitor, analista comercial da [empresa].
+a - Vou ficar responsável por entender como funciona a operação de atendimento ao cliente da sua empresa.
+a - Podemos bater um papo de 5 minutos por telefone?
+c - na verdade eu precisava de ajuda a respeito da hora do [empresa]
+c - no meu fica errado e isso dificulta um pouco
+a - No caso você já é cliente [empresa]?
+c - sim, é o sistema da empresa que trabalho
+a - Boa! Vou te direcionar por aqui, para o pessoal do suporte
+c - perfeito. obrigada
+a - Olá! Meu nome é Penélope, faço parte do time de Suporte da [empresa]. 🐙
+a - Ana, tudo bem? :d
+c - tudo ótimo e com vc?
+a - Estou bem também!
+a - O horário do seu [empresa], está errado certo?
+a - Vou enviar para você, um artigo sobre como ajustar: [link]
+c - simm
+c - vou abrir
+a - Deu certo, Ana? 😀
+
+},
+
+{
+Protocolo: 2512231144704 >> Fila: Suporte Conversas
+a - Bom dia, Adriano! Tudo bem? Sou o Igor, do Suporte técnico da [empresa].
+a - Estou com o time n2, para analisar o nosso caso de template. Podemos seguir com acesso remoto?
+c - bom dia
+c - sim
+a - Beleza, só estou verificando com o time se eles conseguem agora. ok?
+a - Assim já te mando o link
+c - ok
+
+},
+
+{
+Protocolo: 2512231144708 >> Fila: Suporte - TOP MRR
+c - oi
+a - Olá! Que bom te ver por aqui nesta época tão linda! ✨🎄Passando para avisar nossos horários de Natal:Suporte e Financeiro: Dia 24/12 até as 12h. Dia 25/12, pausa para comemorar o Natal em família. 🎅🌟Time de CS: Em recesso nos dias 24/12, 25/12 e 26/12 para recarregar as energias com quem ama! 🎁Agradecemos demais por estar conosco este ano! Tenha um Natal iluminado, cheio de sorrisos e abraços quentinhos! 🎁❤️
+a - 🐙Com qual time você quer falar?
+c - 1
+a - Antes de direcionarmos você para um atendimento, Gleidson Viana, por favor, nos informe como podemos te ajudar. Se preferir, pode nos enviar um áudio.
+c - como eu posso tirar isso de participação na conversa ?
+a - Esse é o seu número de protocolo: [codigo_de_barras]
+a - Gleidson Viana, iremos te direcionar para um especialista que irá te auxiliar! 🐙
+c - de n deixar dois atendentes na mesma conversa
+a - Em até 5 minutos um analista irá te atender.
+a - Bom dia, tudo bem? Me chamo Eduardo e vou seguir com seu atendimento.
+a - Gleidson, não entendi, você quer retirar dois atendentes da mesma conversa?
+c - isso de grupo, dessa opção
+c - seria a conversa em si da pessoa ?
+c - isso, pra por exemplo n ocorrer isso aqui
+c - 
+c - so o responsavel da conversa pode mandar mensagem
+c - e tambem quero q possam transferir a conversa
+a - Para fazer o que deseja, você precisa ativar a restrição dos grupos, seja essa do print que me enviou ou diretamente por cada grupo de atendimento.
+a - Porém se ativar essa restrição, os membros não irão conseguir mais visualizar as outras conversas, sendo assim não vão conseguir enviar mensagens, transferir ou finalizar.
+
+},
+
+{
+Protocolo: 2512231144696 >> Fila: Suporte - TOP MRR
+c - bom dia
+a - Olá! Seja bem-vindo ao nosso - Suporte Especializado a Grandes Operações.
+a - Com qual time você deseja falar?
+c - Suporte Técnico
+a - Este contato será direcionado diretamente a um especialista que o auxiliará. 😄
+a - Bom dia, tudo bem? Me chamo Eduardo e vou seguir com seu atendimento.
+a - Como posso te ajudar, Erick?
+c - bom dia Eduardo, ontem entrei em contato para reportar outro problema de atribuição
+c - mas como estava no fim do expediente, nao pude responder
+c - [codigo_de_barras]
+c - esse é o protocolo
+a - Novamente o caso de atribuição errada para os contatos atualizado via importação?
+c - isso
+c - se trata de um cliente que era da Deyse e foi atualizado para fernanda
+c - 
+a - Você adicionou o número que tinha te passado para testarmos?
+c - deixa eu so confirmar aqui
+a - Tranquilo
+c - tinha nao, mas criei agora
+c - preciso preencher com um vendedor agora?
+a - Pode preencher, a ideia é deixar esse contato salvo para tentar replicar e encaminhar ao nosso time interno
+a - Enquanto não conseguir replicar esse caso, não vamos conseguir validar corretamente o que está acontecendo.
+c - certo, foi salvo
+c - entre em contato com esse contato 55 [telefone]
+c - nesse primeiro teste vai ser atribuido a Deyse mesmo
+c - ai depois irei fechar a conversa, e atualizar para fernanda por meio da importação certo?
+a - Exatamente
+a - Consegue fazer um video de tela completa desse comportamento?
+a - Ou prefere que eu acesse remotamente e vá gravando
+a - Assim se ocorrer, conseguimos evidenciar.
+c - eu posso gravar aqui
+c - quer que eu grave apos a atualização certo?
+a - Pode gravar o processo todo, desde a primeira atribuição até a última, mostrando a importação e tudo.
+a - O video precisa ser de tela completa, ok? data, hora e URL da página.
+c - ok
+a - Caso queira, pode usar o [dominio]
+a - Ele é gratuito e permite gravações de até 5min
+c - quando for entrar em contato me avisa
+c - pra começar a gravar
+a - Vou mandar mensagem agora
+a - Encaminhei
+c - certo
+c - gravei
+a - Pode seguir gravando e faz a importação mudando o vendedor
+c - agora preciso criar a planilha de importação
+a - quando subir e finalizar a conversa me avisa que entro em contato novamente
+c - ok
+
+},
+
+{
+Protocolo: 2512231144699 >> Fila: Suporte Conversas
+a - Bom dia, Marcelo! Tudo bem? Sou o Igor, do Suporte técnico da [empresa].
+a - Podemos falar?
+c - podermos
+c - Bomdia
+a - 
+c - Se eu remover o número, vai parar de funcionar na outra plataforma imediatamente?
+c - Porque hoje o número está ativado em outra plataforma, isso não tem interferência?
+c - A outra plataforma precisa fazer alguma coisa de repente?
+a - Sim, se remover para de funcionar lá na outra plataforma.
+a - Para ativarmos é rapido também.
+a - Mas se quiser fazer isso quando tiver menor o fluxo do atendimento.
+c - Hoje está bem tranquilo podemos fazer depois 15:00?
+a - As 15 é meu almoço, pode ser as 16 horas?
+
+},

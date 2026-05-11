@@ -1,0 +1,157 @@
+
+{
+Protocolo: 2601291167846 >> Fila: Suporte Conversas
+a - 🐙 Como eu posso te ajudar hoje?
+c - Quero contratar o [empresa]
+a - Olá!Seja bem-vindo à [empresa], a única plataforma de atendimento completa com inteligência artificial que o seu time precisa.Vamos te direcionar a um de nossos especialistas para você saber os detalhes.
+a - Mas antes, precisamos de algumas informações sobre você e a sua empresa ✍️
+a - Pode me dizer o seu nome?
+c - Rodrigo
+a - E qual é o seu e-mail de trabalho?
+c - [email]
+a - Qual o nome da sua empresa?
+c - Seven TI
+a - Qual o site da sua empresa?
+c - [link]
+a - Última pergunta, Rodrigo Prestes! Quantos colaboradores fazem parte do time da sua empresa?
+c - 11 a 50 funcionários
+a - Rodrigo Prestes, estou te conectando com alguém do time.
+c - Ok
+a - Boa tarde Rodrigo, tudo bem?
+a - Prazer, me chamo Vitor.
+a - Como posso te ajudar?
+c - Boa tarde Vitor, tudo bem?
+c - Vitor, estou falando com a área de suporte?
+a - Tudo bem obrigado
+a - Não, aqui é o time comercial
+a - Você precisa falar no suporte?
+c - Isso, você tem como transferir por favor?
+a - Posso claro.
+a - Você faz parte da comunidade [empresa] no whatsapp?
+c - FAço sim
+a - A belea.
+a - beleza*
+a - Vou te transferir, um momento por favor
+c - Ok
+a - Boa tarde!  Tudo bem? Me chamo Igor, faço parte Suporte técnico da [empresa]. O que posso te ajudar?
+
+},
+
+{
+Protocolo: 2601291167845 >> Fila: Suporte Conversas
+c - Oi
+a - Como podemos te ajudar hoje?
+c - Preciso de ajuda com bot
+a - 🐙 Escolha uma das opções abaixo:
+c - Sou cliente da [empresa]
+a - 🐙Com qual time você quer falar?
+c - 1
+a - Antes de iniciarmos, preciso de uma confirmação.Você deseja atendimento para este subdomínio [subdomínio]?Se quiser confirmar antes de seguir, seu subdomínio fica no canto inferior esquerdo do [empresa], onde está seu nome. Basta clicar no seu nome para que ele apareça.
+c - Sim
+a - Pergunta com lista de opções
+c - Dúvidas sobre o [empresa]
+a - Olá! Vi que você tem uma dúvida sobre nossa plataforma.😊
+a - Muitas perguntas comuns já têm um passo a passo detalhado em nossa Central de Ajuda. É como um manual completo, disponível 24 horas por dia para você consultar.
+a - Que tal dar uma olhada por lá? É o caminho mais rápido para encontrar sua resposta!Acesse aqui:
+a - [link]
+c - Já olhei
+a - Olá! Vi que você tem uma dúvida sobre nossa plataforma.😊
+a - Muitas perguntas comuns já têm um passo a passo detalhado em nossa Central de Ajuda. É como um manual completo, disponível 24 horas por dia para você consultar.
+a - Que tal dar uma olhada por lá? É o caminho mais rápido para encontrar sua resposta!Acesse aqui:
+a - [link]
+a - Se ainda tiver dúvidas, vamos te direcionar ao nosso assistente virtual.
+a - Opção inválida. Escolha uma das opções disponíveis
+a - Se ainda tiver dúvidas, vamos te direcionar ao nosso assistente virtual.
+c - Seguir atendimento
+a - Oi! Sou o Mauricio, especialista da [empresa]. Estou aqui para dar sequência ao seu atendimento. Como posso ajudar?
+c - Maurício
+c - Preciso de auxílio com os bot
+c - Por favor
+a - Claro! Pode me explicar um pouco mais sobre qual ponto do bot você precisa de auxílio? Você está com alguma dúvida para criar, configurar ou migrar um bot, ou está enfrentando algum erro específico?
+c - Configurar
+c - Posso mandar áudio ?
+a - Você pode mandar áudio sim, mas se puder explicar por texto, consigo te ajudar mais rápido. Sobre a configuração do bot, você quer começar um novo do zero, ajustar algum fluxo específico ou está com dúvidas sobre integrações e mensagens automáticas?
+a - Me conta um pouco mais do que você precisa configurar no bot para eu direcionar as instruções certinhas!
+c - 
+a - Entendi, então você precisa ajustar o fluxo do seu bot para que, ao escolher enfermagem no menu principal, a conversa já seja direcionada direto ao grupo da enfermagem, sem passar pelo grupo 34, certo? Só para confirmar: atualmente há uma etapa intermediária (grupo 34) entre o menu principal e o grupo de enfermagem, e você quer eliminar esse passo?
+a - Me explique como essas etapas estão ligadas hoje dentro do construtor do bot: você está usando a opção de "Direcionar para grupo" ou algum outro tipo de ação nessa configuração? E essas outras alterações que você citou, envolvem também transferências de grupos ou são ajustes em perguntas e respostas?
+c - Isso
+c - Acredito q seja ajustar
+c - 
+a - Perfeito, então o que você precisa é eliminar essa etapa intermediária e fazer o bot direcionar do menu principal direto para o grupo de enfermagem. O ajuste pode ser feito editando o fluxo do bot e alterando a ligação entre os grupos. No construtor de bots, localize o ponto do menu principal que direciona para o grupo 34 e mude essa ligação para apontar diretamente para o grupo de enfermagem.
+a - Como envolve um ajuste específico no fluxo e talvez alterações em regras já existentes, o ideal é que um atendente humano avalie isso junto com você para garantir que o redirecionamento funcione do jeito que precisa. Vou transferir seu atendimento para um especialista humano analisar seu caso e realizar as alterações necessárias, tudo certo?
+a - Esse é o seu número de protocolo: [codigo_de_barras]
+a - 🐙Kely - Inst. Paulista da Mulher, em até 10 minutos vamos dar sequência ao seu atendimento
+a - Atenção!  Para garantir um atendimento ágil, pedimos que não se ausente por mais de 10 minutos. Após esse tempo, o contato será finalizado automaticamente.
+
+},
+
+{
+Protocolo: 2601291167828 >> Fila: Suporte Conversas
+c - Falar com um humano
+a - Como podemos te ajudar hoje?
+c - Falar com o um humano
+a - 🐙 Escolha uma das opções abaixo:
+c - Sou cliente da [empresa]
+a - 🐙Com qual time você quer falar?
+c - 1
+a - Antes de iniciarmos, preciso de uma confirmação.Você deseja atendimento para este subdomínio [subdomínio]?Se quiser confirmar antes de seguir, seu subdomínio fica no canto inferior esquerdo do [empresa], onde está seu nome. Basta clicar no seu nome para que ele apareça.
+c - Sim
+a - Pergunta com lista de opções
+c - Dúvidas sobre o [empresa]
+a - Olá! Vi que você tem uma dúvida sobre nossa plataforma.😊
+a - Muitas perguntas comuns já têm um passo a passo detalhado em nossa Central de Ajuda. É como um manual completo, disponível 24 horas por dia para você consultar.
+a - Que tal dar uma olhada por lá? É o caminho mais rápido para encontrar sua resposta!Acesse aqui:
+a - [link]
+a - Se ainda tiver dúvidas, vamos te direcionar ao nosso assistente virtual.
+c - Seguir atendimento
+a - Oi! Sou o Mauricio, especialista da [empresa]. Estou aqui para dar sequência ao seu atendimento. Como posso ajudar?
+c - Gostaria de confirmar a ligação do especialista para amanhã
+a - Você gostaria mesmo de agendar uma reunião com o especialista para amanhã?
+c - Estou falando com um humano?
+a - Esse é o seu número de protocolo: [codigo_de_barras]
+a - 🐙Wallace | Manore, em até 10 minutos vamos dar sequência ao seu atendimento
+a - Atenção!  Para garantir um atendimento ágil, pedimos que não se ausente por mais de 10 minutos. Após esse tempo, o contato será finalizado automaticamente.
+a - Olá! Tudo bem? Sou a Talyta do suporte [empresa], qual o nome do especialista que informou que faria uma ligação contigo?
+c - 
+c - Oi
+a - Só um momento que estou verificando seu histórico
+
+},
+
+{
+Protocolo: 2601291167848 >> Fila: Suporte - TOP MRR
+c - olá
+a - 🐙Com qual time você quer falar?
+c - 1
+a - Antes de direcionarmos você para um atendimento, Natalia, por favor, nos informe como podemos te ajudar. Se preferir, pode nos enviar um áudio.
+c - 
+a - Esse é o seu número de protocolo: [codigo_de_barras]
+a - Natalia, iremos te direcionar para um especialista que irá te auxiliar! 🐙
+a - Em breve, um de nossos especialistas estará disponível para te atender.
+a - Olá! Meu nome é Penélope, faço parte do time de Suporte da [empresa]. 🐙
+a - Natalia, tudo bem? Entendo o cenário, entretanto o timeout de retorno do bot é de 10s e este é o padrão de nosso bot.  Recomendo subir como feedback, para uma sugestão de melhoria futura.
+c - Sempre foi assim?
+c - ou mudou recentemente?
+a - Sempre foi assim Natalia.
+c - ué que estranho, tá bem vou retornar com quem construiu a api
+
+},
+
+{
+Protocolo: 2601291167843 >> Fila: Suporte - TOP MRR
+c - Oi
+a - Como podemos te ajudar hoje?
+c - Você é o dono do jogo
+a - 🐙 Escolha uma das opções abaixo:
+c - Sou cliente da [empresa]
+a - Olá! Percebemos que o seu número de contato não está atualizado em seu cadastro. Essa informação é necessária para prosseguirmos com seu atendimento.Você gostaria de atualizar essa informação agora?
+c - Oque você tá fazendo
+a - Opa! Essa opção é inválida. Você precisa digitar o número da opção escolhida.
+c - Não vou deixar você thau
+a - Poxa, ainda não recebi uma resposta válida e preciso dela para continuar.
+c - Desculpa
+a - Não recebi nenhuma resposta válida. Por esse motivo não conseguirei seguir com seu atendimento. Por favor verifique as informações e tente contato novamente mais tarde. Até mais!
+c - Não deixa para mais tarde
+
+},
