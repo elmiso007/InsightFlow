@@ -1,0 +1,59 @@
+# =============================================================================
+# .gitignore — diretório de projetos Locaweb
+# =============================================================================
+# Para versionar algo bloqueado por uma regra, use `git add -f <arquivo>` ou
+# crie um arquivo de exemplo (ex.: config.ini.example) sem dados sensíveis.
+
+# --- Segredos / credenciais (NUNCA versionar) ---
+.env
+.env.*
+**/.env
+**/.env.*
+config.ini
+**/config.ini
+credentials.json
+**/credentials.json
+token.json
+**/token.json
+*.key
+*.pem
+*.pfx
+*.p12
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Logs ---
+*.log
+logs/
+**/logs/
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Claude Code (config local do usuário) ---
+.claude/settings.local.json
+
+# --- Sistema operacional / Office temporários ---
+Thumbs.db
+.DS_Store
+desktop.ini
+~$*
+
+# --- Backups ---
+*.bak
+*.orig
