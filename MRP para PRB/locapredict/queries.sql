@@ -1,0 +1,116 @@
+-- Query SQL de Extração de Insights (PostgreSQL)
+-- Filtra incidentes abertos nas últimas 24 horas, não cancelados, com descrição válida.
+--
+-- Origem dos campos (negócio):
+--   grupo_designado — classificado automaticamente pelo CRM.
+--   categoria, subcategoria — preenchidos manualmente pelos analistas.
+
+WITH base_incidentes AS (
+    SELECT
+        numero,
+        produto,
+        LOWER(TRIM(regexp_replace(descricao_curta, '[^a-zA-Z0-9\s]', '', 'g'))) AS desc_clean,
+        data_abertura,
+        prioridade,
+        grupo_designado,
+        servidor,
+        login_cliente,
+        categoria,
+        subcategoria,
+        tempo_medio_resolucao,
+        total_atualizacoes,
+        EXTRACT(HOUR FROM data_abertura) AS hora_abertura,
+        EXTRACT(DOW FROM data_abertura) AS dia_semana
+    FROM
+        lwsa.service_now_incidentes
+    WHERE
+        data_abertura >= NOW() - INTERVAL '24 hours'
+        AND status NOT IN ('Cancelled', 'Resolved', 'Closed')
+        AND descricao_curta IS NOT NULL
+),
+contagem_por_produto AS (
+    SELECT
+        produto,
+        COUNT(*) AS volume_atual
+    FROM base_incidentes
+    GROUP BY produto
+)
+-- Resultado Final para o Motor Python
+SELECT
+    b.numero,
+    b.produto,
+    b.desc_clean,
+    b.data_abertura,
+    b.prioridade,
+    b.grupo_designado,
+    b.servidor,
+    b.login_cliente,
+    b.categoria,
+    b.subcategoria,
+    b.tempo_medio_resolucao,
+    b.total_atualizacoes,
+    c.volume_atual
+FROM
+    base_incidentes b
+JOIN
+    contagem_por_produto c ON b.produto = c.produto
+ORDER BY
+    b.data_abertura DESC;
+
+-- DDL completo da tabela de saída do pipeline
+CREATE TABLE IF NOT EXISTS lwsa.locapredict_insights (
+    insight_id SERIAL PRIMARY KEY,
+    data_geracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    cluster_nome TEXT, -- referência ao(s) servidor(es) do agrupamento
+    quantidade_inc_afetados INT NOT NULL,
+    produto_afetado VARCHAR(100) NOT NULL,
+    score_severidade FLOAT NOT NULL,
+    ineficiencia_score FLOAT NOT NULL DEFAULT 0,
+    sugestao_acao TEXT NOT NULL,
+    incidentes_relacionados TEXT[] NOT NULL DEFAULT '{}'
+);
+
+-- Migração segura para ambientes onde a tabela já existe com menos colunas
+ALTER TABLE lwsa.locapredict_insights
+    ADD COLUMN IF NOT EXISTS data_geracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS cluster_nome TEXT,
+    ADD COLUMN IF NOT EXISTS quantidade_inc_afetados INT,
+    ADD COLUMN IF NOT EXISTS produto_afetado VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS score_severidade FLOAT,
+    ADD COLUMN IF NOT EXISTS ineficiencia_score FLOAT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS sugestao_acao TEXT,
+    ADD COLUMN IF NOT EXISTS incidentes_relacionados TEXT[];
+
+-- =============================================================================
+-- Guardião da Saúde do Cliente — tabela de histórico (snapshots de recorrência login × produto)
+-- =============================================================================
+-- Executar uma vez no banco antes de usar gravar_snapshots=true. Ajuste GRANT ao usuário da app (ex.: automatizacoes).
+
+CREATE TABLE IF NOT EXISTS lwsa.guardiao_saude_cliente_snapshots (
+    snapshot_id BIGSERIAL PRIMARY KEY,
+    data_geracao TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    login_cliente TEXT NOT NULL,
+    produto TEXT NOT NULL,
+    total_inc_janela INT NOT NULL,
+    diversidade_problemas INT NOT NULL,
+    ultimo_contato TIMESTAMPTZ,
+    media_esforco_cliente NUMERIC(12, 2)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ch_guardian_data ON lwsa.guardiao_saude_cliente_snapshots (data_geracao DESC);
+CREATE INDEX IF NOT EXISTS idx_ch_guardian_login ON lwsa.guardiao_saude_cliente_snapshots (login_cliente);
+
+-- Referência lógica: o script do Guardião (`guardiao_saude_cliente.py`) normaliza login_cliente (ficha=, Cód., etc.)
+-- e escolhe a coluna
+-- como no LocaPredict (`total_atualizacoes` ou `atualizacoes`). Exemplo comentado abaixo:
+--
+-- WITH base AS (
+--   SELECT TRIM(login_cliente) AS login_cliente, produto, numero, data_abertura, categoria,
+--          COALESCE((atualizacoes)::numeric, 0) AS esforco_inc,
+--          COUNT(*) OVER (PARTITION BY TRIM(login_cliente), produto) AS freq_cliente_produto
+--   FROM lwsa.service_now_incidentes
+--   WHERE data_abertura >= NOW() - INTERVAL '6 months'
+--     AND login_cliente IS NOT NULL AND TRIM(login_cliente) <> ''
+-- )
+-- SELECT login_cliente, produto, MAX(freq_cliente_produto)::bigint AS total_inc_6meses, ...
+-- GROUP BY ... HAVING MAX(freq_cliente_produto) >= 5;
