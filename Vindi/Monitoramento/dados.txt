@@ -1,0 +1,200 @@
+
+{
+Protocolo: 26012238580 >> Fila: Chat Recorrência
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Recorrência. Este é o número do seu protocolo de atendimento: [CPF]  Selecione abaixo o assunto sobre o qual deseja falar.
+c - Faça uma pergunta
+a - Olá! Sou a assistente virtual da [empresa]. Estou em constante aprendizado, por isso, sua interação é muito importante para que eu possa melhorar e te atender com cada vez mais eficiência! Por favor, escreva sua dúvida de forma clara, específica e em poucas palavras.
+c - Atendente
+a - Claro, estou aqui para ajudar! Poderia me contar um pouco mais sobre o que você precisa? Assim, posso direcionar melhor a sua solicitação.
+c - Atendente
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+a - Pesquisa de Satisfação Avalie o nosso atendimento através do link a seguir! [link]
+
+},
+
+{
+Protocolo: 26012238596 >> Fila: Chat Pagamentos
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238596Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Verificação de Contas
+a - A verificação de contas é um processo realizado para garantir a segurança de sua operação financeira, validando os dados reais com os dados cadastrados na sua conta [empresa] Pagamentos. Realizar a verificação é o primeiro passo para que você possa transacionar sem impedimentos!  Clique aqui e acesse mais informações
+a - Selecione abaixo a opção que mais se encaixa no que você está procurando:
+c - Status da verificação
+a - Para acompanhar a análise, acesse o seu Painel [empresa] Pagamentos e clique no menu [Minha Conta]. Você também receberá uma notificação no e-mail cadastrado. ATENÇÃO:  a validação dos itens ocorre de forma individual e todos os itens precisam ser devidamente verificados. Para mais informações, Clique Aqui.
+a - Ajudo em algo mais?
+c - Sim
+a - O status da conta está verificada?
+c - Não
+a - Verifique se todos os documentos foram anexados em seu painel [empresa] Pagamentos: No menu [Minha Conta] - [Editar dados da conta] - [Envio de documentos]. Se todos os documentos estiverem anexados e a conta bancária estiver preenchida, significa que está em análise e é  apenas aguardar o prazo de até 48 horas úteis. Confirme também se os documentos enviados estão de acordo: Confira os documentos clicando aqui
+a - Ajudo em algo mais?
+c - Sim
+a - Já vamos te transferir para um especialista, e enquanto isso, pedirmos que nos especifique a dúvida sobre o status da verificação.
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+a - Olá, boa tarde!  Sou Andrezza e vou seguir com seu atendimento 😌
+a - Falo com Rosemary?
+a - Sua dúvida é sobre verificação da conta mesmo?
+c - Ola Andrezza.  acabei de fazer um saque dos valores do cartao de credito para o meu banco e deu um problema no final da tarefa.     o valor nao entrou no meu banco, mas saiu do do saldo da [empresa].   Poderia me ajudar???
+c - Sou a Rosemary
+
+},
+
+{
+Protocolo: 26012238593 >> Fila: Chat Pagamentos
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238593Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Faça uma pergunta
+a - Olá! Sou a assistente virtual da [empresa]. Estou em constante aprendizado, por isso, sua interação é muito importante para que eu possa melhorar e te atender com cada vez mais eficiência! Por favor, escreva sua dúvida de forma clara, específica e em poucas palavras.
+c - atendente
+a - Claro, estou aqui para ajudar! Poderia me contar um pouco mais sobre o que você precisa? Assim, posso direcionar para a pessoa certa.
+c - Liberou o dinheiro de ontem e hj, fui sacar deu erro
+a - Entendo que a situação pode ser frustrante. Como houve um erro ao tentar sacar o dinheiro, o ideal é que você seja atendido por um agente humano que poderá verificar os detalhes específicos da sua transação e ajudar a resolver essa questão. Estou direcionando você para um de nossos atendentes, que em breve estará disponível para auxiliar. Agradeço pela compreensão e paciência.
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+c - Fernanda, boa tarde, liberou o dinheiro de ontem e hj, fui sacar deu erro
+a - Olá boa tarde! Espero que esteja bem! Meu nome é Fernanda, e vou seguir com o seu atendimento!
+c - 
+c - Não dá para esperar a boa vontade do sistema de esperar voltar o saldo, eu preciso pagar conta, já não liberaram ontem o dinheiro
+a - Bruno, isso aconteceu devido a uma indisponibilidade nos serviços bancários do operador [empresa] Pagamentos, houve atraso no repasse de alguns lotes bancários na data de ontem e hoje, mas não se preocupe, os pagamentos já foram reagendados e serão creditados hoje até o final do dia.
+c - Você pode ver isso ai no sistema por favor?
+a - Sim, estou olhando aqui
+a - É Bruno, esse erro é devido a instabilidade que acontece com alguns pagamentos, mas em breve o saldo será creditado em conta
+c - Da ulktima vez que isso aconteceu, só voltou no final da tarde após o expediente
+c - eu preciso pagar contas, como faço?
+a - Compreendemos e pedimos desculpas pelo transtorno, mas por enquanto só teremos que aguardar
+c - ok
+a - Por agora tem alguma outra informação que você precisa?
+
+},
+
+{
+Protocolo: 26012238583 >> Fila: Chat Pagamentos
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238583Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Minhas Vendas
+a - Qual das opções abaixo melhor representa a sua necessidade?
+c - Informações e Status do Pedido
+a - Seus pedidos na [empresa] podem passar por diferentes status.  Clique em um dos botões abaixo para entender o que cada status significa e o que ele representa no processo de pagamento.
+c - Aprovado
+a - Para continuar, clique na opção que mais se encaixa com sua dúvida:
+c - Ainda não identifiquei o repasse do valor
+a - Agora, selecione abaixo como você recebe os valores pela [empresa] para que possamos continuar com o atendimento:
+c - Recebo via conta bancária vinculada
+a - Como você recebe o valor das suas vendas automaticamente na conta bancária cadastrada, é importante estar atento ao horário de repasse. Os valores são creditados até às 17h, que é o período em que os bancos funcionam para liquidar os pagamentos. Se o valor ainda não caiu e o prazo não expirou, basta aguardar até esse horário. Caso ele ainda não seja identificado depois disso, podemos ajudar você a verificar. Entenda como funciona os repasses dos seus pagamentos
+a - No caso de vendas pagas via Pix, o valor é transferido automaticamente para a sua conta bancária em até 1 dia útil, de acordo com o horário em que o pagamento foi realizado. Nesse cenário, não é necessário realizar nenhuma ação manual no painel.Mais informações sobre o funcionamento do Pix na [empresa] estão disponíveis aqui: Como funciona o Pix na [empresa]
+a - Ainda precisa de ajuda?
+c - Sim
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+c - Bom dia Gabrielle, tudo bem?
+c - Desde ontem não estou recendo minhas vendas na conta cadastrada. Pode me informar o que aconteceu, por gentileza?
+a - Olá boa tarde!, meu nome é Marcia e vou seguir com o seu atendimento.
+a - Desculpe, a analista Gabi, precisou sair.
+c - Ok Márcia
+a - Seria referente ao atraso no pagamento?
+c - Isso
+c - Tenho vendas para receber e desde ontem não caiu nada em minha conta
+a - Compreendo. Tivemos uma indisponibilidade nos serviços bancários do operador [empresa] Pagamentos, houve atraso no repasse de alguns lotes bancários na data de ontem e hoje, mas não se preocupe, os pagamentos já foram reagendados e serão creditados hoje até o final do dia.
+c - Ok, pois tenho compromissos agendados no banco nessas datas e preciso do dinheiro rs
+c - Mas ok, se vai cair ainda hoje, aguardo.
+a - Compreendo e está certo em saber o que aconteceu
+a - Mas até o final do dia já estará normalizado.
+c - Ok, obrigado
+a - Por nada.
+a - Pedimos desculpas pelo transtorno e agradecemos sua compreensão
+a - Posso auxiliar em mais alguma informação?
+c - Só isso
+a - Certo.
+a - Neste caso, desejo a você uma excelente tarde.
+a - Pesquisa de Satisfação Avalie o nosso atendimento através do link a seguir! [link]
+
+},
+
+{
+Protocolo: 26012238581 >> Fila: Chat Recorrência
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Recorrência. Este é o número do seu protocolo de atendimento: [CPF]  Selecione abaixo o assunto sobre o qual deseja falar.
+c - Faça uma pergunta
+a - Olá! Sou a assistente virtual da [empresa]. Estou em constante aprendizado, por isso, sua interação é muito importante para que eu possa melhorar e te atender com cada vez mais eficiência! Por favor, escreva sua dúvida de forma clara, específica e em poucas palavras.
+c - Quero falar com uma atendente
+a - Claro, entendo que você gostaria de falar com alguém. Posso ajudar a direcionar sua solicitação para a pessoa certa. Poderia me contar um pouco mais sobre o que você precisa? Assim, posso garantir que você será transferido para o especialista adequado.
+c - Quero falar com uma atendente
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+c - Quero falar com uma atendente
+c - Olá Gabrielle
+c - Tudo bem?
+c - Me chamo Euler
+c - Quero alterar a prioridade para Yapay
+a - Oi Euler, tudo bem?
+a - claro só um momento por favor
+c - Tudo bem Gabrielle
+c - CNPJ [codigo_de_barras]
+a - Prontinho
+a - prioridade alterada
+a - te auxilio em algo mais ?
+c - Só isso mesmo
+c - Obrigado
+a - Imagina, eu que agradeço o seu contato, desejo um ótimo dia. Qualquer dúvida, permanecemos à disposição para ajudar.
+a - Pesquisa de Satisfação Avalie o nosso atendimento através do link a seguir! [link]
+
+},
+
+{
+Protocolo: 26012238589 >> Fila: Chat Pagamentos
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238589Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Recebíveis e Conciliação
+a - Por favor, informe o que você deseja consultar:
+c - Meus Recebíveis
+a - Qual das opções abaixo melhor representa a sua necessidade?
+c - Datas e valores de repasse
+a - Para consultar a data e os valores dos seus recebimentos futuros, siga o passo a passo abaixo: 1. No menu lateral do painel, acesse Meus Recebíveis > Recebíveis Futuros.2. Clique em Filtros e selecione os critérios de acordo com a sua necessidade. 3. A data do repasse estará localizada na coluna Data de liberação.Para verificar apenas as datas e os valores que ainda serão creditados, escolha o status "A creditar" e clique em Filtrar. 📘 Saiba mais sobre os status da transação
+a - Ainda precisa de ajuda?
+c - Sim
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238589Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Recebíveis e Conciliação
+a - Por favor, informe o que você deseja consultar:
+c - Meus Recebíveis
+a - Qual das opções abaixo melhor representa a sua necessidade?
+c - Datas e valores de repasse
+a - Para consultar a data e os valores dos seus recebimentos futuros, siga o passo a passo abaixo: 1. No menu lateral do painel, acesse Meus Recebíveis > Recebíveis Futuros.2. Clique em Filtros e selecione os critérios de acordo com a sua necessidade. 3. A data do repasse estará localizada na coluna Data de liberação.Para verificar apenas as datas e os valores que ainda serão creditados, escolha o status "A creditar" e clique em Filtrar. 📘 Saiba mais sobre os status da transação
+a - Ainda precisa de ajuda?
+c - Sim
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Pagamentos. Este é o número do seu protocolo de atendimento: 26012238589Estamos cientes de um atraso em algumas transações. Nosso time já está trabalhando para resolver. A regularização ocorrerá automaticamente até amanhã.😉Devido a uma manutenção técnica, a Adição de Saldo está indisponível. Ainda não há previsão de retorno, mas estamos trabalhando para que retorne em breve.😊Selecione abaixo o assunto sobre o qual deseja falar:
+c - Recebíveis e Conciliação
+a - Por favor, informe o que você deseja consultar:
+c - Meus Recebíveis
+a - Qual das opções abaixo melhor representa a sua necessidade?
+c - Horários de repasse
+a - Para entender melhor os horários e as datas dos seus repasses, o primeiro passo é identificar qual é o seu prazo de recebimento. Atualmente, existem duas modalidades de recebimento disponíveis: Integral e No Fluxo.
+a - 📌 O que significa recebimento "Integral"?  Se sua conta estiver configurada como Integral, você recebe o valor total da venda de forma antecipada, mesmo que o cliente tenha parcelado o pagamento. 📌 O que significa recebimento "No Fluxo"  Se estiver como pagamento no Fluxo, você recebe os valores conforme o cliente paga as parcelas, por exemplo, 30, 60, 90 dias após a compra.
+a - Você pode verificar a sua modalidade acessando o menu Minha Conta no seu painel [empresa].  ⚠️Importante! Mesmo que o painel indique um prazo padrão, ele pode variar conforme a plataforma integrada que você utiliza, de acordo com negociações específicas. 📘 Acesse: Como funciona os meus repasses.
+a - Se você já souber o seu prazo de recebimento, é só selecionar uma das opções abaixo:
+c - Recebimento integral
+a - Quando chegar a data do repasse, o valor será transferido automaticamente para a sua conta bancária ou para sua conta digital (se você tiver uma), até às 17h.
+a - 📘 Consulte os horários de repasse
+c - Ainda não identifiquei o valor do repasse
+a - Um ponto importante a considerar é que, ao chegar a data de repasse do seu pedido, o valor poderá ficar disponível para transferência em até 1 dia útil. Caso ainda esteja dentro desse prazo, não se preocupe é só aguardar.
+a - Recomendamos também acompanhar seus recebimentos pelo Relatório de Recebíveis. Para acessá-lo, vá em Meus Recebíveis > Relatório de Recebíveis. Neste relatório, você poderá visualizar:- Créditos: valores de pedidos cujo prazo de repasse já foi atingido e estão disponíveis para transferência.- Débitos: valores que foram enviados para sua Conta Digital ou conta bancaria cadastrada ou que se referem a estornos e chargebacks registrados no seu cadastro.
+a - Ainda precisa de ajuda?
+c - Sim
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+a - Olá Ana, boa tarde! Espero que esteja bem! Meu nome é Luciana e vou seguir com o seu atendimento!
+a - Vi que informou: Ainda não identifiquei o valor do repasse Devido a uma indisponibilidade nos serviços bancários do operador [empresa] Pagamentos, houve atraso no repasse de alguns lotes bancários na data de ontem e hoje, mas não se preocupe, os pagamentos já foram reagendados e serão creditados hoje até o final do dia.
+
+},
+
+{
+Protocolo: 26012238579 >> Fila: Chat Recorrência
+a - Olá!Seja bem-vindo(a) ao atendimento da [empresa] Recorrência. Este é o número do seu protocolo de atendimento: [CPF]  Selecione abaixo o assunto sobre o qual deseja falar.
+c - Faça uma pergunta
+a - Olá! Sou a assistente virtual da [empresa]. Estou em constante aprendizado, por isso, sua interação é muito importante para que eu possa melhorar e te atender com cada vez mais eficiência! Por favor, escreva sua dúvida de forma clara, específica e em poucas palavras.
+c - Gostaria de acompanhar uma solicitação que fiz ontem de número: 2033897
+a - Para eu poder te ajudar melhor, você poderia me informar se essa solicitação está relacionada a algum dos nossos serviços, como assinaturas, planos de pagamento ou retentativas de cobrança? Assim consigo buscar informações mais precisas para te auxiliar.
+c - Sim, ao serviço de estorno o qual não consegui realizar.
+a - Você poderia me informar se houve alguma mensagem de erro ou problema específico ao tentar realizar o estorno? Isso vai me ajudar a entender melhor a situação e fornecer a orientação correta.
+c - Não houve.
+a - Entendo que você está com uma solicitação em aberto relacionada a um estorno que não conseguiu realizar. Para questões como essa, o acompanhamento e a resolução podem exigir detalhes específicos que estão além do meu acesso atual.
+a - Vou te direcionar para um agente humano que poderá verificar o status da sua solicitação com mais precisão e ajudar a resolver seu problema. É importante que você tenha o número da sua solicitação à mão quando for atender, isso agilizará o processo.
+a - Agradeço pela sua paciência até aqui e um agente estará pronto para te ajudar em breve!
+a - Aguarde, pois em instantes um dos nossos analistas seguirão com o seu atendimento. 😊
+a - Olá!  Sou a Gabrielle e vou seguir com as orientações para você. Com quem eu falo? Por gentileza, nos informe em detalhes a dúvida, para que possamos validar o ocorrido e seguir com o seu atendimento.
+c - Olá, sou Narjara. Abri uma solicitação ontem de número: 2033897. O problema é que uma cliente fez o cadastro 2x em uma das nossas assinaturas e pagou as 2x. Não estou conseguindo fazer o estorno de nenhuma delas, por isso abri a solicitação. Gostaria de saber o andamento
+a - Certo. Só um momento por gentileza, que estarei verificando as informações!
+a - Obrigada pro aguardar, nosso time respondeu esse chamado agora  apouco, segue abaixo o retorno:
+a - 
+a - Te auxilio em algo mais no momento?
+
+},
