@@ -1,0 +1,270 @@
+
+{
+Protocolo: 251202663147 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Alexandre , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Olá, tudo bem?Seja bem-vindo à Escola de Natação Acquamundy. Para iniciarmos o atendimento, gostaríamos de saber: em quais desses produtos você tem interesse?Hidroginástica Natação Bebê Natação Infantil Natação Adulto Nado Livre Natação Prosurf Natação TreinamentoSeu interesse é para 2x na semana, 3x na semana ou 5x na semana? Se for Natação infantil, sua preferência seria pela parte da manhã ou tarde?🏊🏻‍♀️🏊🏻‍♂️
+a - Olá Alexandre, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663200 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Andrei , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Ola
+a - Olá Andrei, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+c - Sim, quero falar
+a - Que bom que está aqui!Um dos nossos consultores seguirá com seu atendimento agora 🙂
+
+},
+
+{
+Protocolo: 251202663102 >> Fila: Customer Care
+c - Oi
+a - Olá, CENTRO DE ENSINO E NEGOCIOS PATOS LTDA!😀Sou Giba, o assistente virtual da Locaweb e irei te ajudar sobre assuntos de cancelamento!
+a - Antes de qualquer coisa, queremos reforçar que a sua segurança é prioridade por aqui. 😉Que tal dar um passo importante para proteger ainda mais a sua conta Locaweb?Se você ainda não ativou o Duplo Fator de Autenticação (2FA), a gente recomenda que faça isso agora mesmo. 🔒Com essa camada extra de segurança, sua conta fica muito mais protegida contra acessos indevidos e tentativas de fraude: [link]
+a - Preciso identificar o seu cadastro! Você tem acesso à Central do cliente?
+c - Sim, tenho acesso
+a - Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: mfreitas1. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+a - Para que eu possa te ajudar, por favor selecione o assunto que gostaria de falar⬇️:
+c - 4
+a - Qual o segmento do seu negócio?⬇️
+c - 2
+a - Temos uma novidade que vai deixar seus pagamentos ainda mais fáceis: agora você pode pagar o boleto via PIX! 😃Basta escanear o QR Code e pronto! O pagamento é rápido, e a compensação bancária acontece em até 1 hora.Ficou curioso e quer saber mais?É só acessar [dominio]/ajuda e procurar por "pagamento de boletos com PIX".Conseguiu obter o que procura com as informações acima?
+c - 2
+a - [Transferindo para a fila de atendimento📞]
+a - Seu número de protocolo é: 251202663102Por favor aguarde um momento, enquanto transferimos você para um de nossos consultores.
+c - Registrei o domínio, comprei o criador de sites, email e o Cleac leads com vocês, mas estou achando difícil configurar meu site com os modelos do site
+c - se não tiver como contratar o serviço de vocês para a criação do site
+c - prefiro cancelar
+a - Bom dia! 😃 Por questão de segurança por gentileza informar o cod do cliente, nome completo e CPF em caso de pessoa física.  CNPJ e razão social em caso de pessoa jurídica, de acordo com o cadastrado em sistema.
+a - Como estou no aguardo de seu retorno há um tempo, compreendo que não deseja continuar com este atendimento. Sendo assim, por falta de interação, estou encerrando este atendimento. Agradecemos pelo seu contato e permanecemos à disposição! Até mais.. 😃
+a - Pesquisa enviada para o cliente
+
+},
+
+{
+Protocolo: 251202663149 >> Fila: Recuperação de Credito
+a - Olá  MARCIA APARECIDA MARTINS BRUM , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Falar com Consultor
+a - Aguarde  um momento.
+
+},
+
+{
+Protocolo: 251202663153 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Adherbal Fortes de Sá Junior , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Finalizar Atendimento
+a - Até mais!
+
+},
+
+{
+Protocolo: 251202663198 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Anariza , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Olá! Seja bem vindo! Eu sou a Ana e já venho  atender.Você pode  adiantar e ir conhecer nosso cardápio no link a seguir:papapizzaaracruz.comSe  você já sabe o que pedir é só digitar seu pedido que vou anotar para você em breve. ENVIE os dados:SEU NOME:ENTREGA OU RETIRADA:CPF *(obrigatório p entregas)*:ENDEREÇO COMPLETO:SEU PEDIDO:OBSERVAÇÃO:PAGAMENTO:Assim que possível eu anoto para você.🙂
+a - Olá Anariza, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663137 >> Fila: Recuperação de Credito
+a - Olá  AAPP CONSULTORIA E GESTAO , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Falar com Consultor
+a - Aguarde  um momento.
+
+},
+
+{
+Protocolo: 251202663168 >> Fila: Recuperação de Credito
+a - Olá  Roni , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Falar com Consultor
+a - Aguarde  um momento.
+
+},
+
+{
+Protocolo: 251202663167 >> Fila: Recuperação de Credito
+a - Olá  MD Representação , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Falar com Consultor
+a - Aguarde  um momento.
+a - Olá, tudo bem? Você fala com Mayara. Como posso ajudar?
+c - Recebi essa informação
+c - Gostria de saber se qual serviço estão falando
+a - Sim, está com o serviço de Email Marketing Start desativado
+a - Tem interesse em reativar?
+
+},
+
+{
+Protocolo: 251202663163 >> Fila: Recuperação de Credito
+a - Olá  Luiz , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Falar com Consultor
+a - Aguarde  um momento.
+a - Olá, tudo bem? Você fala com Mayara. Como posso ajudar?
+c - oii
+c - bom dia
+c - eu queria te pedir um favor
+
+},
+
+{
+Protocolo: 251202663258 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Claudionice , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Seja bem-vinda.Confira nossas novidades no site:[dominio].brOu se preferir deixe um recadinho que em breve responderemos :)
+a - Olá Claudionice, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663122 >> Fila: Ativo Recuperação de Crédito
+c - Bom dia Rafaela
+a - Olá Emerson, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+c - 1
+a - Que bom que está aqui!Um dos nossos consultores seguirá com seu atendimento agora 🙂
+a - Olá, tudo bem? Me chamo Clarissa, vou seguir com atendimento 😃  Como posso te ajudar?
+c - Bom dia Clarissa
+c - Acertei um pacote de e-mails com a Rafaela, só que não consigo , acessar meu perfil para efetuar o pagamento da parcela para ter o serviço liberado, já alterei a senha[senha] mas mesmo assim não dá certo
+a - Um momento, vou direcionar ao financeiro
+a - Olá, como vai? Meu nome é Marcos e vou seguir com seu atendimento, por favor como posso ajudar?
+c - Bom dia Marcos
+c - Acertei um pacote de e-mails com a Rafaela, mas não estou conseguindo acessar meu login [login] já alterei a senha [senha] não dá certo, e com isso não consigo pagar a parcela e Liberar o serviço de e-mail
+
+},
+
+{
+Protocolo: 251202663235 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Juliana scatolin , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - [dominio] agradece seu contato. Como podemos ajudar?Aproveite as promoções exclusivas em nosso catálogo no WhatsApp: [link]
+a - Olá Juliana scatolin, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663098 >> Fila: Customer Care
+c - Bom dia
+a - Olá, Ana Lucia Souza Alves!😀Sou Giba, o assistente virtual da Locaweb e irei te ajudar sobre assuntos de cancelamento!
+a - Antes de qualquer coisa, queremos reforçar que a sua segurança é prioridade por aqui. 😉Que tal dar um passo importante para proteger ainda mais a sua conta Locaweb?Se você ainda não ativou o Duplo Fator de Autenticação (2FA), a gente recomenda que faça isso agora mesmo. 🔒Com essa camada extra de segurança, sua conta fica muito mais protegida contra acessos indevidos e tentativas de fraude: [link]
+c - Que dia vc cair meu reembolso
+a - Preciso identificar o seu cadastro! Você tem acesso à Central do cliente?
+c - Sim, tenho acesso
+a - Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: deuseamornavida82. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+a - Para que eu possa te ajudar, por favor selecione o assunto que gostaria de falar⬇️:
+c - 4
+a - Qual o segmento do seu negócio?⬇️
+c - 4
+a - Temos uma novidade que vai deixar seus pagamentos ainda mais fáceis: agora você pode pagar o boleto via PIX! 😃Basta escanear o QR Code e pronto! O pagamento é rápido, e a compensação bancária acontece em até 1 hora.Ficou curioso e quer saber mais?É só acessar [dominio]/ajuda e procurar por "pagamento de boletos com PIX".Conseguiu obter o que procura com as informações acima?
+c - 2
+a - [Transferindo para a fila de atendimento📞]
+a - Seu número de protocolo é: 251202663098Por favor aguarde um momento, enquanto transferimos você para um de nossos consultores.
+a - Olá, tudo bem? Me chamo Luiza, vou dar continuidade no seu atendimento! Como posso te ajudar?
+c - Bom dia
+c - Gostaria de saber sobre meu reembolso
+a - Entendi, me informa seu usuário [usuario] código do cliente por favor
+c - Só 1 minuto
+c - [telefone]
+c - Ana Lucia Souza Alves
+c - Conseguiu verificar?
+
+},
+
+{
+Protocolo: 251202663234 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Kaynã , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Aznar, Santana & Albrecht Advogados agradece seu contato. Como podemos ajudar?
+c - Agradecemos sua mensagem. Não estamos disponíveis no momento, mas entraremos em contato assim que possível.
+a - Olá Kaynã, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663281 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Ricardo , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Nosso expediente é de terça á sexta de 10:00 às 16:00 horas, exceto feriados. Não atendemos ligações. Somente ZAP! Obrigado!
+c - Nosso expediente é de terça á sexta de 10:00 às 17:00 exceto feriados.
+a - Olá Ricardo, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663192 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Luis , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Olá, tudo bem? Sou ‎Taise, como posso te ajudar?😊
+a - Olá Luis, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663189 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Antonio , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Agradecemos seu contato, seja bem vindo a AMAIS GESTÃO E TECNOLGIAPara melhor atender informe os seguintes dados:Nome :E-mail:Tels:CondomininioAssunto:Acesse nosso site: [dominio] 84 3190-0112Retornaremos assim que possivel!
+a - Olá Antonio, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663254 >> Fila: Ativo Recuperação de Crédito
+a - Olá  Karolliny , espero que esteja tudo bem com você.O(s) seu(s) serviço(s) foi(ram) desativado(s). Para que você não perca seu conteúdo em definitivo, ou seja, sem possibilidade de recuperação, é necessário que você entre em contato conosco. Você tem interesse na reativação do login  [login] Basta nos responder aqui que iremos ajudá-lo. Abraços, Equipe Locaweb
+c - Olá, tudo bem? Seja bem-vindo a Blocos Jaiba! ‎Como podemos ajudar?
+a - Olá Karolliny, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+
+},
+
+{
+Protocolo: 251202663285 >> Fila: Ativo Recuperação de Crédito
+c - 👍
+a - Olá Adherbal Fortes de Sá Junior, ainda precisa de apoio do time 🙂?1 - Sim2 - Não3 - Suporte Técnico
+c - Sim, quero falar
+a - Que bom que está aqui!Um dos nossos consultores seguirá com seu atendimento agora 🙂
+a - adherbalctba
+c - Passei os dados do novo cartão de crédito
+a - Você quer pagar para reativar o plano?
+
+},
+
+{
+Protocolo: 251202663113 >> Fila: Customer Care
+a - ATENÇÃO! O e-mail oficial para envio de boletos / faturas através da Locaweb é [email] Também temos o e-mail [email] Caso tenha recebido e-mail sobre assuntos relacionados a sua fatura, que não sejam os acima, por gentileza, desconsidere. Para mais informações sobre GOLPE VIRTUAL acesse: [link]
+a - Por favor, aguarde um de nossos analistas.
+a - Estamos conectando você a um de nossos analistas.Por favor, aguarde alguns instantes; em breve, alguém falará com você.Seu número de protocolo é: [codigo_de_barras]
+c - OK
+a - Olá tudo bem?  Como posso ajudar?
+c - quero cancelar meu plano
+c - Eu encerrei minha empresa
+a - Me informe seu código do cliente/usuário [usuario] favor
+
+},
+
+{
+Protocolo: 251202663069 >> Fila: Customer Care
+c - Olá, bom doa
+a - Olá, Bruna!😀Sou Giba, o assistente virtual da Locaweb e irei te ajudar sobre assuntos de cancelamento!
+a - Antes de qualquer coisa, queremos reforçar que a sua segurança é prioridade por aqui. 😉Que tal dar um passo importante para proteger ainda mais a sua conta Locaweb?Se você ainda não ativou o Duplo Fator de Autenticação (2FA), a gente recomenda que faça isso agora mesmo. 🔒Com essa camada extra de segurança, sua conta fica muito mais protegida contra acessos indevidos e tentativas de fraude: [link]
+a - Preciso identificar o seu cadastro! Você tem acesso à Central do cliente?
+c - Sim, tenho acesso
+a - Clique no link abaixo e realize login [login] prosseguirmos com o atendimento.
+a - [link]
+a - 🔒 (Autenticado)- Maravilha! Você esta conectado como: brudcarvalho. Aguarde um momento, estou buscando algumas informações para o atendimento.
+a - Você sabia que é fácil e rápido reativar os seus serviços desativados por falta de pagamento?Acesse: [link] a opção: liberar acesso temporário, e aguarde que no tempo máximo de até 3 horas o seu serviço voltará ao funcionamento.Através do portal de pagamento, é possível não somente ter acesso a sua fatura detalhada e trocar a forma de pagamento, como também reativar seus serviços até que ocorra a identificação do pagamento realizada após o vencimento.
+a - Olá, Identificamos que você possui serviço(s) desativado(s) por falta de pagamento:
+a - Abaixo o link para o boleto:
+a - Deseja continuar o atendimento?
+c - Sim
+a - Para que eu possa te ajudar, por favor selecione o assunto que gostaria de falar⬇️:
+c - 4
+a - Qual o segmento do seu negócio?⬇️
+c - 4
+a - Temos uma novidade que vai deixar seus pagamentos ainda mais fáceis: agora você pode pagar o boleto via PIX! 😃Basta escanear o QR Code e pronto! O pagamento é rápido, e a compensação bancária acontece em até 1 hora.Ficou curioso e quer saber mais?É só acessar [dominio]/ajuda e procurar por "pagamento de boletos com PIX".Conseguiu obter o que procura com as informações acima?
+c - 2
+a - [Transferindo para a fila de atendimento📞]
+a - Seu número de protocolo é: 251202663069Por favor aguarde um momento, enquanto transferimos você para um de nossos consultores.
+a - Bom dia! 😃 Por questão de segurança por gentileza informar o cod do cliente, nome completo e CPF em caso de pessoa física.  CNPJ e razão social em caso de pessoa jurídica, de acordo com o cadastrado em sistema.
+a - Como estou no aguardo de seu retorno há um tempo, compreendo que não deseja continuar com este atendimento. Sendo assim, por falta de interação, estou encerrando este atendimento. Agradecemos pelo seu contato e permanecemos à disposição! Até mais.. 😃
+a - Pesquisa enviada para o cliente
+
+},

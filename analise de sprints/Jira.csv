@@ -1,0 +1,400 @@
+Tipo de item,Campo personalizado (Business Unity),Campo personalizado (Business Unity),Campo personalizado (Business Unity),Campo personalizado (Business Unity),Status,Descrição,Campo personalizado (Natureza do item),Campo personalizado (Categoria de Atuação),Sprint,Sprint,Sprint,Campo personalizado (Área Atendida (Business Analytics)),Comentários,Comentários,Campo personalizado (Data de entrega (alvo)),Pai,Chave pai,Parent summary
+Tarefa,Locaweb,,,,Concluído,Criação de visão hora a hora no dash de volumetria de locaweb para controldesk,Não-planejada,Desenvolvimento de Produto (70%),Sprint #02,,,,,,,,,
+Tarefa,Locaweb,,,,Concluído,Extração de classificação dos contatos do time de aep no mes de março pro Eliseu,Não-planejada,Desenvolvimento de Produto (70%),Sprint #02,,,,,,,,,
+Tarefa,KingHost,,,,Concluído,Ajuste de filtro de data no dash de pesquisa de satisfação da King solicitado pela Mih,Não-planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Tarefa,KingHost,Locaweb,,,Concluído,Inclusão de abas separadas de Locaweb e KingHost no Dash de Contact Rate ,Não-planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Bug,Locaweb,,,,[Downstream] Em andamento,Ajuste dos dados de abandono de Chat/WhatsApp da loca a partir da identificação de um bug na query.,Não-planejada,Melhorias Técnicas (20%),Sprint #02,Sprint #03,,Atendimento,"16/mar/26 10:20 AM;70121:dac7fa84-37db-4e95-83e6-9e48f9fd9cfd;Sugestão: separar as filas de de ativo em um report distinto, para não poluir as métricas do atendimento de Customer Care.",,,,,
+Melhoria,Locaweb,,,,[Downstream] Validação PO,Criação de uma versão 2.0 da Gem mostrada pelo Arthur. buscando trazer por meio desta Gem versões gráficas da performance da equipe.,Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Atendimento,,,,,,
+Subtarefa,Octadesk,,,,[Downstream] Backlog,,Planejada,,Sprint #02,Sprint #03,,,,,,198468,DAPT-112,Classificação de Persona 
+Subtarefa,Octadesk,,,,[Downstream] Backlog,,Planejada,,Sprint #02,Sprint #03,,,,,,198468,DAPT-112,Classificação de Persona 
+Subtarefa,Octadesk,,,,Concluído,,Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,,16/mar/26 10:22 AM;70121:dac7fa84-37db-4e95-83e6-9e48f9fd9cfd;Tabela entregue para o solicitante.,,,198468,DAPT-112,Classificação de Persona 
+Subtarefa,Octadesk,,,,[Downstream] Backlog,,Planejada,,Sprint #02,Sprint #03,,,,,,198468,DAPT-112,Classificação de Persona 
+Tarefa,Locaweb,,,,Concluído,A equipe de produtos solicitou auxilio para realizar os disparos de cobrança durante as férias da Fernanda Jesus.  Disparos de ativos via ferramenta da octadesk.,Planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Inside Sales,16/mar/26 10:24 AM;70121:dac7fa84-37db-4e95-83e6-9e48f9fd9cfd;Processo concluído.  Disparos de Comunicação via WhatsApp pela ferramenta da octadesk.,,,,,
+Tarefa,Vindi,,,,Concluído,,Não-planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Melhoria,KingHost,,,,Concluído,"Os dados de volumetria dos contatos da king não estavam contemplando os chamados. Ajustado e agora os dados estão de acordo com os valores do dash de KPI.
+
+
+
+[https://app.powerbi.com/links/fzMFLXIRlW?ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca&pbi_source=linkShare|https://app.powerbi.com/links/fzMFLXIRlW?ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca&pbi_source=linkShare]",Não-planejada,Melhorias Técnicas (20%),Sprint #02,,,Atendimento,,,,,,
+Tarefa,Vindi,,,,Concluído,"Criar painel com indicadores:
+Tickets em aberto por departamento
+Sla médio em dias por departamento
+analíticos
+Ticket em aberto por prazo que está em aberto
+NPS por grupo",Planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Tarefa,Octadesk,,,,[Downstream] Aguardando testes,"Criar no Superset um dash para ver métricas da classificação por IA dos contatos
+
+
+
+Niveis de classificação, Motivos de contato e etc.",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Data Analytics,04/mar/26 9:38 AM;712020:3cbd5c8d-0180-41d3-8529-5471b850a88b;Dashboard publicado. Link:[https://app.powerbi.com/reportEmbed?reportId=307cade1-0d2d-4834-9de9-d63ce332fe9c&autoAuth=true&ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca|https://app.powerbi.com/reportEmbed?reportId=307cade1-0d2d-4834-9de9-d63ce332fe9c&autoAuth=true&ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca|smart-link] ,,,,,
+Tarefa,KingHost,,,,Concluído,"Motivação:
+
+Preciso ter acesso ao % de retenção do BOT por setor
+
+Dores (Problema de Negocio):
+
+No formato atual não é possivel diagnosticar o % de retenção no bot por setor
+
+Proposta:
+
+incluir um filtro de SETOR no painel - https://app.powerbi.com/groups/259b0a6f-b89b-4c74-aa62-c76cc5f36092/reports/170f173f-ae3b-4511-ac71-13f711141ece/eaca10b69f2e53858a67?ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca&experience=power-bi&bookmarkGuid=2f14e8a2f622cf03f699 (https://app.powerbi.com/groups/259b0a6f-b89b-4c74-aa62-c76cc5f36092/reports/170f173f[…]805c8ca&experience=power-bi&bookmarkGuid=2f14e8a2f622cf03f699)
+
+Dados Necessários:
+
+Só incluir o filtro de setor
+
+----------------------------
+
+Solicitante: roberto.coelho@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,"04/mar/26 10:17 AM;712020:b721ec3a-7340-44e5-b686-08ecd9ee20ca;Incluso o filtro, contudo foi explicado que esse ajuste não resolve a dor, uma vez que atendimentos que param no autoatendimento não possuem setor, pois não foram atribuídos para nenhum grupo de atendimento, não sendo possível analisar a % de retenção por setor",,,,,
+Tarefa,Vindi,,,,[Downstream] Selecionadas,Replicar a GEM criada para a Octa para as demais unidades.,Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,Data Analytics,,,,,,
+Tarefa,Locaweb,,,,[Downstream] Em andamento,Replicar a GEM criada para a Octa para as demais unidades.,Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,Data Analytics,,,,,,
+Tarefa,KingHost,,,,[Downstream] Validação PO,Replicar a GEM criada para a Octa para as demais unidades.,Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,Data Analytics,,,,,,
+Tarefa,KingHost,Locaweb,Octadesk,Vindi,[Downstream] Em andamento,"Construir um site que centralize todos os agentes de Inteligência Artificial que foram treinados e estão disponíveis para atuar nas unidades de negócio: Locaweb, KingHost, Octadesk e Vindi",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,,,,,,,
+Tarefa,KingHost,Locaweb,Octadesk,Vindi,[Downstream] Em andamento,"Motivação:
+
+Concentrar os links de NotebookLM e Gems criados pela equipe
+
+Dores (Problema de Negocio):
+
+Concentrar os links em um único local
+
+Proposta:
+
+Criar um portal contendo os links e descrições
+
+Dados Necessários:
+
+Links
+
+----------------------------
+
+Solicitante: thiago.josetti@locaweb.com.br",Planejada,Melhorias Técnicas (20%),Sprint #02,Sprint #03,,Data Analytics,,,,,,
+Tarefa,Octadesk,,,,[Downstream] Em andamento,"Entender o perfil de cliente que mais consomem os produtos de Octadesk por meio da classificação Cnae  class, ferramentas de identificação do  e informações já conhecidas por meio do Painel do Cliente Octa.",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,,,,,,,
+Tarefa,KingHost,,,,Concluído,"Motivação:
+
+Aocmpanhar performance de final de semana
+
+Dores (Problema de Negocio):
+
+Não tenho visibilidade dos sabados e domingos do time
+
+Proposta:
+
+Incluir os fins de semana nos paineis
+
+Dados Necessários:
+
+os dados de sabado e domingo
+
+----------------------------
+
+Solicitante: roberto.coelho@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Tarefa,KingHost,,,,Concluído,"Motivação:
+
+Diagnostico rápido das filas ofensoras
+
+Dores (Problema de Negocio):
+
+Não é possivel ter um diagostico rapido de fila ofensora no NPS. para saber é necessário realizar varios filtros dificultando o diagonostico
+
+Proposta:
+
+No painel de 'PESQUISA DE SATISFAÇÃO' quebrar a visão por fila.
+
+Podem criar mais uma ABA no canto esquerdo, sem mexer nas visões atuais.
+
+Nessa nova ABA criar uma COLUNA com a FILA e ao lado Colocar os P1 - P2 - P3 somente os termometros. Nao precisa colocar os indicadores em percentual.
+
+Os termometros podem ficar menores para que caibam numa unica página.
+
+Dados Necessários:
+
+FILA e P1 - P2 - P3 somente os termometros.
+
+----------------------------
+
+Solicitante: roberto.coelho@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,,,Atendimento,,,,,,
+Tarefa,Octadesk,,,,[Downstream] Em code review,Estudo para a classificar persona Octa.,Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,Sprint #03,,,,,,,
+Tarefa,Vindi,,,,[Downstream] Selecionadas,"Motivação:
+
+Indicadores pendentes
+
+Dores (Problema de Negocio):
+
+Sem visão para esses dados ou visão feita manualmente.
+
+Proposta:
+
+Aging
+
+FAR
+
+Taxa de escalonamento
+
+Backlog
+
+Response Rate (atual para NPS)
+
+SLA Primeira resposta
+
+Taxa Recontato
+
+SLA Resolução
+
+Aging solução contorno (Incidente)
+
+Aging solução raiz (Problema)
+
+kpi's da central de ajuda
+
+Dados Necessários:
+
+Aging
+
+FAR
+
+Taxa de escalonamento
+
+Backlog
+
+Response Rate (atual para NPS)
+
+SLA Primeira resposta
+
+Taxa Recontato
+
+SLA Resolução
+
+Aging solução contorno (Incidente)
+
+Aging solução raiz (Problema)
+
+kpi's da central de ajuda
+
+----------------------------
+
+Solicitante: murilo.morgado@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Data Analytics,24/fev/26 2:19 PM;712020:b721ec3a-7340-44e5-b686-08ecd9ee20ca;Solicitação de endpoints novos para o time de octa. Aguardando essa solicitação. 24/02,16/mar/26 10:37 AM;70121:dac7fa84-37db-4e95-83e6-9e48f9fd9cfd;Previsão de octadesk entregar o endpoint na primeira sprint de abril,,,,
+Tarefa,Locaweb,,,,Concluído,"*Objetivo:* Replicar a estrutura de monitoramento de contatos existente para a vertical de *Cancelamento*, garantindo visibilidade sobre o volume e comportamento dessas interações.
+
+*Ações Principais:*
+
+* *Replicação Técnica:* Adaptar os dashboards/queries atuais para filtrar e exibir dados específicos do fluxo de cancelamento.
+* *Gestão de Acessos:* Garantir permissões de visualização para os solicitantes:
+** Tais Silva
+** Glauco Oliveira
+** Michelle Gusmão
+
+*Entrega Esperada:*
+
+* Monitoramento ativo com dados atualizados.
+* Confirmação de acesso realizado para todos os stakeholders listados..",Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,,Data Analytics,,,,,,
+História,KingHost,,,,[Downstream] Aguardando publicação,"Visualizador: Looker
+
+*[DESCRIÇÃO]* *Objetivo:* Migrar e refazer o relatório de Contact Rate da KingHost para o Looker, corrigindo as divergências identificadas na volumetria de contatos de suporte.
+
+*Ponto de Atenção Técnico:*
+
+* Atualmente, o relatório utiliza apenas a base de clientes, pois os números de contatos de suporte estão subestimados (contagem a menor).
+* O novo desenvolvimento deve garantir que o número de contatos esteja 100% correto no Looker.
+
+*Referência para Migração:*
+
+* *Dashboard Atual (Power BI):* [Link do Relatório|https://app.powerbi.com/reportEmbed?reportId=d0aa48f6-61c7-412b-b9e0-12c56a865938&autoAuth=true&ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca]
+
+*Entrega Esperada:*
+
+* Relatório no Looker com paridade de dados e métricas de Contact Rate validadas frente às fontes de origem de suporte.",Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,Sprint #03,,"24/fev/26 2:21 PM;712020:b721ec3a-7340-44e5-b686-08ecd9ee20ca;[Incidente] Retorno do endpoint não trazendo os resultados do campo personalizados - o210027-ca5 #244235
+
+Cobrar retorno desse incidente. 24/02",,,,,
+Epic,KingHost,Locaweb,Octadesk,Vindi,[Downstream] Backlog," Este épico engloba a configuração, migração de rotinas e estabelecimento de governança para o novo banco de dados PostgreSQL. O foco é garantir uma transição segura do banco CPRO23221 para o PGDB0104, utilizando Airflow para orquestração e aplicando políticas rigorosas de acesso (PoLP).
+
+*Objetivos do Épico:*
+
+# Configurar infraestrutura de leitura/escrita (Primary & Replica).
+# Orquestrar pipelines de dados via Apache Airflow.
+# Estabelecer governança de usuários e acessos.
+# Definir padrões de documentação e qualidade de código.
+
+
+h3. ✅ Critérios de Aceite
+
+* As rotinas de dados migrados com 100% de integridade comprovada por logs de auditoria no Airflow.
+* Nenhum usuário nominal (exceto os 3 autorizados) deve ter acesso de escrita no banco primário.
+* Documentação técnica e diagrama de entidade-relacionamento atualizados no Confluence.
+* Plano de _Rollback_ testado e validado.
+* Sistema de monitoramento e alertas configurado.
+* O banco CPRO23221 só poderá ser desativado após aprovação formal dos stakeholders de BI.
+
+h3. ⚠️ Riscos Identificados
+
+* Indisponibilidade prolongada durante a janela de migração.
+* Incompatibilidade de drivers ou bibliotecas de conexão no backend atual.
+* Perda de performance em queries específicas que não foram otimizadas para o novo motor.",Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,Sprint #03,Data Analytics,,,,,,
+Tarefa,Octadesk,,,,[Downstream] Selecionadas,"*Objetivo:* Desenvolver o dashboard de coordenação para a unidade *Octadesk* no Superset, utilizando como benchmark o modelo ""Dashboard Locaweb Coordenação"".
+
+*Estrutura de Visualização e Filtros:*
+
+* Visão de performance segmentada por: *Time*, *Coordenador* e *Analista*.
+
+*Métricas de Recontato (Relatório Separado):*
+
+* *Janelas de acompanhamento:* Mesmo dia, mesma semana e mesmo mês.
+* *Ação:* Validar especificidades da regra com @Maria Castro [Locaweb - Data Analytics/Atendimento].
+
+*Regra de FRC:*
+
+* Considerar recontato ocorrido na mesma fila em um intervalo de até 72 horas.
+
+*Entrega Esperada:*
+
+* Dashboard funcional no Superset integrado à base de dados Octadesk, com as regras de recontato e FRC devidamente aplicadas.",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,,,,,,,
+Tarefa,,,,,[Downstream] Aguardando code review,"*Objetivo:* Estabelecer e manter a rotina de monitoramento e envio do report diário com os indicadores de atendimento da operação *Vindi*.
+
+*Escopo do Report:*
+
+* Acompanhamento de KPIs críticos de atendimento (ex: Volume, SLA, TMA).
+* Monitoramento de anomalias ou desvios de performance no dia anterior e acumulado.
+
+*Entregas Esperadas:*
+
+* Atualização diária dos dados para os stakeholders da unidade Vindi.
+* Garantia de integridade das fontes de dados que alimentam este monitoramento.
+
+*Canais de Notificação:*
+
+* [Definir se o report é via E-mail, Slack ou Dashboard específico].",Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,,"24/fev/26 2:54 PM;712020:b721ec3a-7340-44e5-b686-08ecd9ee20ca;Monitoramento de contatos está ok.
+
+O Report diario precisa definir com o Glauco o que faz mais sentido, separar por chat e incidentes, ou separar por VP ou VR? Pra definir como a visão melhor se adequa pra Vindi",,,,,
+Tarefa,,,,,[Downstream] Aguardando code review,"*Objetivo:* Implementar um fluxo de automação via *n8n* utilizando *Agentes de IA* para a classificação automática de tickets de atendimento. O projeto visa testar a eficácia da árvore de classificação atual e reduzir o esforço manual.
+
+*Estratégia de Rollout (POC):* A implementação seguirá uma ordem crescente de complexidade e volume:
+
+# *Octadesk (Fase Atual):* Unidade piloto por possuir o menor volume.
+# *KingHost:* Segunda fase de validação (Volume médio).
+# *Locaweb:* Fase final de escala (Maior volume).
+
+*Requisitos Técnicos:*
+
+* Integração do n8n com as APIs do Octadesk.
+* Configuração de Agente de IA para interpretação de logs/transcrições de atendimento.
+* Mapeamento e validação da árvore de classificação atual frente aos outputs da IA.
+
+*Critérios de Sucesso:*
+
+* Acurácia da classificação da IA comparada à classificação humana.
+* Estabilidade do fluxo no n8n para a BU Octadesk.",Planejada,Inovação / Experimentação (10%),Sprint #02,Sprint #03,,,,,,,,
+Tarefa,KingHost,Locaweb,Octadesk,Vindi,Concluído,"*Objetivo:* Centralizar e automatizar a ingestão dos dados de atendimento das unidades de negócio no Google Cloud Platform (GCP) da LWSA, garantindo a disponibilidade das bases para análise.
+
+*Escopo da Ingestão (Prioridade):*
+
+# *Locaweb*
+# *KingHost*
+# *Octadesk*
+
+*Contexto e Referências:*
+
+* O alinhamento técnico e as definições de conectores/APIs estão sendo discutidos no canal Slack: {{#locaweb-squad-business-analytics_atendimento}}.
+* A tarefa consiste em facilitar ou executar o pipeline de dados (ETL/ELT) para o ambiente de BigQuery/GCP.
+
+*Resultados Esperados:*
+
+* Tabelas de atendimento ingeridas e atualizadas conforme a frequência necessária.
+* Documentação mínima da origem dos dados e processo de carga.",Planejada,Melhorias Técnicas (20%),Sprint #02,,,,,,,,,
+Tarefa,Locaweb,,,,[Downstream] Validação PO,"*Objetivo:* Criar relatório de coordenação para a KingHost, seguindo o modelo do Dashboard Locaweb Coordenação.
+
+*Estrutura de Visualização:*
+
+* Resultados por Time, Coordenador e Analista.
+
+*Regras de Recontato (Relatório Separado):*
+
+* *Escopo:* Recontato do dia (mesmo dia), semana e mês.
+* *Ação:* Validar lógica de extração com @Maria Castro [Locaweb - Data Analytics/Atendimento].
+
+*Regra de FRC:*
+
+* Recontato na mesma fila dentro de um intervalo de 72 horas.",Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,Sprint #03,Data Analytics,,,,,,
+Tarefa,KingHost,,,,[Downstream] Validação PO,"O objetivo desta demanda é criar um dashboard de coordenação para a marca *KingHost* dentro do Superset. O painel deve seguir o padrão visual e funcional do relatório já existente da Locaweb Coordenação, permitindo o acompanhamento de performance em diferentes níveis hierárquicos.
+
+
+
+h3. Regras de Negócio e Requisitos
+
+h4. 1. Módulo de Recontatos (Relatório Separado)
+
+Conforme alinhamento inicial, as métricas de recontato devem ser apresentadas em um relatório ou aba distinta.
+
+* *Recontato do Dia:* Interações que retornaram dentro do mesmo dia civil.
+* *Recontato da Semana:* Interações que retornaram dentro da mesma semana epidemiológica/calendário.
+* *Recontato do Mês:* Interações que retornaram dentro do mesmo mês.
+* *Ponto de Atenção:* Validar a regra de extração/cálculo específica com *@Maria Castro* para garantir paridade com os dados da Locaweb.
+
+h4. 2. Regra de FRC (First Response Contact / FCR alternativo)
+
+* *Definição:* Considerar recontato na mesma fila dentro de um intervalo de *72 horas*.
+
+h3. Critérios de Aceitação
+
+* [ ] Dashboard criado no ambiente de produção do *Superset*.
+* [ ] Filtros de Time, Coordenador e Analista funcionando corretamente e cruzando dados.
+* [ ] Relatório de Recontatos validado pela área técnica (Maria Castro).
+* [ ] Dados de FRC (72h) validados e batendo com a base de dados KingHost.
+* [ ] Documentação da query/tabela de origem adicionada ao card ou Wiki.",Planejada,Desenvolvimento de Produto (70%),Sprint #01,Sprint #02,Sprint #03,Atendimento,,,,,,
+Tarefa,Vindi,,,,[Downstream] Em andamento,"Motivação:
+
+Centralização do atendimento
+
+Dores (Problema de Negocio):
+
+Acesso aos dados unificados com a Vindi e padronização de indicadores
+
+Proposta:
+
+Trazer os dados para MB e replicar indicadores
+
+Dados Necessários:
+
+IDEM aos da Vindi
+
+----------------------------
+
+Solicitante: roberto.coelho@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Atendimento,"24/fev/26 3:21 PM;712020:b721ec3a-7340-44e5-b686-08ecd9ee20ca;Solicitar os dados da Tray para a nossa base.
+
+Processo atual de extração dos dados é manual.",,,,,
+Tarefa,Vindi,,,,[Downstream] Em andamento,"Motivação:
+
+Indicadores centralizados
+
+Dores (Problema de Negocio):
+
+falta do indicador centralizado após a migração da plataforma
+
+Proposta:
+
+Trazer o basico, somente, de dados do Zendesk para a octa
+
+Dados Necessários:
+
+os que estão nesse painel
+
+https://analytics.vindi.com.br/dashboard/876-macro-dados-gerenciais-cx?agente_gateway=&agente_payments=&data_final=2026-01-31&data_inicial=2025-10-10&tab=541-cx---geral-%28em-desenvolvimento%29 (https://analytics.vindi.com.br/dashboard/876-macro-dados-gerenciais-cx?agente_gateway=&a[…]al=2025-10-10&tab=541-cx---geral-%28em-desenvolvimento%29)
+
+----------------------------
+
+Solicitante: roberto.coelho@vindi.com.br",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Atendimento,,,,,,
+Tarefa,KingHost,Vindi,,,[Downstream] Em andamento,"h3. Resumo
+
+Replicar o Relatório Semanal de Atendimento do setor de Suporte para o sistema King. O objetivo é ter informações precisas através de IA, similar ao que é feito para LOCA.
+
+h3. Contexto
+
+A motivação para esta solicitação é garantir o acesso a dados TOP, assim como ocorre na LOCA. O problema identificado é a falta de acesso a informações equivalentes.
+
+h3. Critérios de Aceitação
+
+* Replicar o relatório semanal de atendimento da LOCA.
+* Granularizar o motivo de contato, proporcionalizando em volume pela entrada.
+
+h3. Outras informações
+
+Solicitante: [roberto.coelho@vindi.com.br|mailto:roberto.coelho@vindi.com.br]",Planejada,Desenvolvimento de Produto (70%),Sprint #02,Sprint #03,,Atendimento,,,,,,
