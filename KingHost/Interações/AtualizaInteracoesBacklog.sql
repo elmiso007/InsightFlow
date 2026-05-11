@@ -1,0 +1,40 @@
+UPDATE kinghost.interacoesbacklog AS IB
+SET	
+    login_agente = SI.login_agente,
+    fila = SI.fila,
+    cliente = SI.cliente,
+    email = SI.email,
+    telefone_1 = SI.telefone_1,
+    telefone_2 = SI.telefone_2,
+    navegador = SI.navegador,
+    data_inicio_interacao = SI.data_inicio_interacao,
+    data_desvio_interacao = SI.data_desvio_interacao,
+    data_resposta_interacao = SI.data_resposta_interacao,
+    data_fim_interacao = SI.data_fim_interacao,
+    tempo_espera = SI.tempo_espera,
+    tempo_atendimento = SI.tempo_atendimento,
+    status = SI.status,
+    quantidade_interacoes = SI.quantidade_interacoes,
+    nivel1 = SI.nivel1,
+    nivel2 = SI.nivel2, 
+    nivel3 = SI.nivel3,
+    nivel4 = SI.nivel4,
+    nivel5 = SI.nivel5,
+    login_cliente = SI.login_cliente,
+    autorizacao_requisitada = CAST(SI.autorizacao_requisitada AS BOOLEAN),
+    autorizacao_aceita = CAST(SI.autorizacao_aceita AS BOOLEAN),
+    autorizacao_erro = CAST(SI.autorizacao_erro AS BOOLEAN),
+    boleto = CAST(SI.boleto AS BOOLEAN),
+    canal = SI.canal,
+    ip = SI.ip,
+    data_criacao_do_arquivo = CAST(SI.data_criacao_do_arquivo AS TIMESTAMP),
+    fonte_de_dados = 'H-2',
+    data_modificacao = NOW() - INTERVAL '3 hour',
+    p1 = SI.p1,
+    p2 = SI.p2,
+    p3 = SI.p3,
+    comentarios = SI.comentarios
+FROM kinghost.stginteracoes SI
+WHERE IB.protocolo = SI.protocolo
+    AND IB.id_sessao = SI.id_sessao
+    AND SI.quantidade_interacoes > IB.quantidade_interacoes;
