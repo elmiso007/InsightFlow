@@ -1,0 +1,37 @@
+# ======================================================================
+# DEPENDÊNCIAS - Sistema de Análise NPS
+# ======================================================================
+
+# Manipulação de dados
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Banco de dados
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+pyodbc>=5.0.0
+
+# API Google Gemini
+google-generativeai>=0.3.0
+
+# Variáveis de ambiente
+python-dotenv>=1.0.0
+
+# HTML parsing
+beautifulsoup4>=4.12.0
+
+# Datas e calendário
+holidays>=0.35
+
+# Notificações (opcional)
+slack-sdk>=3.23.0
+
+# Utilidades
+pathlib>=1.0.1  # Geralmente já incluído no Python 3.4+
+
+# Retry e cache
+tenacity>=8.2.0  # Retry com backoff exponencial
+
+# Validação de dados
+pydantic>=2.0.0  # Validação de dados estruturados
+

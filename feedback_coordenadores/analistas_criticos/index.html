@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Índice - Analistas Críticos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-box p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .analista-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .analista-item {
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .analista-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .analista-link {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .analista-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .analista-info {
+            flex: 1;
+        }
+        
+        .analista-nome {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .analista-arquivo {
+            font-size: 0.9em;
+            color: #777;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .analista-item:hover .arrow {
+            transform: translateX(5px);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        .contador {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .analista-link {
+                padding: 15px;
+            }
+            
+            .analista-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+                margin-right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Analistas Críticos - NPS</h1>
+        
+        <div class="info-box">
+            <p><strong>📅 Período de Análise:</strong> Conforme cada relatório individual</p>
+            <p><strong>🎯 Critério:</strong> Analistas com NPS abaixo da meta (&lt; 70)</p>
+        </div>
+        
+        <div class="contador">
+            Total de Analistas: 35
+        </div>
+        
+        <ul class="analista-list">
+            <li class="analista-item">
+                <a href="adriano.marlon.html" class="analista-link">
+                    <div class="analista-icon">A</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">adriano.marlon</div>
+                        <div class="analista-arquivo">adriano.marlon.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="anthony.oliveira.html" class="analista-link">
+                    <div class="analista-icon">A</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">anthony.oliveira</div>
+                        <div class="analista-arquivo">anthony.oliveira.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="ariele.mani.html" class="analista-link">
+                    <div class="analista-icon">A</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">ariele.mani</div>
+                        <div class="analista-arquivo">ariele.mani.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="brenda.puga.html" class="analista-link">
+                    <div class="analista-icon">B</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">brenda.puga</div>
+                        <div class="analista-arquivo">brenda.puga.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="catia.issenguele.html" class="analista-link">
+                    <div class="analista-icon">C</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">catia.issenguele</div>
+                        <div class="analista-arquivo">catia.issenguele.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="eduardo.felipe.html" class="analista-link">
+                    <div class="analista-icon">E</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">eduardo.felipe</div>
+                        <div class="analista-arquivo">eduardo.felipe.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="elaine.ferreira.html" class="analista-link">
+                    <div class="analista-icon">E</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">elaine.ferreira</div>
+                        <div class="analista-arquivo">elaine.ferreira.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="emerson.brasil.html" class="analista-link">
+                    <div class="analista-icon">E</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">emerson.brasil</div>
+                        <div class="analista-arquivo">emerson.brasil.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="felipe.santana.html" class="analista-link">
+                    <div class="analista-icon">F</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">felipe.santana</div>
+                        <div class="analista-arquivo">felipe.santana.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="gabriel.goncalves.html" class="analista-link">
+                    <div class="analista-icon">G</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">gabriel.goncalves</div>
+                        <div class="analista-arquivo">gabriel.goncalves.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="gabriela.gabriel.html" class="analista-link">
+                    <div class="analista-icon">G</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">gabriela.gabriel</div>
+                        <div class="analista-arquivo">gabriela.gabriel.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="gabrielle.lima.html" class="analista-link">
+                    <div class="analista-icon">G</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">gabrielle.lima</div>
+                        <div class="analista-arquivo">gabrielle.lima.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="guilherme.carniel.html" class="analista-link">
+                    <div class="analista-icon">G</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">guilherme.carniel</div>
+                        <div class="analista-arquivo">guilherme.carniel.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="guilherme.sil.html" class="analista-link">
+                    <div class="analista-icon">G</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">guilherme.sil</div>
+                        <div class="analista-arquivo">guilherme.sil.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="higor.melo.html" class="analista-link">
+                    <div class="analista-icon">H</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">higor.melo</div>
+                        <div class="analista-arquivo">higor.melo.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="joao.paulo.html" class="analista-link">
+                    <div class="analista-icon">J</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">joao.paulo</div>
+                        <div class="analista-arquivo">joao.paulo.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="jolie.carvalho.html" class="analista-link">
+                    <div class="analista-icon">J</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">jolie.carvalho</div>
+                        <div class="analista-arquivo">jolie.carvalho.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="joyce.souza.html" class="analista-link">
+                    <div class="analista-icon">J</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">joyce.souza</div>
+                        <div class="analista-arquivo">joyce.souza.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="kauan.pinheiro.html" class="analista-link">
+                    <div class="analista-icon">K</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">kauan.pinheiro</div>
+                        <div class="analista-arquivo">kauan.pinheiro.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="lucas.santana.html" class="analista-link">
+                    <div class="analista-icon">L</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">lucas.santana</div>
+                        <div class="analista-arquivo">lucas.santana.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="maria.teresa.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">maria.teresa</div>
+                        <div class="analista-arquivo">maria.teresa.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="marlene.marques.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">marlene.marques</div>
+                        <div class="analista-arquivo">marlene.marques.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="mateus.azevedo.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">mateus.azevedo</div>
+                        <div class="analista-arquivo">mateus.azevedo.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="matheus.pinheiro.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">matheus.pinheiro</div>
+                        <div class="analista-arquivo">matheus.pinheiro.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="matheus.veloso.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">matheus.veloso</div>
+                        <div class="analista-arquivo">matheus.veloso.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="michael.onofre.html" class="analista-link">
+                    <div class="analista-icon">M</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">michael.onofre</div>
+                        <div class="analista-arquivo">michael.onofre.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="otavio.oliveira.html" class="analista-link">
+                    <div class="analista-icon">O</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">otavio.oliveira</div>
+                        <div class="analista-arquivo">otavio.oliveira.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="pedro.rocha.html" class="analista-link">
+                    <div class="analista-icon">P</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">pedro.rocha</div>
+                        <div class="analista-arquivo">pedro.rocha.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="raphael.silva.html" class="analista-link">
+                    <div class="analista-icon">R</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">raphael.silva</div>
+                        <div class="analista-arquivo">raphael.silva.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="sabrinna.vieira.html" class="analista-link">
+                    <div class="analista-icon">S</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">sabrinna.vieira</div>
+                        <div class="analista-arquivo">sabrinna.vieira.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="stenio.paula.html" class="analista-link">
+                    <div class="analista-icon">S</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">stenio.paula</div>
+                        <div class="analista-arquivo">stenio.paula.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="vinicius.fernandes.html" class="analista-link">
+                    <div class="analista-icon">V</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">vinicius.fernandes</div>
+                        <div class="analista-arquivo">vinicius.fernandes.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="vitoria.santos.html" class="analista-link">
+                    <div class="analista-icon">V</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">vitoria.santos</div>
+                        <div class="analista-arquivo">vitoria.santos.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="vitoria.vieira.html" class="analista-link">
+                    <div class="analista-icon">V</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">vitoria.vieira</div>
+                        <div class="analista-arquivo">vitoria.vieira.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+            <li class="analista-item">
+                <a href="yasmim.santos.html" class="analista-link">
+                    <div class="analista-icon">Y</div>
+                    <div class="analista-info">
+                        <div class="analista-nome">yasmim.santos</div>
+                        <div class="analista-arquivo">yasmim.santos.html</div>
+                    </div>
+                    <div class="arrow">→</div>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="footer">
+            <p>Gerado automaticamente pelo Sistema de Monitoramento NPS</p>
+            <p>Para mais informações, consulte a documentação do projeto</p>
+        </div>
+    </div>
+</body>
+</html>
