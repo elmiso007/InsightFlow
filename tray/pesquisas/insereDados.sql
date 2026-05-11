@@ -1,0 +1,61 @@
+INSERT INTO tray.pesquisas (
+    id_pesquisa,
+    tipo,
+    chat_id,
+    respondida,
+    status,
+    p1_tipo,
+    p1_pergunta,
+    p1_nota,
+    p2_tipo,
+    p2_pergunta,
+    p2_nota,
+    p3_tipo,
+    p3_pergunta,
+    p3_nota,
+    p4_tipo,
+    p4_pergunta,
+    p4_nota,
+    data_criacao,
+    data_ultima_interacao,
+    data_expiracao,
+    versao,
+    subdominio,
+    code,
+    fonte_de_dados,
+    data_insercao,
+    data_modificacao
+)
+SELECT DISTINCT
+    m.id_pesquisa::VARCHAR AS id_pesquisa,
+    m.tipo::VARCHAR AS tipo,
+    m.chat_id::VARCHAR AS chat_id,
+    m.respondida::BOOLEAN AS respondida,
+    m.status::VARCHAR AS status,
+    m.p1_tipo::VARCHAR AS p1_tipo,
+    REGEXP_REPLACE(m.p1_pergunta, '<[^>]*>', '', 'g') AS p1_pergunta,
+    m.p1_nota::VARCHAR AS p1_nota,
+    m.p2_tipo::VARCHAR AS p2_tipo,
+    REGEXP_REPLACE(m.p2_pergunta, '<[^>]*>', '', 'g') AS p2_pergunta,
+    m.p2_nota::VARCHAR AS p2_nota,
+    m.p3_tipo::VARCHAR AS p3_tipo,
+    REGEXP_REPLACE(m.p3_pergunta, '<[^>]*>', '', 'g') AS p3_pergunta,
+    m.p3_nota::VARCHAR AS p3_nota,
+    m.p4_tipo::VARCHAR AS p4_tipo,
+    REGEXP_REPLACE(m.p4_pergunta, '<[^>]*>', '', 'g') AS p4_pergunta,
+    m.p4_nota::VARCHAR AS p4_nota,
+    m.data_criacao::TIMESTAMP AS data_criacao,
+    m.data_ultima_interacao::TIMESTAMP AS data_ultima_interacao,
+    m.data_expiracao::TIMESTAMP AS data_expiracao,
+    m.versao::VARCHAR AS versao,
+    m.subdominio::VARCHAR AS subdominio,
+    m.code::VARCHAR AS code,
+    'API Pública Endpoint /survey' AS fonte_de_dados,
+    NOW() AS data_insercao,
+    NOW() AS data_modificacao
+FROM tray.rawdata_pesquisas m 
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM tray.pesquisas b 
+    WHERE b.chat_id = m.chat_id 
+);
