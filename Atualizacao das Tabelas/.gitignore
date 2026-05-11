@@ -1,0 +1,6 @@
+/.env
+/archive_removed/
+/logs/
+.venv/
+__pycache__/
+*.pyc
