@@ -1,0 +1,48 @@
+; ============================================================================
+; config.ini.example — modelo de configuracao do report_semanal
+;
+; COMO USAR
+;   1. Copie este arquivo para `config.ini` (em produção, fora deste diretório,
+;      conforme caminho usado em app.py: `sql_path.parent.parent / 'config.ini'`).
+;   2. Substitua os placeholders abaixo pelos valores reais.
+;   3. NUNCA versione `config.ini` — ele esta no .gitignore.
+; ============================================================================
+
+[database]
+; PostgreSQL — host, porta, database, usuario e senha
+server = seu_host_postgres
+port = 5432
+database = sua_base
+uid = seu_usuario
+pwd = sua_senha
+
+[slack]
+; Token do bot Slack que envia mensagens (Bot User OAuth Token, começa com xoxb-)
+; Gere em https://api.slack.com/apps -> seu app -> OAuth & Permissions
+bot_token = xoxb-seu-bot-token-aqui
+
+[openai]
+; Chave da API OpenAI usada nas analises de IA do relatorio
+; Gere em https://platform.openai.com/api-keys
+api_key = sk-proj-sua-chave-aqui
+model = gpt-4o-mini
+
+[gmail]
+; Conta Gmail usada para enviar os PDFs por email
+; EMAIL_PASSWORD deve ser uma "App Password" (16 caracteres)
+; Gere em https://myaccount.google.com/apppasswords
+EMAIL_ACCOUNT = seu_email@gmail.com
+EMAIL_PASSWORD = sua_app_password_aqui
+IMAP_SERVER = imap.gmail.com
+
+[report_semanal]
+; Destinatarios separados por virgula. Deixe destinatarios_bcc vazio se nao usar.
+destinatarios_email = destinatario1@exemplo.com, destinatario2@exemplo.com
+destinatarios_bcc =
+
+; ID do canal Slack (comeca com C... para canais publicos/privados)
+slack_channel = C0000000000
+
+; Schemas do Postgres onde estao as views/tabelas usadas pelo report
+schema_octadesk = seu_schema_octadesk
+schema_servicenow = seu_schema_servicenow

@@ -73,6 +73,10 @@ api_octa_chat/
 logs.txt
 **/logs.txt
 
+# --- PDFs gerados pelo report_semanal (contêm dados de clientes - LGPD) ---
+**/report_semanal/Reports/*.pdf
+**/Reports/*.pdf
+
 # --- Dumps de dados de clientes / atendimentos (LGPD) ---
 # Snapshots de APIs Octadesk/KingHost/Tray/Locaweb com nomes, e-mails,
 # telefones e conteúdos de tickets/chats. NUNCA versionar.
