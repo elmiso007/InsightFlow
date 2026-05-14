@@ -1,15 +1,30 @@
 import pandas as pd
 import requests
 import time
+import configparser
 from datetime import datetime, timedelta
+from pathlib import Path
 import json
 from sqlalchemy import text
 
 
-def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valor_extra2 = None,valor_extra3= None):  
+_CONFIG_PATH = Path(__file__).parent.parent.parent / 'config.ini'
+_config = configparser.ConfigParser()
+_config.read(_CONFIG_PATH)
 
-    # Sua chave da API da OpenAI
-    api_key = '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'
+try:
+    _OPENAI_API_KEY = _config['openai']['api_key']
+    _OPENAI_MODEL = _config['openai'].get('model', 'gpt-4o-mini')
+except KeyError as e:
+    raise RuntimeError(
+        f"Seção [openai] ausente ou incompleta em {_CONFIG_PATH}. "
+        f"Esperado: api_key (e opcionalmente model). Faltou: {e}"
+    )
+
+
+def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valor_extra2 = None,valor_extra3= None):
+
+    api_key = _OPENAI_API_KEY
 
     # URL da API
     url = 'https://api.openai.com/v1/chat/completions'
@@ -41,11 +56,11 @@ def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valo
     # Dados do pedido
     data = {
 
-        "model": "gpt-4o",  # ou outro modelo disponível
+        "model": _OPENAI_MODEL,
         "messages": [
             {"role": "user", "content": prompt_mensagem}
         ],
-        "max_tokens": 500,  # Número máximo de tokens a serem gerados na resposta
+        "max_completion_tokens": 500,  # Número máximo de tokens a serem gerados na resposta
     }
 
     # Cabeçalhos da solicitação
@@ -54,11 +69,15 @@ def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valo
         "Content-Type": "application/json",
     }
 
-    max_retries = 3
-    retry_delay = 30  # segundos
+    # Inicializar variável para evitar UnboundLocalError
     resposta_conteudo = None
     
-    for attempt in range(max_retries):
+    # Tentativas de retry em caso de erro 429
+    max_tentativas = 3
+    tentativa = 0
+    tempo_espera = 10
+    
+    while tentativa < max_tentativas:
         response = requests.post(url, headers=headers, json=data)
         
         if response.status_code == 200:
@@ -97,7 +116,7 @@ def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valo
             #df.to_sql(tabela, con=engine, if_exists='replace', index=False, schema= schema)
 
             print("Resposta salva em 'resposta_openai.txt' e no banco de dados.")
-            break  # Sai do loop se a requisição foi bem sucedida
+            
         
             # Lê o script SQL do arquivo
             #with open('C:/Users/lucas.abner/Downloads/www/IA/InsereDados.sql',  'r', encoding='utf-8') as file:
@@ -107,19 +126,26 @@ def analise_openai(df_atual,df_past,dias_restantes,prompt,valor_extra=None, valo
             #conn.execute(sql_script)
             #conn.commit()
             #engine.dispose()
-
-        elif response.status_code == 429:
-            print(f"Quota excedida. Tentativa {attempt + 1}/{max_retries}. Aguardando {retry_delay}s...")
-            if attempt < max_retries - 1:
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Backoff exponencial
-            else:
-                print("Número máximo de tentativas atingido. Retornando mensagem padrão.")
-                resposta_conteudo = "Análise indisponível no momento devido a limitações da API. Por favor, tente novamente mais tarde."
-
-        else:
-            print("Erro:", response.status_code, response.text)
-            resposta_conteudo = f"Erro na análise: {response.status_code}"
+            
+            # Sucesso, sair do loop
             break
 
+        elif response.status_code == 429:
+            tentativa += 1
+            print(f"Quota excedida. Tentativa {tentativa}/{max_tentativas}. Aguardando {tempo_espera} segundos...")
+            time.sleep(tempo_espera)
+            # Aumentar tempo de espera exponencialmente
+            tempo_espera = min(tempo_espera * 2, 120)  # Máximo de 2 minutos
+
+        else:
+            print(f"Erro {response.status_code}: {response.text}")
+            # Para outros erros, não tentar novamente
+            break
+    
+    # Verificar se conseguiu obter resposta
+    if resposta_conteudo is None:
+        erro_msg = f"Falha ao obter resposta da API após {max_tentativas} tentativas."
+        print(f"❌ ERRO: {erro_msg}")
+        raise Exception(erro_msg)
+    
     return resposta_conteudo

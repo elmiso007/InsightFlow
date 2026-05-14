@@ -845,7 +845,6 @@ def gerar_pdf(nome_arquivo, metricas_total, metricas, metricas_sm=None, metricas
                     elif isinstance(data_abertura, str) and len(data_abertura) > 10:
                         # Se for string com timestamp, pegar apenas a data
                         data_abertura = data_abertura[:10]
-                        from datetime import datetime
                         dt = datetime.strptime(data_abertura, '%Y-%m-%d')
                         data_abertura = dt.strftime('%d/%m/%Y')
             except:
@@ -1129,7 +1128,6 @@ def gerar_pdf(nome_arquivo, metricas_total, metricas, metricas_sm=None, metricas
 
     # === Rodapé ===
     def rodape(canvas, doc):
-        from datetime import datetime
         canvas.saveState()
         largura, altura = A4
         canvas.setFillColor(colors.HexColor("#2b343c"))

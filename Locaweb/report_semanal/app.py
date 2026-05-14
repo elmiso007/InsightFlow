@@ -8,12 +8,55 @@ from tabulate import tabulate
 from gerarpdf import gerar_pdf
 from openai import analise_openai
 from pathlib import Path
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.application import MIMEApplication
+from email import encoders
+from email.header import Header
+import configparser
+import os
+import time
 
 
 sql_path = Path(__file__).parent
 
 # Configurar logger
 logger = configurar_logger()
+
+# Carregar configurações sensíveis do config.ini (BD, Slack, Gmail).
+config_file_path = sql_path.parent.parent / 'config.ini'
+config = configparser.ConfigParser()
+
+if not config_file_path.exists():
+    logger.error(f"Arquivo config.ini não encontrado em {config_file_path}. Encerrando.")
+    raise SystemExit(f"config.ini ausente em {config_file_path}")
+
+config.read(config_file_path)
+
+try:
+    DB_SERVER = config['database']['server']
+    DB_NAME = config['database']['database']
+    DB_USER = config['database']['uid']
+    DB_PASSWORD = config['database']['pwd']
+except KeyError as e:
+    logger.error(f"Configurações de banco ausentes no config.ini: {e}")
+    raise SystemExit(f"Seção [database] incompleta em config.ini: {e}")
+
+try:
+    SLACK_BOT_TOKEN = config['slack']['bot_token']
+except KeyError as e:
+    logger.error(f"Token do Slack ausente no config.ini: {e}")
+    raise SystemExit(f"Seção [slack] incompleta em config.ini: {e}")
+
+try:
+    EMAIL_ACCOUNT = config['gmail']['EMAIL_ACCOUNT']
+    EMAIL_PASSWORD = config['gmail']['EMAIL_PASSWORD']
+except KeyError:
+    logger.warning("Configurações de email não encontradas no config.ini. PDFs não serão enviados por email.")
+    EMAIL_ACCOUNT = None
+    EMAIL_PASSWORD = None
 
 hoje = datetime.now()
 
@@ -31,13 +74,7 @@ dias_restantes = (fim_ano - hoje).days
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 try:
-    # Set up PostgreSQL connection
-    server = '10.30.138.28'
-    database = 'report_requesttracker'
-    driver = '{PostgreSQL Unicode(x64)}'
-    uid = 'automatizacoes'
-    pwd = '[REDACTED_DB_PASSWORD]'
-    conn_string = f"postgresql://{uid}:{pwd}@{server}/{database}"
+    conn_string = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
     engine = create_engine(conn_string)
     conn = engine.connect()
     logger.info("Conexao com o Banco estabelecida!")
@@ -280,9 +317,183 @@ def processar_incidentes_por_setor(df_incidentes, setor):
     # Para o setor de Suporte, processa normalmente os incidentes
     return processar_incidentes_nominais(df_incidentes)
 
+def enviar_email_pdf(lista_pdfs, periodo, destinatarios_email, bcc=None):
+    """
+    Envia os PDFs gerados por email via Gmail em um único email
+    
+    Args:
+        lista_pdfs: Lista de dicionários com informações dos PDFs [{'arquivo': caminho, 'setor': nome_setor}, ...]
+        periodo: Período do relatório (string)
+        destinatarios_email: Lista de endereços de email para envio
+        bcc: Lista de endereços de email para cópia oculta (opcional)
+    
+    Returns:
+        bool: True se enviado com sucesso, False caso contrário
+    """
+    if not EMAIL_ACCOUNT or not EMAIL_PASSWORD:
+        logger.error("Configurações de email não disponíveis. Não é possível enviar o PDF.")
+        print("⚠️ AVISO: Configurações de email não disponíveis. PDF não será enviado.")
+        return False
+    
+    if not lista_pdfs or len(lista_pdfs) == 0:
+        logger.error("Nenhum PDF fornecido para envio.")
+        print("❌ ERRO: Nenhum PDF fornecido para envio.")
+        return False
+    
+    # Obter o tempo atual para validar que os PDFs são recentes
+    tempo_atual = datetime.now()
+    # Considerar PDFs válidos se foram criados/modificados nos últimos 15 minutos
+    # (tempo suficiente para garantir que são da execução atual)
+    tempo_limite_minutos = 15
+    
+    # Verificar se todos os arquivos existem e são recentes
+    for pdf_info in lista_pdfs:
+        arquivo_pdf = pdf_info['arquivo']
+        if not os.path.exists(arquivo_pdf):
+            logger.error(f"Arquivo PDF não encontrado: {arquivo_pdf}")
+            print(f"❌ ERRO: Arquivo PDF não encontrado: {arquivo_pdf}")
+            return False
+        
+        # Verificar data de modificação do arquivo
+        tempo_modificacao = datetime.fromtimestamp(os.path.getmtime(arquivo_pdf))
+        diferenca_tempo = (tempo_atual - tempo_modificacao).total_seconds() / 60  # em minutos
+        
+        if diferenca_tempo > tempo_limite_minutos:
+            logger.error(f"Arquivo PDF muito antigo para envio: {arquivo_pdf} (modificado há {diferenca_tempo:.1f} minutos)")
+            print(f"❌ ERRO: Arquivo PDF muito antigo para envio: {os.path.basename(arquivo_pdf)}")
+            print(f"   Arquivo foi modificado há {diferenca_tempo:.1f} minutos. Apenas PDFs gerados na execução atual serão enviados.")
+            return False
+        
+        logger.info(f"PDF validado: {os.path.basename(arquivo_pdf)} (modificado há {diferenca_tempo:.1f} minutos)")
+    
+    try:
+        # Criar mensagem
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_ACCOUNT
+        msg['To'] = ', '.join(destinatarios_email)
+        if bcc:
+            msg['Bcc'] = ', '.join(bcc) if isinstance(bcc, list) else bcc
+        msg['Subject'] = f"Análise Semanal de Atendimento com Insights de IA - {periodo}"
+        
+        # Preparar lista de setores para o corpo do email
+        setores_enviados = [pdf_info['setor'] for pdf_info in lista_pdfs]
+        setores_str = ' e '.join(setores_enviados) if len(setores_enviados) > 1 else setores_enviados[0]
+        
+        # Corpo do email
+        corpo_email = f"""
+        Prezados,
+        
+        Seguem em anexo os Reports Semanais dos setores {setores_str} referentes ao período de {periodo}.
+        
+        Este é um email automático gerado pelo sistema de relatórios.
+
+        Qualquer discrepância, favor entrar em contato com a equipe de Data Analytics.
+        
+        Atenciosamente,
+        
+        Equipe de Data Analytics
+        """
+        
+        msg.attach(MIMEText(corpo_email, 'plain', 'utf-8'))
+        
+        # Anexar todos os PDFs
+        for pdf_info in lista_pdfs:
+            arquivo_pdf = pdf_info['arquivo']
+            
+            # Garantir que o arquivo está completamente escrito e estável
+            # Verificar se o tamanho do arquivo está estável (não está mudando)
+            tamanho_anterior = 0
+            tentativas_estabilidade = 0
+            max_tentativas_estabilidade = 10
+            
+            while tentativas_estabilidade < max_tentativas_estabilidade:
+                if os.path.exists(arquivo_pdf):
+                    tamanho_atual = os.path.getsize(arquivo_pdf)
+                    if tamanho_atual == tamanho_anterior and tamanho_atual > 0:
+                        # Arquivo estável, pode prosseguir
+                        break
+                    tamanho_anterior = tamanho_atual
+                time.sleep(0.5)  # Aguardar 0.5 segundos antes de verificar novamente
+                tentativas_estabilidade += 1
+            
+            # Verificar se o arquivo existe e tem tamanho válido
+            if not os.path.exists(arquivo_pdf):
+                logger.error(f"Arquivo PDF não encontrado após verificação: {arquivo_pdf}")
+                print(f"❌ ERRO: Arquivo PDF não encontrado: {os.path.basename(arquivo_pdf)}")
+                continue
+            
+            tamanho_final = os.path.getsize(arquivo_pdf)
+            if tamanho_final == 0:
+                logger.error(f"Arquivo PDF está vazio: {arquivo_pdf}")
+                print(f"❌ ERRO: Arquivo PDF está vazio: {os.path.basename(arquivo_pdf)}")
+                continue
+            
+            logger.info(f"Arquivo PDF validado e estável: {os.path.basename(arquivo_pdf)} ({tamanho_final} bytes)")
+            
+            # Ler e anexar o arquivo
+            nome_arquivo = os.path.basename(arquivo_pdf)
+            
+            with open(arquivo_pdf, "rb") as anexo:
+                conteudo = anexo.read()
+                # Verificar se o conteúdo foi lido corretamente
+                if len(conteudo) == 0:
+                    logger.error(f"Falha ao ler conteúdo do arquivo PDF: {arquivo_pdf}")
+                    print(f"❌ ERRO: Falha ao ler conteúdo do arquivo: {nome_arquivo}")
+                    continue
+                
+                # Usar MIMEApplication que é mais adequado para PDFs
+                # Isso garante melhor compatibilidade com clientes de email
+                part = MIMEApplication(conteudo, _subtype='pdf')
+                
+                # Configurar o nome do arquivo corretamente
+                # Usar o método correto para adicionar o filename
+                part.add_header(
+                    'Content-Disposition',
+                    'attachment',
+                    filename=('utf-8', '', nome_arquivo)
+                )
+                
+                msg.attach(part)
+                print(f"   ✓ Anexado: {nome_arquivo} ({len(conteudo)} bytes)")
+                logger.info(f"PDF anexado: {nome_arquivo} ({len(conteudo)} bytes)")
+        
+        # Conectar ao servidor SMTP do Gmail
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
+        
+        # Enviar email
+        # Preparar lista de destinatários incluindo BCC
+        todos_destinatarios = destinatarios_email.copy()
+        if bcc:
+            if isinstance(bcc, list):
+                todos_destinatarios.extend(bcc)
+            else:
+                todos_destinatarios.append(bcc)
+        
+        texto = msg.as_string()
+        server.sendmail(EMAIL_ACCOUNT, todos_destinatarios, texto)
+        server.quit()
+        
+        mensagem_log = f"Email enviado com sucesso para {', '.join(destinatarios_email)}"
+        mensagem_log += f" com {len(lista_pdfs)} PDF(s) anexado(s)"
+        if bcc:
+            bcc_list = bcc if isinstance(bcc, list) else [bcc]
+            mensagem_log += f" (BCC: {', '.join(bcc_list)})"
+        logger.info(mensagem_log)
+        print(f"✅ {mensagem_log}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Erro ao enviar email: {e}")
+        print(f"❌ ERRO ao enviar email: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-query = f"SELECT * FROM teste.vw_report_semanal;"
+query = f"SELECT * FROM lw_octadesk.vw_report_semanal;"
 
 query_2 = f"SELECT * FROM lw_octadesk.vw_woz;"
 
@@ -294,12 +505,13 @@ query_3 = """SELECT i.numero, i.data_abertura,
                 AND i.fechamento IS NOT NULL 
                 AND i.status = 'Encerrado'
                 AND i.tipo_usuario = 'Nominal'
+                AND i.produto ILIKE '%%Locaweb%%'
+                AND i.prioridade IN ('2 - Alta', '1 - Critica')
                 AND i.data_abertura::date >= ('now'::text::date - 4);"""
 
-with engine.connect() as connection:
-    df = pd.read_sql_query(query, connection.connection)
-    df_2 = pd.read_sql_query(query_2, connection.connection)
-    df_3 = pd.read_sql_query(query_3, connection.connection)
+df = pd.read_sql_query(query,conn)
+df_2 = pd.read_sql_query(query_2,conn)
+df_3 = pd.read_sql_query(query_3,conn)
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # ANÁLISE WOZ - Volume de IDs resolvidos por tipo
@@ -512,9 +724,23 @@ def gerar_analise_woz_ia(analise_woz):
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 # Criação do cliente Slack com seu token
-client = WebClient('[REDACTED_SLACK_TOKEN]')
+client = WebClient(SLACK_BOT_TOKEN)
 
 destinatarios = ['C08KQ4P015K'] #CANAL OFICIAL
+
+# Lista de destinatários de email para envio dos PDFs
+destinatarios_email = [
+    'glauco.oliveira@locaweb.com.br',
+    'michelle.gusmao@locaweb.com.br',
+    'lideressuporte@locaweb.com.br'
+    #'matheus.butturi@locaweb.com.br'
+]
+
+# Lista de destinatários em cópia oculta (BCC)
+destinatarios_bcc = [
+    'trafego@locaweb.com.br'
+    #'emerson.ramos@locaweb.com.br'
+]
 
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -522,330 +748,367 @@ destinatarios = ['C08KQ4P015K'] #CANAL OFICIAL
 print("=== INICIANDO PROCESSAMENTO GERAL ===")
 print(f"Setores configurados: {setores}")
 
-for destinatario in destinatarios:
+# Lista para armazenar os PDFs gerados
+pdfs_gerados = []
 
-    for setor in setores:
-        print(f"\n=== INICIANDO PROCESSAMENTO DO SETOR: {setor} ===")
+for setor in setores:
+    print(f"\n=== INICIANDO PROCESSAMENTO DO SETOR: {setor} ===")
 
-        carga = []
+    df_setor = df[(df['setor'] == setor)].copy()
+    print(f"Registros encontrados para {setor}: {len(df_setor)}")
 
-        df_setor = df[(df['setor'] == setor)]
-        print(f"Registros encontrados para {setor}: {len(df_setor)}")
-        
-        if len(df_setor) == 0:
-            print(f"⚠️ AVISO: Nenhum registro encontrado para o setor '{setor}'. Pulando...")
-            continue
+    if len(df_setor) == 0:
+        print(f"⚠️ AVISO: Nenhum registro encontrado para o setor '{setor}'. Pulando...")
+        continue
 
-        # formato datetime
-        df_setor['data_inicio_interacao'] = pd.to_datetime(df_setor['data_inicio_interacao'])
+    # formato datetime
+    df_setor['data_inicio_interacao'] = pd.to_datetime(df_setor['data_inicio_interacao'])
 
-        # Obter a menor e a maior data
-        registros_semana_atual = df_setor[df_setor['ultima_semana'] == 1]
-        print(f"Registros da última semana para {setor}: {len(registros_semana_atual)}")
-        
-        if len(registros_semana_atual) == 0:
-            print(f"⚠️ AVISO: Nenhum registro da última semana para '{setor}'. Pulando...")
-            continue
-            
-        menor_data = registros_semana_atual['data_inicio_interacao'].min().date()       
-        maior_data = registros_semana_atual['data_inicio_interacao'].max().date()
+    # Obter a menor e a maior data
+    registros_semana_atual = df_setor[df_setor['ultima_semana'] == 1]
+    print(f"Registros da última semana para {setor}: {len(registros_semana_atual)}")
 
-        menor_data = menor_data.strftime('%d/%m/%Y')
-        maior_data = maior_data.strftime('%d/%m/%Y')
-        print(f"Período processado para {setor}: {menor_data} a {maior_data}")
+    if len(registros_semana_atual) == 0:
+        print(f"⚠️ AVISO: Nenhum registro da última semana para '{setor}'. Pulando...")
+        continue
 
-        
-        # Define as colunas de tempo
-        coluna_tempo_atendimento = 'tempo_atendimento_segundos'
-        coluna_tempo_espera = 'tempo_espera'
+    menor_data = registros_semana_atual['data_inicio_interacao'].min().date()
+    maior_data = registros_semana_atual['data_inicio_interacao'].max().date()
 
-        #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-        metricas = {
-            "semana_anterior": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
-            "semana_atual": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
-            "media_anual": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
+    menor_data = menor_data.strftime('%d/%m/%Y')
+    maior_data = maior_data.strftime('%d/%m/%Y')
+    print(f"Período processado para {setor}: {menor_data} a {maior_data}")
+
+
+    # Define as colunas de tempo
+    coluna_tempo_atendimento = 'tempo_atendimento_segundos'
+    coluna_tempo_espera = 'tempo_espera'
+
+    #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    metricas = {
+        "semana_anterior": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
+        "semana_atual": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
+        "media_anual": calcular_metricas_setor(df_setor, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
+    }
+
+
+    # Se quiser converter cada um para DataFrame:
+    df_semana_ant = pd.DataFrame([metricas["semana_anterior"]])
+    df_semana_atual = pd.DataFrame([metricas["semana_atual"]])
+    df_media_anual = pd.DataFrame([metricas["media_anual"]])
+
+    df_media_anual = df_media_anual[['Setor','Percentual','TMA','TME']]
+    df_media_anual.columns = ['Setor','Média % Abandonos','TMA','TME']
+
+    df_semana_atual.columns = ["Setor", "Recebidos", "Atendidos","Abandonos","% Abandonos","TMA","TME"]
+    mensagem_final = "\n" + tabulate(df_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+
+    print(mensagem_final)
+
+    #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    df_canais = df_setor['canal'].unique().tolist()
+
+    carga_semana_anterior_canais = []
+    carga_semana_atual_canais = []
+    carga_media_anual_canais = []
+    carga_nps_semana_anterior_canais = []
+    carga_nps_semana_atual_canais = []
+    carga_nps_media_anual_canais = []
+
+    for canal in df_canais:
+        df_canal = df_setor[df_setor['canal'] == canal]
+
+        metricas_canais = {
+            "semana_anterior": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
+            "semana_atual": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
+            "media_anual": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
         }
 
+        for periodo_nome in metricas_canais:
+            df_periodo = pd.DataFrame([metricas_canais[periodo_nome]])
+            df_periodo['Canal'] = canal
+            # Reorganiza as colunas para que Canal fique na primeira posição
+            cols = df_periodo.columns.tolist()
+            cols = ['Canal'] + [c for c in cols if c != 'Canal']
+            df_periodo = df_periodo[cols]
 
-        # Se quiser converter cada um para DataFrame:
-        df_semana_ant = pd.DataFrame([metricas["semana_anterior"]])
-        df_semana_atual = pd.DataFrame([metricas["semana_atual"]])
-        df_media_anual = pd.DataFrame([metricas["media_anual"]])
+            # Renomeia colunas (ajuste nomes caso seja diferente)
+            df_periodo.columns = ["Canal","Setor","Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]
+            df_periodo = df_periodo[["Canal", "Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]]
 
-        df_media_anual = df_media_anual[['Setor','Percentual','TMA','TME']]
-        df_media_anual.columns = ['Setor','Média % Abandonos','TMA','TME']
+            # Calcula NPS já com a info do canal
+            nps_data = calcular_nps_periodo(df_canal, periodo=periodo_nome)
+            if isinstance(nps_data, dict):
+                nps_data["Canal"] = canal
+            elif isinstance(nps_data, pd.DataFrame):
+                nps_data["Canal"] = canal
 
-        df_semana_atual.columns = ["Setor", "Recebidos", "Atendidos","Abandonos","% Abandonos","TMA","TME"]
-        mensagem_final = "\n" + tabulate(df_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+            # Adiciona ao respectivo acumulador
+            if periodo_nome == "semana_anterior":
+                carga_semana_anterior_canais.append(df_periodo)
+                carga_nps_semana_anterior_canais.append(nps_data)
+            elif periodo_nome == "semana_atual":
+                carga_semana_atual_canais.append(df_periodo)
+                carga_nps_semana_atual_canais.append(nps_data)
+            elif periodo_nome == "media_anual":
+                carga_media_anual_canais.append(df_periodo)
+                carga_nps_media_anual_canais.append(nps_data)
 
-        print(mensagem_final)
+    # Concatena os DataFrames para cada período
+    df_resultado_semana_anterior = pd.concat(carga_semana_anterior_canais, ignore_index=True)
+    df_resultado_semana_atual = pd.concat(carga_semana_atual_canais, ignore_index=True)
+    df_resultado_media_anual = pd.concat(carga_media_anual_canais, ignore_index=True)
 
-        #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        df_canais = df_setor['canal'].unique().tolist()
-
-        carga_semana_anterior_canais = []
-        carga_semana_atual_canais = []
-        carga_media_anual_canais = []
-        carga_nps_semana_anterior_canais = []
-        carga_nps_semana_atual_canais = []
-        carga_nps_media_anual_canais = []
-
-        for canal in df_canais:
-            df_canal = df_setor[df_setor['canal'] == canal]
-
-            metricas_canais = {
-                "semana_anterior": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
-                "semana_atual": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
-                "media_anual": calcular_metricas_setor(df_canal, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
-            }
+    # Concatena os DataFrames para cada período
+    df_resultado_nps_canais_semana_anterior = pd.concat(carga_nps_semana_anterior_canais, ignore_index=True)
+    df_resultado_nps_canais_semana_atual = pd.concat(carga_nps_semana_atual_canais, ignore_index=True)
+    df_resultado_nps_canais_media_anual = pd.concat(carga_nps_media_anual_canais, ignore_index=True)
 
 
-            
-            for periodo_nome in metricas_canais:
-                df_periodo = pd.DataFrame([metricas_canais[periodo_nome]])
-                df_periodo['Canal'] = canal
-                # Reorganiza as colunas para que Canal fique na primeira posição
+    mensagem_final = "\n" + tabulate(df_resultado_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+
+    mensagem_final2 = "\n" + tabulate(df_resultado_nps_canais_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+
+    print(mensagem_final)
+
+    print(mensagem_final2)
+
+
+    #LISTA DE EQUIPES
+    lista_equipes = df_setor['equipe'].unique().tolist()
+
+    if setor == 'Suporte':
+
+        carga_semana_anterior_equipes = []
+        carga_semana_atual_equipes = []
+        carga_media_anual_equipes = []
+
+        #CALCULOS SEMANAIS
+        for equipe in lista_equipes:
+
+            df_equipe = df_setor[df_setor['equipe'] == equipe]
+
+            metricas_equipes = {
+                "semana_anterior": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
+                "semana_atual": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
+                "media_anual": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
+                }
+
+            for periodo_nome in metricas_equipes:
+                df_periodo = pd.DataFrame([metricas_equipes[periodo_nome]])
+                df_periodo['Equipe'] = equipe
+                # Reorganiza as colunas para que a Equipe fique na primeira posição
                 cols = df_periodo.columns.tolist()
-                cols = ['Canal'] + [c for c in cols if c != 'Canal']
+                cols = ['Equipe'] + [c for c in cols if c != 'Equipe']
                 df_periodo = df_periodo[cols]
 
                 # Renomeia colunas (ajuste nomes caso seja diferente)
-                df_periodo.columns = ["Canal","Setor","Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]
-                df_periodo = df_periodo[["Canal", "Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]]
-
-                # Calcula NPS já com a info do canal
-                nps_data = calcular_nps_periodo(df_canal, periodo=periodo_nome)
-                if isinstance(nps_data, dict):
-                    nps_data["Canal"] = canal
-                elif isinstance(nps_data, pd.DataFrame):
-                    nps_data["Canal"] = canal
+                df_periodo.columns = ["Equipe","Setor","Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]
+                df_periodo = df_periodo[["Equipe", "Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]]
 
                 # Adiciona ao respectivo acumulador
                 if periodo_nome == "semana_anterior":
-                    carga_semana_anterior_canais.append(df_periodo)
-                    carga_nps_semana_anterior_canais.append(nps_data)
+                    carga_semana_anterior_equipes.append(df_periodo)
                 elif periodo_nome == "semana_atual":
-                    carga_semana_atual_canais.append(df_periodo)
-                    carga_nps_semana_atual_canais.append(nps_data)
+                    carga_semana_atual_equipes.append(df_periodo)
                 elif periodo_nome == "media_anual":
-                    carga_media_anual_canais.append(df_periodo)
-                    carga_nps_media_anual_canais.append(nps_data)
-
-
-
-        
+                    carga_media_anual_equipes.append(df_periodo)
 
         # Concatena os DataFrames para cada período
-        df_resultado_semana_anterior = pd.concat(carga_semana_anterior_canais, ignore_index=True)
-        df_resultado_semana_atual = pd.concat(carga_semana_atual_canais, ignore_index=True)
-        df_resultado_media_anual = pd.concat(carga_media_anual_canais, ignore_index=True)
+        df_resultado_semana_anterior_equipes = pd.concat(carga_semana_anterior_equipes, ignore_index=True)
+        df_resultado_semana_atual_equipes = pd.concat(carga_semana_atual_equipes, ignore_index=True)
+        df_resultado_media_anual_equipes = pd.concat(carga_media_anual_equipes, ignore_index=True)
 
-        # Concatena os DataFrames para cada período
-        df_resultado_nps_canais_semana_anterior = pd.concat(carga_nps_semana_anterior_canais, ignore_index=True)
-        df_resultado_nps_canais_semana_atual = pd.concat(carga_nps_semana_atual_canais, ignore_index=True)
-        df_resultado_nps_canais_media_anual = pd.concat(carga_nps_media_anual_canais, ignore_index=True)
-
-
-        mensagem_final = "\n" + tabulate(df_resultado_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
-
-        mensagem_final2 = "\n" + tabulate(df_resultado_nps_canais_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+        mensagem_final = "\n" + tabulate(df_resultado_semana_atual_equipes, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
 
         print(mensagem_final)
 
-        print(mensagem_final2)
+    else:
+        print(f"O setor: {setor} não tem grupos")
+
+    #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    #CALCULO DE NPS
+    nps_semana_anterior = calcular_nps_periodo(df_setor, periodo="semana_anterior")
+    nps_semana_atual = calcular_nps_periodo(df_setor, periodo="ultima_semana")
+    nps_media_anual = calcular_nps_periodo(df_setor)  # sem periodo = ano todo
+
+    mensagem_final = "\n" + tabulate(nps_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+
+    print(mensagem_final)
+
+    # Extrai os comentários da última semana e da semana anterior
+    comentarios_semana_atual = analise_comentario_periodo(df_setor, periodo="ultima_semana")
+    comentarios_semana_anterior = analise_comentario_periodo(df_setor, periodo="semana_anterior")
+
+    # Processa os dados de incidentes ServiceNow específicos por setor
+    incidentes_nominais = processar_incidentes_por_setor(df_3, setor)
+
+    # Para o PDF, usar dados brutos da query_3 (apenas para setor Suporte)
+    incidentes_brutos = df_3 if setor == 'Suporte' else None
 
 
-        #LISTA DE CANAIS
-        df_equipe = df_setor['equipe'].unique().tolist()
-
-       
-
-        if setor == 'Suporte':
-            
-            carga_semana_anterior_equipes = []
-            carga_semana_atual_equipes = []
-            carga_media_anual_equipes = []
-
-            #CALCULOS SEMANAIS 
-            for equipe in df_equipe:
-
-                df_equipe = df_setor[df_setor['equipe'] == equipe]
-
-                metricas_equipes = {
-                    "semana_anterior": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="semana_anterior"),
-                    "semana_atual": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="ultima_semana"),
-                    "media_anual": calcular_metricas_setor(df_equipe, setor, coluna_tempo_atendimento, coluna_tempo_espera, periodo="media_anual")
-                    }
+    # Defina os caminhos
+    periodo = f"{menor_data} a {maior_data}"
+    periodo_nome = f"{menor_data.replace('/', '-')} a {maior_data.replace('/', '-')}"
+    reports_dir = sql_path / "Reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)  # Cria o diretório se não existir
+    nome_pdf = str(reports_dir / f"Report Semanal {setor} - {periodo_nome}.pdf")
 
 
-                for periodo_nome in metricas_equipes:
-                    df_periodo = pd.DataFrame([metricas_equipes[periodo_nome]])
-                    df_periodo['Equipe'] = equipe
-                    # Reorganiza as colunas para que a Equipe fique na primeira posição
-                    cols = df_periodo.columns.tolist()
-                    cols = ['Equipe'] + [c for c in cols if c != 'Equipe']
-                    df_periodo = df_periodo[cols]
+    # Seleciona o prompt específico baseado no setor
+    if setor == 'Suporte':
+        prompt_contatos = str(sql_path / "prompts" / "analise_contatos_semanal.md")
+    else:
+        prompt_contatos = str(sql_path / "prompts" / "analise_contatos_cobranca.md")
 
-                    # Renomeia colunas (ajuste nomes caso seja diferente)
-                    df_periodo.columns = ["Equipe","Setor","Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]
-                    df_periodo = df_periodo[["Equipe", "Recebidos", "Atendidos", "Abandonos", "% Abandonos", "TMA", "TME"]]
+    analise_semanal = analise_openai(
+        df_atual=df_semana_atual,
+        df_past=df_semana_ant,
+        dias_restantes=dias_restantes,
+        valor_extra=incidentes_nominais,
+        prompt=prompt_contatos
+        )
 
-                        # Adiciona ao respectivo acumulador
-                    if periodo_nome == "semana_anterior":
-                        carga_semana_anterior_equipes.append(df_periodo)
-                    elif periodo_nome == "semana_atual":
-                        carga_semana_atual_equipes.append(df_periodo)
-                    elif periodo_nome == "media_anual":
-                        carga_media_anual_equipes.append(df_periodo)
+    analise_total = analise_openai(
+        df_atual=df_semana_atual,
+        df_past=df_media_anual,
+        dias_restantes=dias_restantes,
+        prompt=str(sql_path / "prompts" / "analise_contatos_anual.md")
+        )
 
-            # Concatena os DataFrames para cada período
-            df_resultado_semana_anterior_equipes = pd.concat(carga_semana_anterior_equipes, ignore_index=True)
-            df_resultado_semana_atual_equipes = pd.concat(carga_semana_atual_equipes, ignore_index=True)
-            df_resultado_media_anual_equipes = pd.concat(carga_media_anual_equipes, ignore_index=True)
+    # Seleciona o prompt de NPS específico baseado no setor
+    if setor == 'Suporte':
+        prompt_nps = str(sql_path / "prompts" / "analise_nps_semanal.md")
+    else:
+        prompt_nps = str(sql_path / "prompts" / "analise_nps_cobranca.md")
 
-            mensagem_final = "\n" + tabulate(df_resultado_semana_atual_equipes, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
+    analise_nps = analise_openai(
+        df_atual=nps_semana_atual,
+        df_past=nps_semana_anterior,
+        dias_restantes=dias_restantes,
+        valor_extra = metricas,
+        valor_extra2 = incidentes_nominais,
+        prompt=prompt_nps
+        )
 
-            print(mensagem_final)
+    # Seleciona o prompt de comentários específico baseado no setor
+    if setor == 'Suporte':
+        prompt_comentarios = str(sql_path / "prompts" / "analise_comentarios.md")
+    else:
+        prompt_comentarios = str(sql_path / "prompts" / "analise_comentarios_cobranca.md")
 
+    # Gera análise da IA sobre os comentários
+    analise_comentarios = analise_openai(
+        df_atual=comentarios_semana_atual,
+        df_past=comentarios_semana_anterior,
+        dias_restantes=dias_restantes,
+        valor_extra=incidentes_nominais,
+        prompt=prompt_comentarios
+        )
 
+    try:
+        # Executar análise WOZ específica para o setor atual
+        analise_woz = analisar_volume_woz(df_2, setor)
 
+        # Gerar análise WOZ com IA
+        analise_woz_ia = gerar_analise_woz_ia(analise_woz)
+
+    except Exception as e:
+        print(f"❌ ERRO na análise WOZ do setor '{setor}': {str(e)}")
+        print(f"Tipo do erro: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        # Usar dados vazios para não interromper o PDF
+        analise_woz = {
+            'semana_atual': {},
+            'semana_anterior': {},
+            'comparacao': {},
+            'taxa_resolucao_atual': {},
+            'taxa_resolucao_anterior': {}
+        }
+        analise_woz_ia = "Análise WOZ não disponível devido a erro no processamento."
+
+    # Gere o PDF
+    gerar_pdf(
+        nome_arquivo=nome_pdf,
+        metricas_total = df_media_anual,
+        metricas=df_semana_atual,
+        metricas_sm=df_semana_ant,
+        metricas_canais=df_resultado_semana_atual,
+        metricas_canais_sm=df_resultado_semana_anterior,
+        df_media_anual_canais=df_resultado_media_anual,
+        metricas_equipes=df_resultado_semana_atual_equipes if setor == 'Suporte' else None,
+        metricas_equipes_sm=df_resultado_semana_anterior_equipes if setor == 'Suporte' else None,
+        metricas_media_anual=df_resultado_media_anual_equipes if setor == 'Suporte' else None,
+        metricas_nps=nps_semana_atual,
+        metricas_nps_sm=nps_semana_anterior,
+        metricas_nps_anual=nps_media_anual,
+        setor=setor,
+        periodo=periodo,
+        content_md_first_anl=analise_semanal,
+        content_md_second_anl = analise_total,
+        content_md_third_anl= analise_nps,
+        content_md_fourth_anl=analise_comentarios,
+        analise_woz=analise_woz,
+        analise_woz_ia=analise_woz_ia,
+        incidentes_dados=incidentes_brutos
+        )
+
+    print(f"✅ PDF gerado com sucesso para o setor: {setor}")
+    print(f"Arquivo: {nome_pdf}")
+
+    # Aguardar um momento para garantir que o arquivo está completamente escrito no disco
+    time.sleep(1)
+
+    # Verificar se o arquivo existe e tem tamanho válido
+    if os.path.exists(nome_pdf):
+        tamanho = os.path.getsize(nome_pdf)
+        if tamanho > 0:
+            print(f"   Arquivo validado: {tamanho} bytes")
         else:
-            print(f"O setor: {setor} não tem grupos")
+            logger.warning(f"Arquivo PDF gerado está vazio: {nome_pdf}")
+            print(f"⚠️ AVISO: Arquivo PDF está vazio, mas continuando...")
+    else:
+        logger.error(f"Arquivo PDF não encontrado após geração: {nome_pdf}")
+        print(f"❌ ERRO: Arquivo PDF não encontrado após geração!")
 
-        #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Armazenar informações do PDF gerado para envio posterior
+    pdfs_gerados.append({
+        'arquivo': nome_pdf,
+        'setor': setor,
+        'periodo': periodo
+    })
 
-        #CALCULO DE NPS
-        nps_semana_anterior = calcular_nps_periodo(df_setor, periodo="semana_anterior")
-        nps_semana_atual = calcular_nps_periodo(df_setor, periodo="ultima_semana")
-        nps_media_anual = calcular_nps_periodo(df_setor)  # sem periodo = ano todo
+    print(f"=== FINALIZANDO PROCESSAMENTO DO SETOR: {setor} ===\n")
 
-        mensagem_final = "\n" + tabulate(nps_semana_atual, headers="keys", tablefmt="fancy_grid", showindex=False) + "\n"
-
-        print(mensagem_final)
-
-        # Extrai os comentários da última semana e da semana anterior
-        comentarios_semana_atual = analise_comentario_periodo(df_setor, periodo="ultima_semana")
-        comentarios_semana_anterior = analise_comentario_periodo(df_setor, periodo="semana_anterior")
-
-        # Processa os dados de incidentes ServiceNow específicos por setor
-        incidentes_nominais = processar_incidentes_por_setor(df_3, setor)
-        
-        # Para o PDF, usar dados brutos da query_3 (apenas para setor Suporte)
-        incidentes_brutos = df_3 if setor == 'Suporte' else None
-
-
-        # Defina os caminhos
-        periodo = f"{menor_data} a {maior_data}"
-        periodo_nome = f"{menor_data.replace('/', '-')} a {maior_data.replace('/', '-')}"
-        reports_dir = sql_path / "Reports"
-        reports_dir.mkdir(parents=True, exist_ok=True)  # Cria o diretório se não existir
-        nome_pdf = str(reports_dir / f"Report Semanal {setor} - {periodo_nome}.pdf")
-        
-
-        # Seleciona o prompt específico baseado no setor
-        if setor == 'Suporte':
-            prompt_contatos = rf"{sql_path}\prompts\analise_contatos_semanal.md"
+# Enviar todos os PDFs em um único email após processar todos os setores
+if pdfs_gerados and destinatarios_email:
+    print(f"\n📧 Preparando envio de {len(pdfs_gerados)} PDF(s) recém-gerado(s) por email...")
+    for idx, pdf_info in enumerate(pdfs_gerados, 1):
+        nome_arquivo = os.path.basename(pdf_info['arquivo'])
+        print(f"   [{idx}] {nome_arquivo} (Setor: {pdf_info['setor']})")
+        # Verificar se o arquivo existe antes de enviar
+        if os.path.exists(pdf_info['arquivo']):
+            tamanho = os.path.getsize(pdf_info['arquivo'])
+            print(f"       Arquivo existe: {tamanho} bytes")
         else:
-            prompt_contatos = rf"{sql_path}\prompts\analise_contatos_cobranca.md"
-            
-        analise_semanal = analise_openai(
-            df_atual=df_semana_atual,
-            df_past=df_semana_ant,
-            dias_restantes=dias_restantes,
-            valor_extra=incidentes_nominais,
-            prompt=prompt_contatos
-            )
-        
-        analise_total = analise_openai(
-            df_atual=df_semana_atual,
-            df_past=df_media_anual,
-            dias_restantes=dias_restantes,
-            prompt= rf"{sql_path}\prompts\analise_contatos_anual.md"
-            )
-        
-        # Seleciona o prompt de NPS específico baseado no setor
-        if setor == 'Suporte':
-            prompt_nps = rf"{sql_path}\prompts\analise_nps_semanal.md"
-        else:
-            prompt_nps = rf"{sql_path}\prompts\analise_nps_cobranca.md"
-            
-        analise_nps = analise_openai(
-            df_atual=nps_semana_atual,
-            df_past=nps_semana_anterior,
-            dias_restantes=dias_restantes,
-            valor_extra = metricas,
-            valor_extra2 = incidentes_nominais,
-            prompt=prompt_nps
-            )
-        
-        # Seleciona o prompt de comentários específico baseado no setor
-        if setor == 'Suporte':
-            prompt_comentarios = rf"{sql_path}\prompts\analise_comentarios.md"
-        else: 
-            prompt_comentarios = rf"{sql_path}\prompts\analise_comentarios_cobranca.md"
-            
-        # Gera análise da IA sobre os comentários
-        analise_comentarios = analise_openai(
-            df_atual=comentarios_semana_atual,
-            df_past=comentarios_semana_anterior,
-            dias_restantes=dias_restantes,
-            valor_extra=incidentes_nominais,
-            prompt=prompt_comentarios
-            )
-        
-        try:
-            # Executar análise WOZ específica para o setor atual
-            analise_woz = analisar_volume_woz(df_2, setor)
-            
-            # Gerar análise WOZ com IA
-            analise_woz_ia = gerar_analise_woz_ia(analise_woz)
-            
-        except Exception as e:
-            print(f"❌ ERRO na análise WOZ do setor '{setor}': {str(e)}")
-            print(f"Tipo do erro: {type(e).__name__}")
-            import traceback
-            traceback.print_exc()
-            # Usar dados vazios para não interromper o PDF
-            analise_woz = {
-                'semana_atual': {},
-                'semana_anterior': {},
-                'comparacao': {},
-                'taxa_resolucao_atual': {},
-                'taxa_resolucao_anterior': {}
-            }
-            analise_woz_ia = "Análise WOZ não disponível devido a erro no processamento."
-        
-        # Gere o PDF
-        gerar_pdf(
-            nome_arquivo=nome_pdf,
-            metricas_total = df_media_anual,
-            metricas=df_semana_atual,
-            metricas_sm=df_semana_ant,
-            metricas_canais=df_resultado_semana_atual,
-            metricas_canais_sm=df_resultado_semana_anterior,
-            df_media_anual_canais=df_resultado_media_anual,
-            metricas_equipes=df_resultado_semana_atual_equipes if setor == 'Suporte' else None,
-            metricas_equipes_sm=df_resultado_semana_anterior_equipes if setor == 'Suporte' else None,
-            metricas_media_anual=df_resultado_media_anual_equipes if setor == 'Suporte' else None,
-            metricas_nps=nps_semana_atual,
-            metricas_nps_sm=nps_semana_anterior,
-            metricas_nps_anual=nps_media_anual,
-            setor=setor,
-            periodo=periodo,
-            content_md_first_anl=analise_semanal,
-            content_md_second_anl = analise_total,
-            content_md_third_anl= analise_nps,
-            content_md_fourth_anl=analise_comentarios,
-            analise_woz=analise_woz,
-            analise_woz_ia=analise_woz_ia,
-            incidentes_dados=incidentes_brutos
-            )
-        
-        print(f"✅ PDF gerado com sucesso para o setor: {setor}")
-        print(f"Arquivo: {nome_pdf}")
-        print(f"=== FINALIZANDO PROCESSAMENTO DO SETOR: {setor} ===\n")
+            print(f"       ⚠️ AVISO: Arquivo não encontrado!")
+    print(f"   Destinatários: {len(destinatarios_email)}")
+    if destinatarios_bcc:
+        print(f"   BCC: {len(destinatarios_bcc)} destinatário(s)")
+    # Aguardar um momento adicional antes de enviar para garantir que tudo está pronto
+    print("   Aguardando estabilização dos arquivos...")
+    time.sleep(5)
+    # Usar o período do primeiro PDF (todos devem ter o mesmo período)
+    periodo_email = pdfs_gerados[0]['periodo']
+    enviar_email_pdf(pdfs_gerados, periodo_email, destinatarios_email, bcc=destinatarios_bcc if destinatarios_bcc else None)
+elif not destinatarios_email:
+    print("ℹ️ Nenhum destinatário de email configurado. PDFs não serão enviados por email.")
+elif not pdfs_gerados:
+    print("ℹ️ Nenhum PDF foi gerado. Nada para enviar por email.")
 
 # Fechar conexão com banco de dados
 try:
