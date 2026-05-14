@@ -25,6 +25,14 @@ sql_path = Path(__file__).parent
 #VARIAVEIS DE DATA E HORA PARA QUERY E PARA CALCULO DO PERÍODO
 task = 'monitoramento_lw_octadesk'
 
+# Limiar de alta percentual sobre a media da ultima semana para acionar a analise via Gemini.
+# Ajuste conforme sensibilidade desejada (ex.: 20 = dispara quando o volume atual estiver 20%+ acima da media).
+LIMIAR_ALTA_PERCENTUAL = 20
+
+# Limiar de queda percentual (valor negativo) para notificacao informativa via notifica_boas_noticias.
+# Ex.: -20 = notifica quando o volume atual estiver 20%+ abaixo da media.
+LIMIAR_QUEDA_PERCENTUAL = -20
+
 # Obter a data e hora atuais
 data_hoje = datetime.now().date()
 hora_atual = datetime.now()
@@ -53,21 +61,19 @@ hora_30_minutos_atras_formatada = hora_30_minutos_atras.strftime("%H:%M:%S")
 # Converter para objeto time
 hora_30_minutos_atras_formatada_time = datetime.strptime(hora_30_minutos_atras_formatada, "%H:%M:%S").time()
 
-data_primaria = datetime.now().date() - timedelta(days=30)
 current_time = datetime.now()
 
 # Lista de feriados no Brasil (ou outro país)
 feriados_brasil = holidays.Brazil()
 
-# Verificar se hoje é um dia útil
-if data_hoje.weekday() < 5 and data_hoje not in feriados_brasil:
-    print(f"{data_hoje} é um dia útil.")
-    data_primaria = datetime.now().date() - timedelta(days=11)
-    dia_util = True
-else:
-    print(f"{data_hoje} não é um dia útil.")
-    data_primaria = datetime.now().date() - timedelta(days=30)
-    dia_util = False
+# Verificar se hoje é um dia útil — pipeline só roda em dia util
+if not (data_hoje.weekday() < 5 and data_hoje not in feriados_brasil):
+    print(f"{data_hoje} nao e um dia util. Encerrando.")
+    sys.exit()
+
+print(f"{data_hoje} e um dia util.")
+data_primaria = datetime.now().date() - timedelta(days=11)
+dia_util = True
 
 #|-------------------------------------------------------------------------------------------------------------------|
 
@@ -95,35 +101,33 @@ def gerar_chave_unica():
 
 #|-------------------------------------------------------------------------------------------------------------------|
 
-#QUERY E CONEXÃO COM O BANCO E CONDIÇÃO PARA VERIFICAÇÃO APENAS EM DIA ÚTIL
+#QUERY E CONEXÃO COM O BANCO (script ja garantiu acima que e dia util)
 
-if dia_util:
+query = f"""
+SELECT
+    c.protocolo,
+    c.id as chave,
+    c.data_inicio_interacao,
+    DATE_TRUNC('day', c.data_inicio_interacao)::DATE AS dia,
+    TO_CHAR(c.data_inicio_interacao, 'HH24:MI:SS')::TIME AS hora,
+    c.contact_name as cliente,
+    c.agent_name as analista,
+    a.fila,
+    a.produto,
+    a.equipe,
+    a.setor, d.dia_util, d.feriado, d.dia_semana,d.mes
+FROM lw_octadesk.chat c
+LEFT JOIN depara_chat a ON c.grupo_nome = a.fila
+LEFT JOIN public.dias d ON DATE_TRUNC('day', c.data_inicio_interacao)::DATE  = d.dia
+WHERE data_inicio_interacao BETWEEN '{data_primaria} {hora_30_minutos_atras_formatada}' AND '{data_hoje} {hora_atual_formatada}'
+  AND a.setor = 'Suporte' AND d.dia_util IS TRUE;
+"""
 
-    query = f"""
-    SELECT 
-        c.protocolo,
-        c.id as chave,
-        c.data_inicio_interacao,
-        DATE_TRUNC('day', c.data_inicio_interacao)::DATE AS dia,
-        TO_CHAR(c.data_inicio_interacao, 'HH24:MI:SS')::TIME AS hora,
-        c.contact_name as cliente, 
-        c.agent_name as analista, 
-        a.fila, 
-        a.produto,
-        a.equipe,
-        a.setor, d.dia_util, d.feriado, d.dia_semana,d.mes
-    FROM lw_octadesk.chat c
-    LEFT JOIN depara_chat a ON c.grupo_nome = a.fila
-    LEFT JOIN public.dias d ON DATE_TRUNC('day', c.data_inicio_interacao)::DATE  = d.dia 
-    WHERE data_inicio_interacao BETWEEN '{data_primaria} {hora_30_minutos_atras_formatada}' AND '{data_hoje} {hora_atual_formatada}'       
-      AND a.setor = 'Suporte' AND d.dia_util IS {dia_util};
-    """
+engine = get_sqlalchemy_engine()
+conn = get_pyodbc_connection()
+connection = engine.connect()
 
-    engine = get_sqlalchemy_engine()
-    conn = get_pyodbc_connection()
-    connection = engine.connect()
-
-    df = pd.read_sql_query(query, conn)
+df = pd.read_sql_query(query, conn)
 
 # Verifica se o DataFrame está vazio antes de continuar
 if df.empty:
@@ -150,7 +154,8 @@ else:
 
     #MANIPULAÇÃO DOS DADOS
 
-    df['hora'] = pd.to_datetime(df['hora'], format='%H:%M:%S').dt.time
+    # astype(str) garante compatibilidade quando o driver entrega a coluna como datetime.time
+    df['hora'] = pd.to_datetime(df['hora'].astype(str), format='%H:%M:%S').dt.time
     intervalos = []
 
     # Extrair valores únicos de data (ignorando as horas)
@@ -165,8 +170,6 @@ else:
     chave = gerar_chave_unica()
     print(chave)
 
-    setor = df['setor'].unique
-
     #ARMAZENA A MEDIA DOS ATENDIMENTOS DOS ULTIMOS 7 DIAS PARA O MESMO HORÁRIO DA CONSULTA
     media_ultima_semana_float = np.mean(intervalos)
     media_ultima_semana = round(media_ultima_semana_float, 2)
@@ -176,28 +179,37 @@ else:
     atendimentos_atuais = count_rows(df, data_hoje, hora_30_minutos_atras_formatada_time, hora_formatada_time)
     print(f"A quantidade de atendimentos de hoje é: {atendimentos_atuais}")
 
-    percentual = ((atendimentos_atuais - media_ultima_semana) / media_ultima_semana) * 100
-    percentual = round(percentual, 2)
+    if media_ultima_semana > 0:
+        percentual = round(((atendimentos_atuais - media_ultima_semana) / media_ultima_semana) * 100, 2)
+    else:
+        # Sem base historica (media=0) - nao ha como calcular variacao percentual.
+        percentual = 0.0
     print(f"O percentual em relação a mesma janela de horário é de : {percentual}")
 
-    if percentual > -100 and atendimentos_atuais > 0:
+    if percentual >= LIMIAR_ALTA_PERCENTUAL and atendimentos_atuais > 0:
         print("Analisando interações de clientes!")
         data_inicio = f"{data_hoje}  {hora_30_minutos_atras_formatada_time}"
         data_fim = f"{data_hoje} {hora_formatada_time}"
-        print(f" Período :{data_inicio} a {data_fim}")   
-    
+        print(f" Período :{data_inicio} a {data_fim}")
+
         conversas = get_atendimentos(data_inicio, data_fim)
         content = analise_ia(conversas, data_inicio, data_fim, task, 'Suporte', chave, task)
 
         # Aplicando a substituição com regex
         content = re.sub(r'\*\*', '*', content)
-        
+
         # ADICIONE ESTA LINHA: Garante que haja uma linha nova antes do conteúdo
         if not content.startswith('\n'):
-            content = '\n' + content 
+            content = '\n' + content
 
-        notificou = True 
+        notificou = True
         notifica(content, percentual, media_ultima_semana)
+
+    elif percentual <= LIMIAR_QUEDA_PERCENTUAL and atendimentos_atuais > 0:
+        # Queda relevante: notificacao informativa, sem analise via Gemini.
+        print(f"Queda relevante detectada ({percentual}%). Enviando boas noticias.")
+        notifica_boas_noticias(hora_30_minutos_atras_formatada, hora_atual_formatada, percentual)
+        notificou = True
 
     else:
         notificou = False

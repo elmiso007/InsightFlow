@@ -1,21 +1,37 @@
 # PromptGemini.py
 
-import pandas as pd
-from google import genai
-from google.genai.errors import APIError
-from conecta_banco import *
+import configparser
+import json
+import os
 import re
-import spacy
 import time
 from datetime import datetime, timedelta
-import json
-from sqlalchemy import text
 from pathlib import Path
 from textwrap import dedent
 
+import pandas as pd
+import spacy
+from google import genai
+from google.genai.errors import APIError
+from sqlalchemy import text
+
+from conecta_banco import resolver_caminho_config, get_sqlalchemy_engine
+
 
 sql_path = Path(__file__).parent
-resposta_path = Path(__file__).parent / "resposta_gemini.md" 
+resposta_path = Path(__file__).parent / "resposta_gemini.md"
+
+
+def _carregar_config_gemini():
+    """Le [gemini].api_key e [gemini].model do config.ini. GEMINI_API_KEY no ambiente tem prioridade."""
+    parser = configparser.ConfigParser()
+    parser.read(resolver_caminho_config(), encoding="utf-8")
+    secao = parser["gemini"] if "gemini" in parser else {}
+    api_key = (os.environ.get("GEMINI_API_KEY") or secao.get("api_key", "") or "").strip()
+    if not api_key:
+        raise KeyError("api_key ausente: defina GEMINI_API_KEY no ambiente ou [gemini].api_key no config.ini")
+    model = (secao.get("model", "") or "gemini-2.5-flash").strip()
+    return api_key, model
 
 
 def analise_ia(dataset, data_inicial, data_fim, tarefa, setor, chave, task):
@@ -24,8 +40,8 @@ def analise_ia(dataset, data_inicial, data_fim, tarefa, setor, chave, task):
     engine = get_sqlalchemy_engine()
     connection = engine.connect()
 
-    # Sua chave da API do Gemini. 
-    api_key = '[REDACTED_GEMINI_KEY]' 
+    # Credenciais do Gemini lidas do config.ini (ou GEMINI_API_KEY no ambiente)
+    api_key, model = _carregar_config_gemini()
 
     # INICIALIZAÇÃO DO CLIENTE GEMINI
     try:
@@ -34,7 +50,6 @@ def analise_ia(dataset, data_inicial, data_fim, tarefa, setor, chave, task):
         print(f"Erro ao inicializar o cliente Gemini: {e}")
         return f"ERRO: Falha ao inicializar o cliente Gemini. Erro: {e}"
 
-    model = "gemini-2.5-flash" 
 
     # ----------------------------------------------------------------------
     # Limita o tamanho do dataset de entrada para 100.000 caracteres

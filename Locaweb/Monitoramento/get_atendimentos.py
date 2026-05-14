@@ -26,7 +26,7 @@ def get_atendimentos(data_inicio, data_fim):
         interacoes = re.sub(r'\*(\w+)\*', r'\1', interacoes)
 
         # Anonimizar e-mails
-        texto_anonimizado = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zAlo]{2,}', '[email]', interacoes)
+        texto_anonimizado = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', '[email]', interacoes)
         
         # Anonimizar CPFs
         texto_anonimizado = re.sub(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', '[CPF]', texto_anonimizado)
