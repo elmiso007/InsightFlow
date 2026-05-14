@@ -2,8 +2,8 @@
 ; config.ini.example — modelo de configuracao do report_semanal
 ;
 ; COMO USAR
-;   1. Copie este arquivo para `config.ini` (em produção, fora deste diretório,
-;      conforme caminho usado em app.py: `sql_path.parent.parent / 'config.ini'`).
+;   1. Copie este arquivo para `config.ini` no mesmo diretorio do app.py
+;      (ou em ../../ relativo a ele - ambos os caminhos sao procurados).
 ;   2. Substitua os placeholders abaixo pelos valores reais.
 ;   3. NUNCA versione `config.ini` — ele esta no .gitignore.
 ; ============================================================================

@@ -26,12 +26,16 @@ sql_path = Path(__file__).parent
 logger = configurar_logger()
 
 # Carregar configurações sensíveis do config.ini (BD, Slack, Gmail).
-config_file_path = sql_path.parent.parent / 'config.ini'
+# Procura primeiro ao lado do app.py (uso standalone), depois 2 níveis acima
+# (convenção do monorepo original onde o config.ini fica na raiz de projetos/).
+_candidatos_config = [sql_path / 'config.ini', sql_path.parent.parent / 'config.ini']
+config_file_path = next((p for p in _candidatos_config if p.exists()), None)
 config = configparser.ConfigParser()
 
-if not config_file_path.exists():
-    logger.error(f"Arquivo config.ini não encontrado em {config_file_path}. Encerrando.")
-    raise SystemExit(f"config.ini ausente em {config_file_path}")
+if config_file_path is None:
+    tentados = ', '.join(str(p) for p in _candidatos_config)
+    logger.error(f"Arquivo config.ini não encontrado. Tentados: {tentados}. Encerrando.")
+    raise SystemExit(f"config.ini ausente. Tentados: {tentados}")
 
 config.read(config_file_path)
 

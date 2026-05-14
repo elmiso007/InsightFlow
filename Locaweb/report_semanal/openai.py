@@ -8,7 +8,11 @@ import json
 from sqlalchemy import text
 
 
-_CONFIG_PATH = Path(__file__).parent.parent.parent / 'config.ini'
+# Procura primeiro ao lado deste arquivo (uso standalone), depois 2 niveis
+# acima (convencao do monorepo original).
+_AQUI = Path(__file__).parent
+_CONFIG_CANDIDATOS = [_AQUI / 'config.ini', _AQUI.parent.parent / 'config.ini']
+_CONFIG_PATH = next((p for p in _CONFIG_CANDIDATOS if p.exists()), _CONFIG_CANDIDATOS[0])
 _config = configparser.ConfigParser()
 _config.read(_CONFIG_PATH)
 
@@ -16,8 +20,10 @@ try:
     _OPENAI_API_KEY = _config['openai']['api_key']
     _OPENAI_MODEL = _config['openai'].get('model', 'gpt-4o-mini')
 except KeyError as e:
+    tentados = ', '.join(str(p) for p in _CONFIG_CANDIDATOS)
     raise RuntimeError(
-        f"Seção [openai] ausente ou incompleta em {_CONFIG_PATH}. "
+        f"Seção [openai] ausente ou incompleta. "
+        f"Caminhos tentados: {tentados}. "
         f"Esperado: api_key (e opcionalmente model). Faltou: {e}"
     )
 

@@ -46,16 +46,13 @@ pip install -r requirements.txt
 
 2. Preencha o `config.ini` com seus valores reais (banco, OpenAI, Slack, Gmail, destinatários).
 
-3. **Onde colocar o `config.ini`**: por padrão, o `app.py` procura o arquivo
-   em `../../config.ini` (dois níveis acima do diretório onde está o script).
-   Isso é uma convenção do monorepo original. Se você for usar este projeto
-   como repositório standalone, mova o `config.ini` para essa localização ou
-   ajuste a linha em `app.py`:
+3. **Onde colocar o `config.ini`**: o `app.py` e o `openai.py` procuram o
+   arquivo em dois locais, nesta ordem:
 
-   ```python
-   config_file_path = sql_path.parent.parent / 'config.ini'   # padrão
-   # config_file_path = sql_path / 'config.ini'                # standalone na raiz
-   ```
+   - `./config.ini` (ao lado do `app.py`) — uso standalone
+   - `../../config.ini` (dois níveis acima) — convenção do monorepo original
+
+   Basta colocar o arquivo em qualquer um dos dois lugares.
 
 4. O `config.ini` **nunca deve ser versionado** — já está no `.gitignore`.
 
