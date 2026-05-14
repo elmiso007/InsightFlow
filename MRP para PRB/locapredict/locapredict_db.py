@@ -1,13 +1,33 @@
 """
 Acesso à configuração do PostgreSQL e introspecção de colunas (compartilhado entre os pipelines).
 
-Usado pelo LocaPredict e pelo Guardião para montar SQL compatível com o schema real.
+Inclui também a descoberta do caminho do `config.ini` (resolve_config_path), usado por ambos
+os pontos de entrada (LocaPredict e Guardião) antes de instanciar a conexão.
 """
 
 from __future__ import annotations
 
 import configparser
+import os
 from typing import Any, Dict, Set
+
+
+def resolve_config_path() -> str:
+    """
+    Descobre o caminho absoluto do config.ini.
+
+    Ordem: variáveis CAMINHO_ARQUIVO_CONFIGURACAO ou CONFIG_PATH; depois tenta
+    ../config.ini, ../../config.ini e ./config.ini a partir desta pasta.
+    """
+    caminho = (os.environ.get("CAMINHO_ARQUIVO_CONFIGURACAO") or os.environ.get("CONFIG_PATH") or "").strip()
+    if caminho and os.path.isfile(caminho):
+        return caminho
+    pasta_script = os.path.dirname(os.path.abspath(__file__))
+    for rel in ("../config.ini", "../../config.ini", "./config.ini"):
+        candidato = os.path.abspath(os.path.join(pasta_script, rel))
+        if os.path.isfile(candidato):
+            return candidato
+    raise FileNotFoundError("config.ini não encontrado.")
 
 
 def load_db_config(path: str = "config.ini") -> Dict[str, Any]:

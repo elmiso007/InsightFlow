@@ -7,8 +7,8 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
+import sys
 import warnings
 import threading
 from collections import Counter
@@ -26,27 +26,10 @@ import hdbscan
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from locapredict_db import get_table_columns, load_db_config
+from locapredict_db import get_table_columns, load_db_config, resolve_config_path
 from locapredict_log import get_logger, setup_locapredict_logging
 from alertas_slack import load_slack_settings, post_insight_alerts
-
-
-def resolve_config_path() -> str:
-    """
-    Descobre o caminho absoluto do config.ini.
-
-    Ordem: variáveis CAMINHO_ARQUIVO_CONFIGURACAO ou CONFIG_PATH; depois tenta
-    ../config.ini, ../../config.ini e ./config.ini a partir desta pasta.
-    """
-    caminho = (os.environ.get("CAMINHO_ARQUIVO_CONFIGURACAO") or os.environ.get("CONFIG_PATH") or "").strip()
-    if caminho and os.path.isfile(caminho):
-        return caminho
-    pasta_script = os.path.dirname(os.path.abspath(__file__))
-    for rel in ("../config.ini", "../../config.ini", "./config.ini"):
-        candidato = os.path.abspath(os.path.join(pasta_script, rel))
-        if os.path.isfile(candidato):
-            return candidato
-    raise FileNotFoundError("config.ini não encontrado.")
+from guardiao_saude_cliente import executar_guardiao_saude_cliente
 
 
 def _quiet_nlp_loggers():
@@ -461,4 +444,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # main() levanta exceção em caso de erro fatal — nesse caso, Python
+    # interrompe aqui e o Guardião não roda (comportamento desejado:
+    # só conferir recorrência se o pipeline principal tiver sucesso).
     main()
+    sys.exit(executar_guardiao_saude_cliente())

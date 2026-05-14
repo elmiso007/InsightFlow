@@ -300,7 +300,7 @@ max_linhas_slack = 25
 
 - Chaves em inglês (`enabled`, `window_months`, …) também continuam válidas como alternativa.
 - `apenas_incidentes_abertos = true` restringe a incidentes **não** encerrados/cancelados (como no pipeline 24h). Padrão `false` inclui todo histórico na janela (visão típica de “dor acumulada” do cliente).
-- Snapshots exigem a tabela `lwsa.customer_health_guardian_snapshots` (DDL em `queries.sql`). Sem tabela, o job continua e registra aviso no log (desative com `gravar_snapshots = false` se não for usar).
+- Snapshots exigem a tabela `lwsa.guardiao_saude_cliente_snapshots` (DDL em `queries.sql`). Sem tabela, o job continua e registra aviso no log (desative com `gravar_snapshots = false` se não for usar).
 - Slack reutiliza `[slack]` (mesmos canais do LocaPredict).
 
 ### Execução
@@ -315,8 +315,8 @@ Logs: mesmo arquivo `logs/locapredict.log` (`locapredict_log.setup_locapredict_l
 
 ```sql
 GRANT SELECT ON TABLE lwsa.service_now_incidentes TO automatizacoes;
-GRANT INSERT ON TABLE lwsa.customer_health_guardian_snapshots TO automatizacoes;
-GRANT USAGE, SELECT ON SEQUENCE lwsa.customer_health_guardian_snapshots_snapshot_id_seq TO automatizacoes;
+GRANT INSERT ON TABLE lwsa.guardiao_saude_cliente_snapshots TO automatizacoes;
+GRANT USAGE, SELECT ON SEQUENCE lwsa.guardiao_saude_cliente_snapshots_snapshot_id_seq TO automatizacoes;
 ```
 
 ## Execução

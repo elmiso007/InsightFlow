@@ -28,28 +28,15 @@ configurar_certificados_https()
 
 import psycopg2
 
-from locapredict_db import get_table_columns, load_db_config
+from locapredict_db import get_table_columns, load_db_config, resolve_config_path
 from locapredict_log import get_logger, setup_locapredict_logging
 from alertas_slack import enviar_alertas_slack_guardiao_saude_cliente, load_slack_settings
-
-
-def resolver_caminho_configuracao() -> str:
-    """Localiza o `config.ini` (variáveis de ambiente ou caminhos relativos a este script)."""
-    caminho = (os.environ.get("CAMINHO_ARQUIVO_CONFIGURACAO") or os.environ.get("CONFIG_PATH") or "").strip()
-    if caminho and os.path.isfile(caminho):
-        return caminho
-    pasta_script = os.path.dirname(os.path.abspath(__file__))
-    for rel in ("../config.ini", "../../config.ini", "./config.ini"):
-        candidato = os.path.abspath(os.path.join(pasta_script, rel))
-        if os.path.isfile(candidato):
-            return candidato
-    raise FileNotFoundError("config.ini não encontrado.")
 
 
 def _ler_booleano_secao(secao: configparser.SectionProxy, chave_pt: str, chave_en: str, padrao: bool) -> bool:
     """Lê booleano: tenta a chave em português e, se não houver, a equivalente em inglês."""
     for chave in (chave_pt, chave_en):
-        if secao.has_option(chave):
+        if chave in secao:
             try:
                 return secao.getboolean(chave)
             except ValueError:
@@ -68,7 +55,7 @@ def _ler_inteiro_secao(
 ) -> int:
     """Lê inteiro com fallback PT/EN e limita ao intervalo opcional (mínimo/máximo)."""
     for chave in (chave_pt, chave_en):
-        if secao.has_option(chave):
+        if chave in secao:
             try:
                 v = secao.getint(chave)
                 break
@@ -140,17 +127,20 @@ def _expressao_sql_normalizar_login_cliente(coluna: str = "login_cliente") -> st
     3. Valor só com dígitos (após trim) — código do cliente.
     4. URL ``http(s)://...`` sem match anterior — último ``=`` seguido de dígitos até o fim da string.
     5. Demais textos — minúsculas e remoção de caracteres que não sejam letras ou números (ex.: ``mzviagens``).
+
+    Usa ``substring(... FROM 'pat')`` (disponível desde PG 7.x) para extrair a primeira
+    captura — equivalente a ``(regexp_match(...))[1]``, mas compatível com PostgreSQL 9.x.
     """
     c = coluna
     return f"""NULLIF(
   TRIM(
     COALESCE(
-      (regexp_match(TRIM({c}), '(?i)ficha=(\\d+)'))[1],
-      (regexp_match(TRIM({c}), '(?i)\\(\\s*C[oó]d\\.?\\s*(\\d+)\\s*\\)'))[1],
+      substring(TRIM({c}) FROM '(?i)ficha=(\\d+)'),
+      substring(TRIM({c}) FROM '(?i)\\(\\s*C[oó]d\\.?\\s*(\\d+)\\s*\\)'),
       CASE WHEN TRIM({c}) ~ '^\\d+$' THEN TRIM({c}) END,
       CASE
         WHEN TRIM({c}) ~* '^https?://'
-        THEN (regexp_match(TRIM({c}), '.*=(\\d+)\\s*$'))[1]
+        THEN substring(TRIM({c}) FROM '.*=(\\d+)\\s*$')
       END,
       CASE
         WHEN TRIM({c}) !~* '^https?://'
@@ -162,13 +152,21 @@ def _expressao_sql_normalizar_login_cliente(coluna: str = "login_cliente") -> st
 )"""
 
 
-def montar_sql_recorrencia_guardiao(expr_atualizacoes: str, meses: int, apenas_abertos: bool) -> str:
+def montar_sql_recorrencia_guardiao(expr_atualizacoes: str, apenas_abertos: bool) -> str:
     """
     Monta o SQL da janela temporal: frequência por login canônico + produto, agregados e filtro pelo limiar.
 
     O login é normalizado na CTE ``linhas_origem``; linhas sem identificador válido após normalização são ignoradas.
 
-    O placeholder %s na execução corresponde ao número mínimo de incidentes configurado.
+    Versão simplificada: agregação direta com ``GROUP BY login_normalizado, produto`` e
+    ``HAVING COUNT(*) >= %s``, sem window function (equivalente em resultado e geralmente
+    mais barata em planos grandes, já que o Postgres pode usar HashAggregate em um único passe).
+
+    O SQL retornado contém dois placeholders ``%s``, na ordem: (1) meses da janela —
+    aplicado em ``INTERVAL '1 month' * %s`` (compatível com PG 9.2+, equivalente
+    ao ``make_interval`` do PG 9.4+); (2) número mínimo de incidentes — aplicado em
+    ``HAVING COUNT(*) >= %s``. Ambos são valores escalares e devem ser passados ao
+    ``cursor.execute`` para evitar interpolação direta de inteiros na string.
     """
     esforco = f"COALESCE(({expr_atualizacoes})::numeric, 0)"
     filtro_abertos = ""
@@ -176,45 +174,42 @@ def montar_sql_recorrencia_guardiao(expr_atualizacoes: str, meses: int, apenas_a
         filtro_abertos = "AND status NOT IN ('Cancelled', 'Resolved', 'Closed')"
     norm = _expressao_sql_normalizar_login_cliente("login_cliente")
     return f"""
+-- Índices recomendados em lwsa.service_now_incidentes:
+--   CREATE INDEX IF NOT EXISTS idx_sni_data_abertura ON lwsa.service_now_incidentes (data_abertura);
+--   CREATE INDEX IF NOT EXISTS idx_sni_login_cliente ON lwsa.service_now_incidentes (login_cliente);
+-- Opcional (quando apenas_incidentes_abertos=true) — índice parcial para a janela de status ativos:
+--   CREATE INDEX IF NOT EXISTS idx_sni_data_abertura_ativos ON lwsa.service_now_incidentes (data_abertura)
+--     WHERE status NOT IN ('Cancelled', 'Resolved', 'Closed');
 WITH linhas_origem AS (
     SELECT
-        login_cliente,
-        produto,
         numero,
+        produto,
         data_abertura,
         categoria,
         {esforco} AS esforco_inc,
         {norm} AS login_normalizado
     FROM lwsa.service_now_incidentes
     WHERE
-        data_abertura >= NOW() - INTERVAL '{meses} months'
+        data_abertura >= NOW() - (INTERVAL '1 month' * %s)
         AND login_cliente IS NOT NULL
         AND TRIM(login_cliente) <> ''
         {filtro_abertos}
-),
-base AS (
-    SELECT
-        login_normalizado AS login_cliente,
-        produto,
-        numero,
-        data_abertura,
-        categoria,
-        esforco_inc,
-        COUNT(*) OVER (PARTITION BY login_normalizado, produto) AS freq_cliente_produto
-    FROM linhas_origem
-    WHERE login_normalizado IS NOT NULL AND TRIM(login_normalizado) <> ''
 )
 SELECT
-    login_cliente,
+    login_normalizado AS login_cliente,
     produto,
-    MAX(freq_cliente_produto)::bigint AS total_inc_6meses,
+    COUNT(*)::bigint AS total_inc_janela,
     COUNT(DISTINCT NULLIF(TRIM(COALESCE(categoria::text, '')), '')) AS diversidade_problemas,
     MAX(data_abertura) AS ultimo_contato,
+    -- INC mais recente do par (login_normalizado, produto) — pareada com `ultimo_contato`.
+    -- array_agg com ORDER BY funciona desde PG 9.0; em PG 10+ daria para usar (regexp_match...).
+    (array_agg(numero ORDER BY data_abertura DESC))[1] AS ultima_inc,
     ROUND(AVG(esforco_inc), 2) AS media_esforco_cliente
-FROM base
-GROUP BY login_cliente, produto
-HAVING MAX(freq_cliente_produto) >= %s
-ORDER BY total_inc_6meses DESC, login_cliente ASC
+FROM linhas_origem
+WHERE login_normalizado IS NOT NULL AND TRIM(login_normalizado) <> ''
+GROUP BY login_normalizado, produto
+HAVING COUNT(*) >= %s
+ORDER BY total_inc_janela DESC, login_cliente ASC
 """
 
 
@@ -226,7 +221,7 @@ def buscar_pares_login_produto_acima_limiar(
     if "login_cliente" not in colunas:
         raise RuntimeError("Tabela service_now_incidentes sem coluna login_cliente.")
     expr = _expressao_sql_coluna_atualizacoes(colunas)
-    sql = montar_sql_recorrencia_guardiao(expr, meses_janela, apenas_abertos)
+    sql = montar_sql_recorrencia_guardiao(expr, apenas_abertos)
     registrador = get_logger()
     registrador.info(
         "Guardião da Saúde do Cliente — consulta de recorrência (login_cliente normalizado: ficha=, Cód., "
@@ -238,7 +233,7 @@ def buscar_pares_login_produto_acima_limiar(
         expr or "0",
     )
     with conexao_banco.cursor() as cur:
-        cur.execute(sql, (min_inc,))
+        cur.execute(sql, (meses_janela, min_inc))
         nomes = [d.name for d in cur.description]
         linhas = [dict(zip(nomes, row)) for row in cur.fetchall()]
     registrador.info(
@@ -251,23 +246,27 @@ def gravar_snapshots_historico_guardiao(conexao_banco, registros: list) -> None:
     """
     Persiste cada par encontrado na tabela de histórico do Guardião.
 
-    Nome físico da tabela no PostgreSQL: `lwsa.customer_health_guardian_snapshots` (legado).
+    Nome físico da tabela no PostgreSQL: `lwsa.guardiao_saude_cliente_snapshots`
+    (DDL em `queries.sql`). A coluna `data_geracao` recebe `NOW()` por default, então
+    cada execução pode ser distinguida pelo timestamp dos registros inseridos em lote.
     """
     if not registros:
         return
     registrador = get_logger()
     sql = """
-    INSERT INTO lwsa.customer_health_guardian_snapshots
-        (login_cliente, produto, total_inc_janela, diversidade_problemas, ultimo_contato, media_esforco_cliente)
-    VALUES (%s, %s, %s, %s, %s, %s)
+    INSERT INTO lwsa.guardiao_saude_cliente_snapshots
+        (login_cliente, produto, total_inc_janela, diversidade_problemas,
+         ultimo_contato, ultima_inc, media_esforco_cliente)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
     valores = [
         (
             r["login_cliente"],
             r["produto"],
-            int(r["total_inc_6meses"]),
+            int(r["total_inc_janela"]),
             int(r["diversidade_problemas"]),
             r["ultimo_contato"],
+            r.get("ultima_inc"),
             r["media_esforco_cliente"],
         )
         for r in registros
@@ -281,10 +280,19 @@ def gravar_snapshots_historico_guardiao(conexao_banco, registros: list) -> None:
         )
     except psycopg2.Error as e:
         conexao_banco.rollback()
-        if getattr(e, "pgcode", None) == "42P01":
+        pgcode = getattr(e, "pgcode", None)
+        if pgcode == "42P01":
             registrador.warning(
                 "Guardião da Saúde do Cliente — tabela de snapshots inexistente no schema lwsa; "
                 "execute o DDL em queries.sql ou desative gravar_snapshots."
+            )
+        elif pgcode == "42703":
+            # Coluna ausente — schema desatualizado (faltou aplicar ALTER TABLE).
+            # Não é erro do código; apenas registra para o DBA aplicar o DDL pendente.
+            registrador.warning(
+                "Guardião da Saúde do Cliente — coluna ausente no schema da tabela de snapshots "
+                "(provável ALTER pendente em queries.sql). Detalhe: %s",
+                str(e).strip(),
             )
         else:
             registrador.exception("Guardião da Saúde do Cliente — falha ao gravar snapshots: %s", e)
@@ -302,7 +310,7 @@ def executar_guardiao_saude_cliente() -> int:
     lista_resultados: list = []
 
     try:
-        caminho_config = resolver_caminho_configuracao()
+        caminho_config = resolve_config_path()
         cfg = carregar_configuracao_guardiao(caminho_config)
         if not cfg["habilitado"]:
             registrador.info("Guardião da Saúde do Cliente desligado (habilitado=false).")
@@ -320,20 +328,35 @@ def executar_guardiao_saude_cliente() -> int:
                 apenas_abertos=cfg["apenas_incidentes_abertos"],
             )
             if lista_resultados and cfg["gravar_snapshots"]:
-                gravar_snapshots_historico_guardiao(conexao_banco, lista_resultados)
+                # Falha gravando snapshots não pode bloquear o alerta ao Slack:
+                # o resultado da análise é o produto principal; o histórico é colateral.
+                try:
+                    gravar_snapshots_historico_guardiao(conexao_banco, lista_resultados)
+                except Exception:
+                    registrador.exception(
+                        "Guardião da Saúde do Cliente — falha não-prevista ao gravar snapshots; "
+                        "prosseguindo com o envio dos alertas."
+                    )
+    except Exception as e:
+        registrador.exception("Guardião da Saúde do Cliente — erro fatal: %s", e)
+        print(f"Guardião da Saúde do Cliente: erro — {e}", file=sys.stderr)
+        registrador.info("Fim da aplicação Guardião da Saúde do Cliente.")
+        return 1
 
-        if not lista_resultados:
-            print(
-                f"Guardião da Saúde do Cliente: nenhum par acima do limiar "
-                f"({cfg['minimo_incidentes']}+ INC em {cfg['meses_janela']} meses)."
-            )
-            registrador.info("Guardião da Saúde do Cliente — nenhum resultado acima do limiar.")
-        else:
-            print(
-                f"Guardião da Saúde do Cliente: {len(lista_resultados)} par(es) login×produto "
-                "com alta recorrência."
-            )
-            if cfg["alertas_slack"]:
+    if not lista_resultados:
+        print(
+            f"Guardião da Saúde do Cliente: nenhum par acima do limiar "
+            f"({cfg['minimo_incidentes']}+ INC em {cfg['meses_janela']} meses)."
+        )
+        registrador.info("Guardião da Saúde do Cliente — nenhum resultado acima do limiar.")
+    else:
+        print(
+            f"Guardião da Saúde do Cliente: {len(lista_resultados)} par(es) login×produto "
+            "com alta recorrência."
+        )
+        if cfg["alertas_slack"]:
+            # Slack isolado: webhook/timeout/rede não devem derrubar o exit code do job.
+            try:
                 slack_cfg, motivo = load_slack_settings(caminho_config)
                 if slack_cfg:
                     enviar_alertas_slack_guardiao_saude_cliente(
@@ -346,16 +369,12 @@ def executar_guardiao_saude_cliente() -> int:
                 else:
                     print(f"Guardião da Saúde do Cliente: Slack não enviado — {motivo}")
                     registrador.warning("Guardião da Saúde do Cliente — Slack omitido: %s", motivo)
-            else:
-                registrador.info("Guardião da Saúde do Cliente — alertas_slack=false; sem envio.")
+            except Exception:
+                registrador.exception("Guardião da Saúde do Cliente — falha ao enviar alertas Slack.")
+        else:
+            registrador.info("Guardião da Saúde do Cliente — alertas_slack=false; sem envio.")
 
-    except Exception as e:
-        registrador.exception("Guardião da Saúde do Cliente — erro fatal: %s", e)
-        print(f"Guardião da Saúde do Cliente: erro — {e}", file=sys.stderr)
-        return 1
-    finally:
-        registrador.info("Fim da aplicação Guardião da Saúde do Cliente.")
-
+    registrador.info("Fim da aplicação Guardião da Saúde do Cliente.")
     return 0
 
 

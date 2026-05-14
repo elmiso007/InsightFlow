@@ -250,14 +250,15 @@ def enviar_alertas_slack_guardiao_saude_cliente(
     for reg in exibidos:
         login = reg.get("login_cliente") or ""
         produto = reg.get("produto") or ""
-        total_inc = reg.get("total_inc_6meses")
+        total_inc = reg.get("total_inc_janela")
         div = reg.get("diversidade_problemas")
         ultimo = reg.get("ultimo_contato")
+        ultima_inc = reg.get("ultima_inc") or "—"
         media_esf = reg.get("media_esforco_cliente")
         linhas_fmt.append(
             f"• 🧑‍💼 `{login}` × *{produto}*\n"
             f"  📈 *{total_inc}* INC na janela · 🧩 *{div}* categorias distintas · "
-            f"⏱ último: `{ultimo}` · ⚙️ esforço médio: *{media_esf}*"
+            f"⏱ último: `{ultimo}` (`{ultima_inc}`) · ⚙️ esforço médio: *{media_esf}*"
         )
     corpo = "\n\n".join(linhas_fmt)
     if restante > 0:

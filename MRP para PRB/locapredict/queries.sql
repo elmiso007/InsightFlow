@@ -94,23 +94,45 @@ CREATE TABLE IF NOT EXISTS lwsa.guardiao_saude_cliente_snapshots (
     total_inc_janela INT NOT NULL,
     diversidade_problemas INT NOT NULL,
     ultimo_contato TIMESTAMPTZ,
+    ultima_inc TEXT,
     media_esforco_cliente NUMERIC(12, 2)
 );
+
+-- Migração segura para ambientes onde a tabela já existe sem ultima_inc:
+ALTER TABLE lwsa.guardiao_saude_cliente_snapshots
+    ADD COLUMN IF NOT EXISTS ultima_inc TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_ch_guardian_data ON lwsa.guardiao_saude_cliente_snapshots (data_geracao DESC);
 CREATE INDEX IF NOT EXISTS idx_ch_guardian_login ON lwsa.guardiao_saude_cliente_snapshots (login_cliente);
 
--- Referência lógica: o script do Guardião (`guardiao_saude_cliente.py`) normaliza login_cliente (ficha=, Cód., etc.)
--- e escolhe a coluna
--- como no LocaPredict (`total_atualizacoes` ou `atualizacoes`). Exemplo comentado abaixo:
+-- Índices recomendados na tabela de origem (lwsa.service_now_incidentes) para o Guardião:
+-- Apenas o primeiro é estritamente necessário; os demais ajudam em volumes maiores.
+-- CREATE INDEX IF NOT EXISTS idx_sni_data_abertura ON lwsa.service_now_incidentes (data_abertura);
+-- CREATE INDEX IF NOT EXISTS idx_sni_login_cliente ON lwsa.service_now_incidentes (login_cliente);
 --
--- WITH base AS (
---   SELECT TRIM(login_cliente) AS login_cliente, produto, numero, data_abertura, categoria,
+-- Opcional — índice parcial cobrindo somente incidentes ativos (use quando
+-- apenas_incidentes_abertos=true no INI). Filtra o predicado de status já no índice,
+-- evitando varrer linhas encerradas ao calcular a janela. Vale a pena se a fração de
+-- registros ativos for pequena frente ao total (regra prática: < 30%):
+-- CREATE INDEX IF NOT EXISTS idx_sni_data_abertura_ativos
+--   ON lwsa.service_now_incidentes (data_abertura)
+--   WHERE status NOT IN ('Cancelled', 'Resolved', 'Closed');
+
+-- Referência lógica: o script do Guardião (`guardiao_saude_cliente.py`) normaliza login_cliente (ficha=, Cód., etc.)
+-- e escolhe a coluna como no LocaPredict (`total_atualizacoes` ou `atualizacoes`).
+-- Estrutura equivalente (agregação direta — sem window function):
+--
+-- WITH linhas_origem AS (
+--   SELECT produto, data_abertura, categoria,
 --          COALESCE((atualizacoes)::numeric, 0) AS esforco_inc,
---          COUNT(*) OVER (PARTITION BY TRIM(login_cliente), produto) AS freq_cliente_produto
+--          TRIM(login_cliente) AS login_normalizado  -- expressão completa em _expressao_sql_normalizar_login_cliente
 --   FROM lwsa.service_now_incidentes
 --   WHERE data_abertura >= NOW() - INTERVAL '6 months'
 --     AND login_cliente IS NOT NULL AND TRIM(login_cliente) <> ''
 -- )
--- SELECT login_cliente, produto, MAX(freq_cliente_produto)::bigint AS total_inc_6meses, ...
--- GROUP BY ... HAVING MAX(freq_cliente_produto) >= 5;
+-- SELECT login_normalizado AS login_cliente, produto,
+--        COUNT(*)::bigint AS total_inc_janela, ...
+-- FROM linhas_origem
+-- WHERE login_normalizado IS NOT NULL AND TRIM(login_normalizado) <> ''
+-- GROUP BY login_normalizado, produto
+-- HAVING COUNT(*) >= 5;
