@@ -19,6 +19,10 @@ token.json
 *.pem
 *.pfx
 *.p12
+# Lista de credenciais antigas consumida por tools/limpar_historico.ps1
+tools/replacements.txt
+# Backups gerados pelo script de limpeza de histórico
+.git.backup-*/
 
 # --- Python ---
 __pycache__/
