@@ -51,6 +51,17 @@ except KeyError as e:
     raise SystemExit(f"Seção [slack] incompleta em config.ini: {e}")
 
 try:
+    _csv_to_list = lambda s: [x.strip() for x in s.split(',') if x.strip()]
+    REPORT_DESTINATARIOS_EMAIL = _csv_to_list(config['report_semanal']['destinatarios_email'])
+    REPORT_DESTINATARIOS_BCC = _csv_to_list(config['report_semanal'].get('destinatarios_bcc', ''))
+    REPORT_SLACK_CHANNEL = config['report_semanal']['slack_channel']
+    SCHEMA_OCTADESK = config['report_semanal'].get('schema_octadesk', 'lw_octadesk')
+    SCHEMA_SERVICENOW = config['report_semanal'].get('schema_servicenow', 'lwsa')
+except KeyError as e:
+    logger.error(f"Configurações do report_semanal ausentes no config.ini: {e}")
+    raise SystemExit(f"Seção [report_semanal] incompleta em config.ini: {e}")
+
+try:
     EMAIL_ACCOUNT = config['gmail']['EMAIL_ACCOUNT']
     EMAIL_PASSWORD = config['gmail']['EMAIL_PASSWORD']
 except KeyError:
@@ -493,16 +504,16 @@ def enviar_email_pdf(lista_pdfs, periodo, destinatarios_email, bcc=None):
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-query = f"SELECT * FROM lw_octadesk.vw_report_semanal;"
+query = f"SELECT * FROM {SCHEMA_OCTADESK}.vw_report_semanal;"
 
-query_2 = f"SELECT * FROM lw_octadesk.vw_woz;"
+query_2 = f"SELECT * FROM {SCHEMA_OCTADESK}.vw_woz;"
 
-query_3 = """SELECT i.numero, i.data_abertura,
+query_3 = f"""SELECT i.numero, i.data_abertura,
                 i.descricao_curta, i.fechamento, i.produto, i.tipo_usuario
-                FROM lwsa.service_now_incidentes i 
-                WHERE i.organizacao = 'Locaweb' 
-                AND i.produto IS NOT NULL 
-                AND i.fechamento IS NOT NULL 
+                FROM {SCHEMA_SERVICENOW}.service_now_incidentes i
+                WHERE i.organizacao = 'Locaweb'
+                AND i.produto IS NOT NULL
+                AND i.fechamento IS NOT NULL
                 AND i.status = 'Encerrado'
                 AND i.tipo_usuario = 'Nominal'
                 AND i.produto ILIKE '%%Locaweb%%'
@@ -726,21 +737,10 @@ def gerar_analise_woz_ia(analise_woz):
 # Criação do cliente Slack com seu token
 client = WebClient(SLACK_BOT_TOKEN)
 
-destinatarios = ['C08KQ4P015K'] #CANAL OFICIAL
-
-# Lista de destinatários de email para envio dos PDFs
-destinatarios_email = [
-    'glauco.oliveira@locaweb.com.br',
-    'michelle.gusmao@locaweb.com.br',
-    'lideressuporte@locaweb.com.br'
-    #'matheus.butturi@locaweb.com.br'
-]
-
-# Lista de destinatários em cópia oculta (BCC)
-destinatarios_bcc = [
-    'trafego@locaweb.com.br'
-    #'emerson.ramos@locaweb.com.br'
-]
+# Destinatarios carregados de [report_semanal] no config.ini
+destinatarios = [REPORT_SLACK_CHANNEL]
+destinatarios_email = REPORT_DESTINATARIOS_EMAIL
+destinatarios_bcc = REPORT_DESTINATARIOS_BCC
 
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

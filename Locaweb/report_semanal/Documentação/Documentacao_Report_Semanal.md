@@ -50,11 +50,12 @@ O **Sistema de Relatórios Semanais** é uma solução automatizada que processa
 ### Fontes de Dados
 ```sql
 -- View principal de dados semanais
-SELECT * FROM teste.vw_report_semanal;
+SELECT * FROM <schema_octadesk>.vw_report_semanal;
 
 -- View específica para análise WOZ
-SELECT * FROM lw_octadesk.vw_woz;
+SELECT * FROM <schema_octadesk>.vw_woz;
 ```
+> Os schemas (`schema_octadesk`, `schema_servicenow`) são configurados em `config.ini`.
 
 ### Estrutura de Processamento
 
@@ -182,9 +183,9 @@ logger = configurar_logger()
 
 ## Contatos Técnicos
 - **Desenvolvedor**: Equipe de Automatizações
-- **Banco de Dados**: PostgreSQL (10.30.138.28)
+- **Banco de Dados**: PostgreSQL (host configurado em `config.ini`)
 - **Logs**: `logs.log` e `function_logger`
-- **Ambiente**: Produção - Locaweb
+- **Ambiente**: Produção
 
 ---
 *Última atualização: Setembro 2025*
