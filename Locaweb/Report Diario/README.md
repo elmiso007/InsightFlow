@@ -104,7 +104,8 @@ DB_PASSWORD=sua_senha
 
 # Slack
 SLACK_BOT_TOKEN=xoxb-seu-token-aqui
-SLACK_CHANNEL_ID=C08AZTJB8JV
+SLACK_CHANNEL_ID=C00000000
+SLACK_CHANNEL_ID_TESTE=C00000000
 
 # Período Padrão
 PADRAO_DATA_INICIO=2025-08-01
@@ -144,36 +145,25 @@ O arquivo `.gitignore` já está configurado para proteger esses arquivos.
 
 ### 🧪 Alternando entre Teste e Produção
 
-**IMPORTANTE**: Por padrão, o sistema está configurado para **TESTE**.
+A alternância é feita pela variável `APP_ENV` no arquivo `.env` — **sem editar código**.
 
-Para alternar, edite o arquivo `app.py` nas **linhas 538-542**:
+| Valor de `APP_ENV` | Comportamento |
+|--------------------|---------------|
+| `test` (padrão)    | Envia apenas para o canal de teste (`SLACK_CHANNEL_ID_TESTE`) |
+| `production`       | Envia apenas para o canal oficial (`SLACK_CHANNEL_ID`) |
+| `both`             | Envia para teste **e** produção simultaneamente |
 
-#### Para TESTE (padrão):
-```python
-# 🧪 AMBIENTE DE TESTE (Canal: C07NSPQ69TL)
-destinatarios = [SLACK_CHANNEL_TESTE]  # ✅ ATIVO
-
-# 🚀 AMBIENTE DE PRODUÇÃO (Canal: C08AZTJB8JV)
-# destinatarios = [SLACK_CHANNEL]  # ❌ COMENTADO
+**Exemplo — `.env` em produção:**
+```ini
+APP_ENV=production
 ```
 
-#### Para PRODUÇÃO:
-```python
-# 🧪 AMBIENTE DE TESTE (Canal: C07NSPQ69TL)
-# destinatarios = [SLACK_CHANNEL_TESTE]  # ❌ COMENTADO
-
-# 🚀 AMBIENTE DE PRODUÇÃO (Canal: C08AZTJB8JV)
-destinatarios = [SLACK_CHANNEL]  # ✅ ATIVO
+**Exemplo — `.env` em desenvolvimento (default):**
+```ini
+APP_ENV=test
 ```
 
-#### Para Múltiplos Destinatários:
-```python
-# 🔀 Enviar para ambos os canais
-destinatarios = [SLACK_CHANNEL_TESTE, SLACK_CHANNEL]
-
-# 📨 Ou incluir usuários específicos
-# destinatarios = ['U070386L98T', SLACK_CHANNEL_TESTE]
-```
+Se `APP_ENV` não estiver definida, o script assume `test` por segurança (evita envio acidental ao canal oficial).
 
 ---
 
@@ -194,18 +184,18 @@ ExecutaApp.bat
 **Opção 1 - Via PowerShell (Recomendado):**
 ```powershell
 # Executar como Administrador
-$action = New-ScheduledTaskAction -Execute "python" -Argument "app.py" -WorkingDirectory "C:\Users\emerson.ramos\Desktop\projetos\Locaweb\Report Diario"
+$action = New-ScheduledTaskAction -Execute "python" -Argument "app.py" -WorkingDirectory "<caminho-do-projeto>"
 $trigger = New-ScheduledTaskTrigger -Daily -At "10:00AM"
-Register-ScheduledTask -TaskName "Report Diário Locaweb" -Action $action -Trigger $trigger -Description "Envio automático do relatório diário"
+Register-ScheduledTask -TaskName "Report Diário" -Action $action -Trigger $trigger -Description "Envio automático do relatório diário"
 ```
 
 **Opção 2 - Via Interface Gráfica:**
 1. Abra o "Agendador de Tarefas" (Task Scheduler)
 2. Criar Tarefa Básica
-3. **Nome:** Report Diário Locaweb
+3. **Nome:** Report Diário
 4. **Gatilho:** Diário às 10h, 14h ou 18h (escolha um ou mais)
 5. **Ação:** Iniciar programa
-6. **Programa:** `C:\Users\emerson.ramos\Desktop\projetos\Locaweb\Report Diario\ExecutaApp.bat`
+6. **Programa:** `<caminho-do-projeto>\ExecutaApp.bat`
 
 ---
 
@@ -332,7 +322,7 @@ ValueError: Configure as variáveis DB_SERVER, DB_DATABASE, DB_USER e DB_PASSWOR
 **Solução**: 
 1. Verifique se todas as 4 variáveis estão no `.env`
 2. Certifique-se de não ter espaços extras
-3. Formato correto: `DB_USER=automatizacoes` (sem aspas)
+3. Formato correto: `DB_USER=seu_usuario` (sem aspas)
 
 ---
 
@@ -346,11 +336,11 @@ WARNING - Não foi possível configurar locale em português, usando padrão do 
 
 ### ❌ Erro: "password authentication failed"
 ```
-FATAL: password authentication failed for user "automatizacoes"
+FATAL: password authentication failed for user "<DB_USER>"
 ```
 **Solução**: 
 1. Verifique se a senha no `.env` está correta
-2. Confirme o nome do usuário (deve ser `automatizacoes`)
+2. Confirme o nome do usuário em `DB_USER`
 3. Teste conectando com outro cliente (pgAdmin, DBeaver)
 4. Verifique se o IP está liberado no firewall
 
@@ -431,21 +421,20 @@ Se você está migrando do sistema anterior (`config.ini`):
 ## 📞 **Suporte**
 
 Para dúvidas sobre os relatórios:
-- 📧 Email: trafego@locaweb.com.br
+- 📧 Configure `SUPPORT_EMAIL` no `.env` para exibir um e-mail de contato na mensagem do Slack
 - 💬 Slack: Mencione um analista da equipe
 
 ---
 
 ## 👨‍💻 **Autor**
 
-**Emerson Ramos**  
-Desenvolvedor - Locaweb
+**Emerson Ramos**
 
 ---
 
 ## 📄 **Licença**
 
-Uso interno - Locaweb © 2024-2025
+MIT — veja o arquivo `LICENSE` (defina a licença que preferir antes de publicar).
 
 ---
 
@@ -457,39 +446,38 @@ Uso interno - Locaweb © 2024-2025
 python app.py
 
 # 2. Observar no log:
-# ⚠️ MODO TESTE ATIVO - Enviando para canal de TESTE (C07NSPQ69TL)
+# ⚠️ MODO TESTE ATIVO - Canal de teste (C00000000)
 
 # 3. Verificar no Slack se chegou no canal de teste
 ```
 
 ### Exemplo 2: Testar e depois ir para Produção
 ```bash
-# 1. Executar em teste
+# 1. Executar em teste (default)
 python app.py
 
 # 2. Validar no canal de teste
 
-# 3. Editar app.py (linhas 538-542):
-#    Comentar: destinatarios = [SLACK_CHANNEL_TESTE]
-#    Descomentar: destinatarios = [SLACK_CHANNEL]
+# 3. Editar o arquivo .env e alterar:
+#    APP_ENV=production
 
 # 4. Executar em produção
 python app.py
 
 # 5. Confirmar no log:
-# ✅ MODO PRODUÇÃO ATIVO - Enviando para canal OFICIAL (C08AZTJB8JV)
+# ✅ MODO PRODUÇÃO ATIVO - Canal oficial (C00000000)
 ```
 
 ### Exemplo 3: Enviar para Múltiplos Canais
 ```bash
-# 1. Editar app.py linha 545:
-# destinatarios = [SLACK_CHANNEL_TESTE, SLACK_CHANNEL]
+# 1. No arquivo .env, definir:
+#    APP_ENV=both
 
 # 2. Executar
 python app.py
 
 # 3. Verificar no log:
-# 🔀 MODO MÚLTIPLOS DESTINATÁRIOS - Enviando para 2 canais
+# 🔀 MODO DUAL ATIVO - Enviando para 2 canais
 ```
 
 ### Exemplo 4: Monitorar Execução Agendada

@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS lwsa.locapredict_insights (
     score_severidade FLOAT NOT NULL,
     ineficiencia_score FLOAT NOT NULL DEFAULT 0,
     sugestao_acao TEXT NOT NULL,
-    incidentes_relacionados TEXT[] NOT NULL DEFAULT '{}'
+    incidentes_relacionados TEXT[] NOT NULL DEFAULT '{}',
+    servidores_afetados TEXT[] NOT NULL DEFAULT '{}' -- servidores distintos cobertos pelos incidentes do cluster
 );
 
 -- Migração segura para ambientes onde a tabela já existe com menos colunas
@@ -79,7 +80,12 @@ ALTER TABLE lwsa.locapredict_insights
     ADD COLUMN IF NOT EXISTS score_severidade FLOAT,
     ADD COLUMN IF NOT EXISTS ineficiencia_score FLOAT DEFAULT 0,
     ADD COLUMN IF NOT EXISTS sugestao_acao TEXT,
-    ADD COLUMN IF NOT EXISTS incidentes_relacionados TEXT[];
+    ADD COLUMN IF NOT EXISTS incidentes_relacionados TEXT[],
+    ADD COLUMN IF NOT EXISTS servidores_afetados TEXT[];
+
+-- Índice GIN opcional para mapeamento por servidor (consultas com ANY/@>):
+-- CREATE INDEX IF NOT EXISTS idx_locapredict_insights_servidores
+--     ON lwsa.locapredict_insights USING GIN (servidores_afetados);
 
 -- =============================================================================
 -- Guardião da Saúde do Cliente — tabela de histórico (snapshots de recorrência login × produto)

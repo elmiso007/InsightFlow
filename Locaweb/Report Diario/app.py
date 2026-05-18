@@ -458,51 +458,44 @@ mensagem = {
 
 mensagem2 = ""
 
-mensagem3 = {
-        "blocks": [
-            {
-                "type": "divider"
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":bar_chart:  Relatório Completo",
-                            "emoji": True
-                        },
-                        "url": "https://app.powerbi.com/groups/me/apps/04bf3e77-d7cc-462a-a148-3cbaf56c14b8/reports/6c194479-36a6-4fbe-912f-59bf6f13c95f/31827d974b0d40085b59?ctid=700a4e08-ed6d-4401-835a-4e4fe805c8ca&experience=power-bi&clientSideAuth=0"
-                    },
+# Botões da mensagem final - URL do Power BI e e-mail de suporte vêm do .env
+POWERBI_REPORT_URL = os.getenv('POWERBI_REPORT_URL', '').strip()
+SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL', '').strip()
 
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":sos:  Ajuda",
-                            "emoji": True
-                        }
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":loudspeaker:  Feedback",
-                            "emoji": True
-                        }
-                    }
-                ]
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "Se ficar com dúvidas sobre as informações, basta chamar algum de nossos analistas aqui no Slack ou enviar um email para: trafego@locaweb.com.br"
-                }
-            }
-        ]
-    }
+acoes_elementos = []
+if POWERBI_REPORT_URL:
+    acoes_elementos.append({
+        "type": "button",
+        "text": {"type": "plain_text", "text": ":bar_chart:  Relatório Completo", "emoji": True},
+        "url": POWERBI_REPORT_URL
+    })
+acoes_elementos.append({
+    "type": "button",
+    "text": {"type": "plain_text", "text": ":sos:  Ajuda", "emoji": True}
+})
+acoes_elementos.append({
+    "type": "button",
+    "text": {"type": "plain_text", "text": ":loudspeaker:  Feedback", "emoji": True}
+})
+
+if SUPPORT_EMAIL:
+    texto_suporte = (
+        f"Se ficar com dúvidas sobre as informações, chame um analista no Slack "
+        f"ou envie um email para: {SUPPORT_EMAIL}"
+    )
+else:
+    texto_suporte = "Se ficar com dúvidas sobre as informações, chame um analista no Slack."
+
+mensagem3 = {
+    "blocks": [
+        {"type": "divider"},
+        {"type": "actions", "elements": acoes_elementos},
+        {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": texto_suporte}
+        }
+    ]
+}
 
 
 
@@ -511,50 +504,35 @@ mensagem3 = {
 # CONFIGURAÇÃO DO SLACK
 # ==============================================
 SLACK_TOKEN = os.getenv('SLACK_BOT_TOKEN')
-SLACK_CHANNEL = os.getenv('SLACK_CHANNEL_ID', 'C08AZTJB8JV')
-SLACK_CHANNEL_TESTE = os.getenv('SLACK_CHANNEL_ID_TESTE', 'C07NSPQ69TL')
+SLACK_CHANNEL = os.getenv('SLACK_CHANNEL_ID')
+SLACK_CHANNEL_TESTE = os.getenv('SLACK_CHANNEL_ID_TESTE')
 
 if not SLACK_TOKEN:
     logger.error("Token do Slack não configurado no arquivo .env")
     raise ValueError("Configure a variável SLACK_BOT_TOKEN no arquivo .env")
 
-# ==============================================
-# 🎯 ESCOLHA O AMBIENTE: TESTE ou PRODUÇÃO
-# ==============================================
-# INSTRUÇÕES: Comente/descomente as linhas abaixo conforme necessário
-# 
-# EXEMPLO PARA USAR TESTE:
-#     destinatarios = [SLACK_CHANNEL_TESTE]  ✅ (ativo)
-#     # destinatarios = [SLACK_CHANNEL]       ❌ (comentado)
-#
-# EXEMPLO PARA USAR PRODUÇÃO:
-#     # destinatarios = [SLACK_CHANNEL_TESTE] ❌ (comentado)
-#     destinatarios = [SLACK_CHANNEL]          ✅ (ativo)
-#
-# PARA MÚLTIPLOS DESTINATÁRIOS (separados por vírgula):
-#     destinatarios = [SLACK_CHANNEL, SLACK_CHANNEL_TESTE, 'U070386L98T']
-# ==============================================
-
-# 🧪 AMBIENTE DE TESTE (Canal: C07NSPQ69TL)
-#destinatarios = [SLACK_CHANNEL_TESTE]
-
-# 🚀 AMBIENTE DE PRODUÇÃO (Canal: C08AZTJB8JV)
-destinatarios = [SLACK_CHANNEL]
-
-# 🔀 MÚLTIPLOS DESTINATÁRIOS (Teste + Produção simultaneamente)
-# destinatarios = [SLACK_CHANNEL_TESTE, SLACK_CHANNEL]
+if not SLACK_CHANNEL or not SLACK_CHANNEL_TESTE:
+    logger.error("IDs de canal do Slack não configurados no arquivo .env")
+    raise ValueError("Configure as variáveis SLACK_CHANNEL_ID e SLACK_CHANNEL_ID_TESTE no arquivo .env")
 
 # ==============================================
+# 🎯 AMBIENTE: definido pela variável APP_ENV no .env
+# ==============================================
+# APP_ENV=test         → canal de teste (default seguro)
+# APP_ENV=production   → canal oficial
+# APP_ENV=both         → envia para teste e produção simultaneamente
+# ==============================================
+APP_ENV = os.getenv('APP_ENV', 'test').strip().lower()
 
-# Log informativo sobre qual ambiente está ativo
-if destinatarios == [SLACK_CHANNEL_TESTE]:
-    logger.warning("⚠️  MODO TESTE ATIVO - Enviando para canal de TESTE (C07NSPQ69TL)")
-elif destinatarios == [SLACK_CHANNEL]:
-    logger.info("✅ MODO PRODUÇÃO ATIVO - Enviando para canal OFICIAL (C08AZTJB8JV)")
-elif len(destinatarios) > 1:
-    logger.warning(f"🔀 MODO MÚLTIPLOS DESTINATÁRIOS - Enviando para {len(destinatarios)} canais: {destinatarios}")
+if APP_ENV == 'production':
+    destinatarios = [SLACK_CHANNEL]
+    logger.info(f"✅ MODO PRODUÇÃO ATIVO - Canal oficial ({SLACK_CHANNEL})")
+elif APP_ENV == 'both':
+    destinatarios = [SLACK_CHANNEL_TESTE, SLACK_CHANNEL]
+    logger.warning(f"🔀 MODO DUAL ATIVO - Enviando para {len(destinatarios)} canais: {destinatarios}")
 else:
-    logger.info(f"📤 Destinatários configurados: {destinatarios}")
+    destinatarios = [SLACK_CHANNEL_TESTE]
+    logger.warning(f"⚠️  MODO TESTE ATIVO - Canal de teste ({SLACK_CHANNEL_TESTE})")
 
 # Criação do cliente Slack
 try:
@@ -662,8 +640,8 @@ for setor in setores:
     # Calcula o tempo médio de espera
     tme = calcular_tempo(df, coluna_tempo_espera, setor=setor, data=data_de_hoje)
     
-    # Quantidade de recebidos
-    recebidos = contar_linhas(df, setor=setor, data=True)
+    # Quantidade de recebidos (exclui bots para alinhar com Atendidos/Abandonos)
+    recebidos = contar_linhas(df, setor=setor, ignora_bot=True, data=True)
     
     # Quantidade de Atendidos
     atendidos = contar_linhas(df, setor=setor, ignora_bot=True, atendidas=True, data=True)

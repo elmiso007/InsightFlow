@@ -21,7 +21,7 @@ Motor de análise de incidentes do ServiceNow com NLP + clusterização para ide
   - `ineficiencia_score` — sinal de patinação (muitas interações + lentidão).
 - Persiste insights em `lwsa.locapredict_insights`.
 - Envia alerta opcional no Slack quando `score_severidade` atinge o limiar `notify_min_score` em `[slack]` (padrão `0.7`; `pontuacao_minima_severidade` também é aceita), com rótulos **SEV/OPS**, emojis e blocos particionados.
-- **Guardião da Saúde do Cliente** (`guardiao_saude_cliente.py`): recorrência por `login_cliente` + `produto` em janela de meses; configuração em `[customer_health_guardian]` (chaves em português).
+- **Guardião da Saúde do Cliente** (`guardiao_saude_cliente.py`): recorrência por `login_cliente` + `produto` em janela de meses, restrita aos clientes com INC nas últimas 24h; configuração em `[customer_health_guardian]` (chaves em português).
 
 ## Pré-requisitos
 
@@ -274,15 +274,16 @@ Colunas gravadas:
 
 ## Guardião da Saúde do Cliente (recorrência / risco de churn)
 
-Script independente do motor NLP — foco em **volume histórico** por cliente (`login_cliente`) e produto.
+Script independente do motor NLP — foco em **volume histórico** por cliente (`login_cliente`) e produto, **com gatilho de atividade recente** (INC nas últimas 24h).
 
-- O valor de `login_cliente` é **normalizado no PostgreSQL** antes do `PARTITION BY`, para o mesmo cliente não ser contado várias vezes quando o campo vem em formatos diferentes:
+- O valor de `login_cliente` é **normalizado no PostgreSQL** antes do `GROUP BY`, para o mesmo cliente não ser contado várias vezes quando o campo vem em formatos diferentes:
   - URL com `ficha=` (ex.: intranet `...?ficha=100894`) → usa só o número;
   - texto com `(Cód. NNN)` ou `(Cod. NNN)` → usa o número entre parênteses;
   - somente dígitos → mantém o código;
   - outras URLs `http(s)://` → tenta o último `=` com número no fim da string;
   - demais textos → minúsculas e apenas letras/números (ex.: `mzviagens`).
-- Consulta usa **window function** `COUNT(*) OVER (PARTITION BY login_normalizado, produto)` na janela temporal, depois agrega `diversidade_problemas` (categorias distintas) e `media_esforco_cliente` (média de atualizações por INC).
+- Consulta agrega direto com `GROUP BY login_normalizado, produto` + `HAVING COUNT(*) >= minimo_incidentes` na janela temporal, e calcula `diversidade_problemas` (categorias distintas), `ultimo_contato`, `ultima_inc` e `media_esforco_cliente` (média de atualizações por INC).
+- **Filtro de atividade recente (configurável, default 24h):** o `HAVING` exige também `MAX(data_abertura) >= NOW() - (INTERVAL '1 hour' * horas_inc_recente)`. Ou seja, só aparecem no resultado pares `login × produto` que (1) acumularam ≥ `minimo_incidentes` na janela de meses **e** (2) têm pelo menos uma INC aberta nas últimas N horas (N vem de `horas_inc_recente`, default 24, limites 1–720). Como o `MAX(data_abertura)` já é calculado para `ultimo_contato`, esse filtro tem custo desprezível.
 - Coluna de atualizações: mesmo mapeamento do LocaPredict (`total_atualizacoes` ou `atualizacoes`).
 
 ### Configuração opcional (`config.ini`)
@@ -292,6 +293,7 @@ Script independente do motor NLP — foco em **volume histórico** por cliente (
 habilitado = true
 meses_janela = 6
 minimo_incidentes = 5
+horas_inc_recente = 24
 gravar_snapshots = true
 alertas_slack = true
 apenas_incidentes_abertos = false
@@ -299,9 +301,10 @@ max_linhas_slack = 25
 ```
 
 - Chaves em inglês (`enabled`, `window_months`, …) também continuam válidas como alternativa.
-- `apenas_incidentes_abertos = true` restringe a incidentes **não** encerrados/cancelados (como no pipeline 24h). Padrão `false` inclui todo histórico na janela (visão típica de “dor acumulada” do cliente).
+- `apenas_incidentes_abertos = true` restringe a incidentes **não** encerrados/cancelados (como no pipeline 24h). Padrão `false` inclui todo histórico na janela (visão típica de “dor acumulada” do cliente). O filtro das últimas N horas se aplica em cima desse recorte: com `true` exige uma INC ativa nas N horas, com `false` basta uma INC criada nas N horas.
+- `horas_inc_recente` (default `24`, limites `1–720`) define o tamanho da janela de atividade recente em horas. Equivalente em inglês: `recent_inc_hours`. Valores típicos: `24` (dia anterior), `48` (fim de semana), `72` (feriado prolongado).
 - Snapshots exigem a tabela `lwsa.guardiao_saude_cliente_snapshots` (DDL em `queries.sql`). Sem tabela, o job continua e registra aviso no log (desative com `gravar_snapshots = false` se não for usar).
-- Slack reutiliza `[slack]` (mesmos canais do LocaPredict).
+- Slack reutiliza `[slack]` (mesmos canais do LocaPredict). O cabeçalho do alerta exibe a janela em meses + a indicação `_com INC nas últimas 24h_` para deixar o critério explícito.
 
 ### Execução
 

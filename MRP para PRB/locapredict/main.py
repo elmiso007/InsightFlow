@@ -30,6 +30,7 @@ from locapredict_db import get_table_columns, load_db_config, resolve_config_pat
 from locapredict_log import get_logger, setup_locapredict_logging
 from alertas_slack import load_slack_settings, post_insight_alerts
 from guardiao_saude_cliente import executar_guardiao_saude_cliente
+from prescricao_prb import prescrever_acao_prb
 
 
 def _quiet_nlp_loggers():
@@ -143,36 +144,41 @@ def score_cluster(
     return score_severidade, ineficiencia_score
 
 
-def suggest_action(severidade: float, ineficiencia: float, produto: str) -> str:
-    """Sugere ação para o cluster (textos alinhados com `_emoji_sugestao` em alertas_slack.py)."""
-    if ineficiencia >= 0.6:
-        return "Revisar fluxo de atendimento: Alta reincidência de interações"
-    if severidade >= 0.75:
-        return f"Abrir PRB para {produto}"
-    return f"Monitorar {produto} + revisão em 15 minutos"
+def build_cluster_label(cluster_data: list[dict], produto: str) -> str:
+    """
+    Cria rótulo descritivo do cluster usando palavras-chave frequentes.
 
-
-def build_cluster_label(cluster_data: list[dict]) -> str:
-    """Cria rótulo descritivo do cluster usando palavras-chave frequentes."""
+    Recebe `produto` já resolvido pelo chamador (tipicamente o produto majoritário
+    do cluster), para manter consistência com `produto_afetado` persistido nos insights.
+    Filtra stop-words PT-BR, tokens curtos (<=2 chars) e numéricos puros antes de
+    escolher os 3 termos mais frequentes — evita rótulos dominados por conectivos.
+    """
     if not cluster_data:
         return "Cluster vazio"
 
     termos: list[str] = []
     for inc in cluster_data:
         desc = inc.get("desc_clean", "") or ""
-        termos.extend(desc.split())
+        for token in desc.split():
+            if len(token) <= 2:
+                continue
+            if token in PALAVRAS_VAZIAS_PORTUGUES:
+                continue
+            if token.isdigit():
+                continue
+            termos.append(token)
 
     freq = Counter(termos)
     top_termos = [t for t, _ in freq.most_common(3)]
-    produto = cluster_data[0].get("produto", "Desconhecido")
-    return f"Incidentes em {produto}: {' '.join(top_termos)}"
+    produto_final = produto or "Desconhecido"
+    return f"Incidentes em {produto_final}: {' '.join(top_termos)}".rstrip(": ").rstrip()
 
 
 def insert_insights(conexao_banco, tuplas: list):
     """Persiste linhas em lwsa.locapredict_insights (uma tupla por cluster)."""
     sql = """INSERT INTO lwsa.locapredict_insights
-        (cluster_nome, quantidade_inc_afetados, produto_afetado, score_severidade, ineficiencia_score, sugestao_acao, incidentes_relacionados)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)"""
+        (cluster_nome, quantidade_inc_afetados, produto_afetado, score_severidade, ineficiencia_score, sugestao_acao, incidentes_relacionados, servidores_afetados)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"""
     with conexao_banco.cursor() as cur:
         cur.executemany(sql, tuplas)
     conexao_banco.commit()
@@ -409,22 +415,50 @@ def main():
                 embeddings_cluster = embeddings[indices]
                 produto, volume_produto = _produto_majoritario_e_volume(cluster_data)
                 severidade, ineficiencia = score_cluster(cluster_data, embeddings_cluster, volume_produto)
-                sugestao = suggest_action(severidade, ineficiencia, produto)
-                label = build_cluster_label(cluster_data)
+                label = build_cluster_label(cluster_data, produto)
 
+                # Servidores distintos do cluster (ordenados para resultado determinístico).
+                # `servidor` pode ser None/vazio quando o ServiceNow não preenche — filtramos esses casos.
+                servidores_afetados = sorted({
+                    str(inc.get("servidor")).strip()
+                    for inc in cluster_data
+                    if inc.get("servidor") and str(inc.get("servidor")).strip()
+                })
+
+                prescricao = prescrever_acao_prb(
+                    cluster_data=cluster_data,
+                    score_severidade=severidade,
+                    ineficiencia_score=ineficiencia,
+                    produto=produto,
+                    servidores=servidores_afetados,
+                )
+                registrador.info(
+                    "Cluster %s — urgência=%s, abrir_prb=%s, score_composto=%.3f, grupo=%s",
+                    cluster_id,
+                    prescricao.urgencia,
+                    prescricao.deve_abrir_prb,
+                    prescricao.score_composto,
+                    prescricao.grupo_destino,
+                )
+
+                # 9 elementos: os 8 primeiros vão para o banco (insert_insights faz [:8]);
+                # o 9º (PrescricaoPRB) viaja só até o Slack para o alerta rico.
                 insights.append((
                     label,
                     len(cluster_data),
                     produto,
                     severidade,
                     ineficiencia,
-                    sugestao,
-                    [str(inc.get("numero")) for inc in cluster_data]
+                    prescricao.acao,
+                    [str(inc.get("numero")) for inc in cluster_data],
+                    servidores_afetados,
+                    prescricao,
                 ))
 
             # Salvar insights
             if insights:
-                insert_insights(conexao_banco, insights)
+                # O 9º elemento (PrescricaoPRB) é cortado — só os 8 primeiros são persistidos.
+                insert_insights(conexao_banco, [row[:8] for row in insights])
                 registrador.info("Persistidos %s insights no banco.", len(insights))
 
                 # Notificar Slack

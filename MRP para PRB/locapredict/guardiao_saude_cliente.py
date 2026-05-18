@@ -80,6 +80,7 @@ def carregar_configuracao_guardiao(caminho_config: str) -> dict:
         "habilitado": True,
         "meses_janela": 6,
         "minimo_incidentes": 5,
+        "horas_inc_recente": 24,
         "gravar_snapshots": True,
         "alertas_slack": True,
         "apenas_incidentes_abertos": False,
@@ -96,6 +97,9 @@ def carregar_configuracao_guardiao(caminho_config: str) -> dict:
         "habilitado": _ler_booleano_secao(secao, "habilitado", "enabled", True),
         "meses_janela": _ler_inteiro_secao(secao, "meses_janela", "window_months", 6, minimo=1, maximo=24),
         "minimo_incidentes": _ler_inteiro_secao(secao, "minimo_incidentes", "min_incidents", 5, minimo=1),
+        "horas_inc_recente": _ler_inteiro_secao(
+            secao, "horas_inc_recente", "recent_inc_hours", 24, minimo=1, maximo=720
+        ),
         "gravar_snapshots": _ler_booleano_secao(secao, "gravar_snapshots", "persist_snapshots", True),
         "alertas_slack": _ler_booleano_secao(secao, "alertas_slack", "slack_alerts", True),
         "apenas_incidentes_abertos": _ler_booleano_secao(
@@ -162,11 +166,18 @@ def montar_sql_recorrencia_guardiao(expr_atualizacoes: str, apenas_abertos: bool
     ``HAVING COUNT(*) >= %s``, sem window function (equivalente em resultado e geralmente
     mais barata em planos grandes, já que o Postgres pode usar HashAggregate em um único passe).
 
-    O SQL retornado contém dois placeholders ``%s``, na ordem: (1) meses da janela —
+    O SQL retornado contém três placeholders ``%s``, na ordem: (1) meses da janela —
     aplicado em ``INTERVAL '1 month' * %s`` (compatível com PG 9.2+, equivalente
     ao ``make_interval`` do PG 9.4+); (2) número mínimo de incidentes — aplicado em
-    ``HAVING COUNT(*) >= %s``. Ambos são valores escalares e devem ser passados ao
-    ``cursor.execute`` para evitar interpolação direta de inteiros na string.
+    ``HAVING COUNT(*) >= %s``; (3) horas para INC recente — aplicado em
+    ``MAX(data_abertura) >= NOW() - (INTERVAL '1 hour' * %s)``. Os três são valores
+    escalares e devem ser passados ao ``cursor.execute`` para evitar interpolação
+    direta de inteiros na string.
+
+    Filtro de atividade recente no ``HAVING``: mantém só pares cuja INC mais
+    recente esteja dentro da janela em horas (default 24h, configurável via
+    ``horas_inc_recente`` no INI). Como o MAX já é calculado para ``ultimo_contato``,
+    o custo extra é desprezível.
     """
     esforco = f"COALESCE(({expr_atualizacoes})::numeric, 0)"
     filtro_abertos = ""
@@ -209,12 +220,17 @@ FROM linhas_origem
 WHERE login_normalizado IS NOT NULL AND TRIM(login_normalizado) <> ''
 GROUP BY login_normalizado, produto
 HAVING COUNT(*) >= %s
+   AND MAX(data_abertura) >= NOW() - (INTERVAL '1 hour' * %s)
 ORDER BY total_inc_janela DESC, login_cliente ASC
 """
 
 
 def buscar_pares_login_produto_acima_limiar(
-    conexao_banco, meses_janela: int, min_inc: int, apenas_abertos: bool
+    conexao_banco,
+    meses_janela: int,
+    min_inc: int,
+    apenas_abertos: bool,
+    horas_inc_recente: int,
 ) -> list:
     """Executa a consulta de recorrência e retorna uma lista de dicionários (um por par login × produto)."""
     colunas = get_table_columns(conexao_banco, "lwsa", "service_now_incidentes")
@@ -226,14 +242,15 @@ def buscar_pares_login_produto_acima_limiar(
     registrador.info(
         "Guardião da Saúde do Cliente — consulta de recorrência (login_cliente normalizado: ficha=, Cód., "
         "URL, só dígitos ou slug): meses_janela=%s | minimo_incidentes=%s | "
-        "apenas_incidentes_abertos=%s | coluna_atualizacoes=%s",
+        "apenas_incidentes_abertos=%s | coluna_atualizacoes=%s | horas_inc_recente=%s",
         meses_janela,
         min_inc,
         apenas_abertos,
         expr or "0",
+        horas_inc_recente,
     )
     with conexao_banco.cursor() as cur:
-        cur.execute(sql, (meses_janela, min_inc))
+        cur.execute(sql, (meses_janela, min_inc, horas_inc_recente))
         nomes = [d.name for d in cur.description]
         linhas = [dict(zip(nomes, row)) for row in cur.fetchall()]
     registrador.info(
@@ -326,6 +343,7 @@ def executar_guardiao_saude_cliente() -> int:
                 meses_janela=cfg["meses_janela"],
                 min_inc=cfg["minimo_incidentes"],
                 apenas_abertos=cfg["apenas_incidentes_abertos"],
+                horas_inc_recente=cfg["horas_inc_recente"],
             )
             if lista_resultados and cfg["gravar_snapshots"]:
                 # Falha gravando snapshots não pode bloquear o alerta ao Slack:
@@ -364,6 +382,7 @@ def executar_guardiao_saude_cliente() -> int:
                         lista_resultados,
                         meses_janela=cfg["meses_janela"],
                         minimo_incidentes=cfg["minimo_incidentes"],
+                        horas_inc_recente=cfg["horas_inc_recente"],
                         max_linhas_slack=cfg["max_linhas_slack"],
                     )
                 else:

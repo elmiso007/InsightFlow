@@ -12,8 +12,18 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from locapredict_log import get_logger
 
-# Tupla de insight: contexto, qtd incidentes, produto, score severidade, score ineficiência, sugestão, números INC
-InsightRow = Tuple[Any, int, Any, float, Any, str, Sequence[Any]]
+# Import opcional do motor prescritivo. Mantemos try/except para retrocompatibilidade:
+# se prescricao_prb.py não estiver presente (deploy parcial / teste isolado),
+# o alerta cai automaticamente no formato legado.
+try:  # pragma: no cover - import opcional
+    from prescricao_prb import PrescricaoPRB  # type: ignore
+except ImportError:  # pragma: no cover
+    PrescricaoPRB = None  # type: ignore
+
+# Tupla de insight: contexto, qtd incidentes, produto, score severidade, score ineficiência,
+# sugestão (acao), números INC, servidores afetados, [opcional] PrescricaoPRB.
+# O 9º elemento é Optional — quando ausente, o alerta usa o formato legado.
+InsightRow = Tuple[Any, int, Any, float, Any, str, Sequence[Any], Sequence[Any], Any]
 
 
 def load_slack_settings(config_path: str) -> Tuple[Optional[Dict[str, Any]], str]:
@@ -100,33 +110,63 @@ def _emoji_sugestao(texto: str) -> str:
         return "🔄"
     if t.startswith("Abrir PRB"):
         return "📌"
+    if t.startswith("Investigar"):
+        return "🔍"
     if t.startswith("Monitorar"):
         return "👀"
     return "▶️"
 
 
-def _build_insight_blocks(
-    lista_insights: List[InsightRow], pontuacao_minima: float
-) -> Tuple[List[dict], str]:
-    """
-    Filtra insights pelo limiar, ordena por severidade e monta lista de blocos Slack.
+def _emoji_urgencia(urgencia: str) -> str:
+    """Emoji visual da urgência PRB para o cabeçalho de cada insight."""
+    return {"CRITICA": "🆘", "ALTA": "🔺", "MEDIA": "🔶", "BAIXA": "🔹"}.get(urgencia, "⚪")
 
-    Particiona o texto em vários blocos `section` se passar do limite de caracteres.
+
+def _extrair_prescricao(row: Sequence[Any]):
+    """Retorna o objeto PrescricaoPRB da tupla se presente; senão None (formato legado)."""
+    if len(row) <= 8:
+        return None
+    candidato = row[8]
+    if candidato is None:
+        return None
+    # Aceita instâncias de PrescricaoPRB; se o import falhou, faz duck-typing.
+    if PrescricaoPRB is not None and isinstance(candidato, PrescricaoPRB):
+        return candidato
+    if hasattr(candidato, "urgencia") and hasattr(candidato, "deve_abrir_prb"):
+        return candidato
+    return None
+
+
+def _chave_ordenacao(row: Sequence[Any]) -> float:
+    """Score_composto quando há prescrição; senão fallback para score_severidade."""
+    prescricao = _extrair_prescricao(row)
+    if prescricao is not None:
+        return float(getattr(prescricao, "score_composto", row[3]))
+    return float(row[3])
+
+
+def _formatar_bloco_prescritivo(row: Sequence[Any]) -> str:
     """
-    filtrados = [r for r in lista_insights if float(r[3]) >= pontuacao_minima]
-    if not filtrados:
-        return [], ""
-    filtrados.sort(key=lambda r: float(r[3]), reverse=True)
-    partes: List[str] = []
-    for nome_ctx, qtd, produto, score_sev, score_inef, sugestao, numeros in filtrados:
-        faixa_s = _faixa_severidade(float(score_sev))
-        faixa_o = _faixa_ops(float(score_inef))
-        nums = [str(n) for n in numeros[:_MAX_EXEMPLOS_NUMEROS_INC]]
-        sufixo = ""
-        if len(numeros) > _MAX_EXEMPLOS_NUMEROS_INC:
-            sufixo = f" … (+{len(numeros) - _MAX_EXEMPLOS_NUMEROS_INC})"
-        texto_nums = ", ".join(nums) + sufixo
-        partes.append(
+    Monta o bloco textual de um insight no Slack.
+
+    Caminho rico: usa a PrescricaoPRB do índice [8] — urgência, decisão de abrir PRB,
+    grupo de destino, descrição rica e bullets de evidência.
+    Caminho legado: formato anterior baseado só nas faixas de severidade/ineficiência.
+    """
+    nome_ctx, qtd, produto, score_sev, score_inef, sugestao, numeros, _servidores = row[:8]
+    prescricao = _extrair_prescricao(row)
+
+    faixa_s = _faixa_severidade(float(score_sev))
+    faixa_o = _faixa_ops(float(score_inef))
+    nums = [str(n) for n in numeros[:_MAX_EXEMPLOS_NUMEROS_INC]]
+    sufixo = ""
+    if len(numeros) > _MAX_EXEMPLOS_NUMEROS_INC:
+        sufixo = f" … (+{len(numeros) - _MAX_EXEMPLOS_NUMEROS_INC})"
+    texto_nums = ", ".join(nums) + sufixo
+
+    # ----- Formato legado (sem PrescricaoPRB) -----
+    if prescricao is None:
+        return (
             f"• {_emoji_sev(faixa_s)}{_emoji_ops(faixa_o)} *{produto}* — {_emoji_sev(faixa_s)} *SEV:{faixa_s}* · "
             f"{_emoji_ops(faixa_o)} *OPS:{faixa_o}* — score *{float(score_sev):.2f}* — "
             f"ineficiência *{float(score_inef):.2f}* — *{qtd}* inc.\n"
@@ -134,8 +174,66 @@ def _build_insight_blocks(
             f"  📍 _{nome_ctx}_\n"
             f"  🎫 INC: `{texto_nums}`"
         )
+
+    # ----- Formato rico (com PrescricaoPRB) -----
+    urgencia = str(getattr(prescricao, "urgencia", "BAIXA"))
+    emoji_u = _emoji_urgencia(urgencia)
+    abrir_prb = bool(getattr(prescricao, "deve_abrir_prb", False))
+    flag_prb = "✅ SIM" if abrir_prb else "❌ não"
+    grupo = str(getattr(prescricao, "grupo_destino", "Nao informado")) or "Nao informado"
+    composto = float(getattr(prescricao, "score_composto", 0.0))
+    descricao_rica = str(getattr(prescricao, "descricao_rica", "")).strip()
+    evidencias = list(getattr(prescricao, "evidencias", []) or [])
+
+    linhas_evidencia = "\n".join(f"  • {ev}" for ev in evidencias) if evidencias else ""
+
+    bloco = (
+        f"• {emoji_u} *{produto}* — {_emoji_sev(faixa_s)} *SEV:{faixa_s}* · "
+        f"{_emoji_ops(faixa_o)} *OPS:{faixa_o}* · {emoji_u} *PRB:{urgencia}* — *{qtd}* inc.\n"
+        f"  {_emoji_sugestao(str(sugestao))} {sugestao} → grupo *{grupo}*\n"
+        f"  Abrir PRB? {flag_prb} · sev *{float(score_sev):.2f}* · "
+        f"inef *{float(score_inef):.2f}* · composto *{composto:.2f}*"
+    )
+    if descricao_rica:
+        bloco += f"\n  _{descricao_rica}_"
+    if linhas_evidencia:
+        bloco += f"\n{linhas_evidencia}"
+    bloco += f"\n  📍 _{nome_ctx}_\n  🎫 INC: `{texto_nums}`"
+    return bloco
+
+
+def _build_insight_blocks(
+    lista_insights: List[InsightRow], pontuacao_minima: float
+) -> Tuple[List[dict], str]:
+    """
+    Filtra insights pelo limiar (score_severidade >= pontuacao_minima), ordena pelo
+    score_composto quando disponível e monta lista de blocos Slack.
+
+    O filtro continua usando score_severidade — preserva compatibilidade com
+    notify_min_score configurado. A ordenação prioriza score_composto para que
+    clusters grandes com sinal combinado subam, mas o filtro de entrada não muda.
+
+    Particiona o texto em vários blocos `section` se passar do limite de caracteres.
+    """
+    filtrados = [r for r in lista_insights if float(r[3]) >= pontuacao_minima]
+    if not filtrados:
+        return [], ""
+    filtrados.sort(key=_chave_ordenacao, reverse=True)
+    partes: List[str] = [_formatar_bloco_prescritivo(row) for row in filtrados]
+
+    n_prb_recomendados = sum(
+        1
+        for row in filtrados
+        if (_extrair_prescricao(row) is not None
+            and bool(getattr(_extrair_prescricao(row), "deve_abrir_prb", False)))
+    )
+    if n_prb_recomendados:
+        titulo_header = f"📊 LocaPredict — alerta PRB · 📌 {n_prb_recomendados} PRB(s) recomendado(s)"
+    else:
+        titulo_header = "📊 LocaPredict — alerta PRB"
+
     blocos: List[dict] = [
-        {"type": "header", "text": {"type": "plain_text", "text": "📊 LocaPredict — alerta PRB"}}
+        {"type": "header", "text": {"type": "plain_text", "text": titulo_header}}
     ]
     prefixo = f"📋 Insights com score >= *{pontuacao_minima:.2f}*:\n\n"
     texto_atual = prefixo
@@ -228,6 +326,7 @@ def enviar_alertas_slack_guardiao_saude_cliente(
     *,
     meses_janela: int,
     minimo_incidentes: int,
+    horas_inc_recente: int = 24,
     max_linhas_slack: int = 25,
 ) -> None:
     """
@@ -270,7 +369,8 @@ def enviar_alertas_slack_guardiao_saude_cliente(
 
     prefixo = (
         f"📋 *Guardião da Saúde do Cliente* — janela *{meses_janela}* mes(es), "
-        f"limiar *≥ {minimo_incidentes}* INC por cliente e produto\n\n"
+        f"limiar *≥ {minimo_incidentes}* INC por cliente e produto · "
+        f"_com INC nas últimas {horas_inc_recente}h_\n\n"
     )
     texto_completo = prefixo + corpo
 
