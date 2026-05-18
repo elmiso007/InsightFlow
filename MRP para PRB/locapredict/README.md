@@ -5,9 +5,10 @@ Motor de análise de incidentes do ServiceNow com NLP + clusterização para ide
 ## Estrutura do Projeto
 
 - `main.py`: Ponto de entrada, funções de DB, embeddings e pipeline completo.
+- `prescricao_prb.py`: Motor prescritivo — `PrescricaoPRB` (dataclass) e `prescrever_acao_prb()` com 5 regras em cascata.
 - `locapredict_db.py`: Configuração e acesso ao PostgreSQL.
 - `locapredict_log.py`: Logging rotativo.
-- `alertas_slack.py`: Notificações Slack.
+- `alertas_slack.py`: Notificações Slack com alerta rico (urgência, decisão de PRB, evidências).
 - `certificados_https.py`: Configuração SSL.
 - `guardiao_saude_cliente.py`: Sub-aplicação para recorrência por cliente.
 
@@ -19,8 +20,9 @@ Motor de análise de incidentes do ServiceNow com NLP + clusterização para ide
 - Calcula dois indicadores (0 a 1):
   - `score_severidade` — impacto técnico-operacional do cluster.
   - `ineficiencia_score` — sinal de patinação (muitas interações + lentidão).
-- Persiste insights em `lwsa.locapredict_insights`.
-- Envia alerta opcional no Slack quando `score_severidade` atinge o limiar `notify_min_score` em `[slack]` (padrão `0.7`; `pontuacao_minima_severidade` também é aceita), com rótulos **SEV/OPS**, emojis e blocos particionados.
+- Aplica **motor prescritivo** (`prescrever_acao_prb()`) que combina os dois scores em **5 regras em cascata** e devolve uma `PrescricaoPRB` rica: urgência (CRITICA/ALTA/MEDIA/BAIXA), decisão `deve_abrir_prb`, grupo de destino, evidências, descrição em linguagem natural e `score_composto` (média 50/50 + bônus de volume).
+- Persiste insights em `lwsa.locapredict_insights` (schema não muda — apenas o texto de `sugestao_acao` reflete a nova ação prescritiva).
+- Envia alerta opcional no Slack quando `score_severidade` atinge o limiar `notify_min_score` em `[slack]` (padrão `0.7`; `pontuacao_minima_severidade` também é aceita). O alerta agora exibe **urgência PRB**, **flag "Abrir PRB? ✅ SIM / ❌ não"**, grupo destino, bullets de evidência e descrição rica; insights são ordenados por `score_composto` e o cabeçalho conta `📌 N PRB(s) recomendado(s)`.
 - **Guardião da Saúde do Cliente** (`guardiao_saude_cliente.py`): recorrência por `login_cliente` + `produto` em janela de meses, restrita aos clientes com INC nas últimas 24h; configuração em `[customer_health_guardian]` (chaves em português).
 
 ## Pré-requisitos
@@ -178,9 +180,10 @@ Na subida dos dados, o console imprime qual regra de **tempo** e qual coluna de 
     - calcula `mean_sim` (coerência semântica),
     - calcula `score_severidade`,
     - calcula `ineficiencia_score`,
-    - gera `cluster_nome` com fallback: `SRV` → `GRP` → `CAT` → `PRD`.
-12. Persiste em `lwsa.locapredict_insights`.
-13. Envia resumo ao Slack (opcional), apenas insights com `score_severidade >= notify_min_score` configurada em `[slack]`.
+    - gera `cluster_nome` (rótulo descritivo a partir das palavras-chave),
+    - **avalia `prescrever_acao_prb()`** (5 regras em cascata) e produz a `PrescricaoPRB` com urgência, decisão de PRB, grupo destino, evidências, descrição rica e `score_composto`.
+12. Persiste em `lwsa.locapredict_insights` (o `PrescricaoPRB` viaja apenas em memória até o Slack — o INSERT usa `[row[:8]]` e mantém o schema do banco intacto).
+13. Envia resumo ao Slack (opcional), apenas insights com `score_severidade >= notify_min_score` configurada em `[slack]`. Insights elegíveis são **ordenados por `score_composto`** e o cabeçalho mostra `📌 N PRB(s) recomendado(s)`.
 
 ## Fórmulas de score
 
@@ -221,18 +224,58 @@ Usada na mensagem do Slack (e alinhada às faixas abaixo):
 | OPS:ATENCAO | 0,30 – 0,59 |
 | OPS:SAUDAVEL | abaixo de 0,30 |
 
-## Regras de ação (`suggest_action`)
+## Motor prescritivo (`prescrever_acao_prb`)
 
-Ordem de prioridade:
+Substitui a função antiga `suggest_action` (3 regras hardcoded). Reside em `prescricao_prb.py` e devolve uma `PrescricaoPRB` (dataclass) com 7 campos:
 
-1. Se `ineficiencia_score >= 0.6` →  
-   `Revisar fluxo de atendimento: Alta reincidência de interações`
-2. Senão, se `score_severidade >= 0.75` →  
-   `Abrir PRB para <produto>`
-3. Caso contrário →  
-   `Monitorar <produto> + revisão em 15 minutos`
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `acao` | `str` | Texto curto (gravado em `sugestao_acao` no banco) |
+| `urgencia` | `str` | `CRITICA` / `ALTA` / `MEDIA` / `BAIXA` |
+| `deve_abrir_prb` | `bool` | Decisão direta para o time de Problem Management |
+| `grupo_destino` | `str` | Grupo do ServiceNow mais frequente no cluster |
+| `evidencias` | `List[str]` | Bullets explicativos (até 7 sinais cruzados) |
+| `descricao_rica` | `str` | Parágrafo em linguagem natural para o Slack |
+| `score_composto` | `float` | 0–1, usado para ordenar clusters no alerta |
 
-O nome de contexto do cluster (`cluster_nome`) continua gravado na tabela e aparece no Slack em linha separada; a sugestão fica curta para evitar repetição.
+### 5 regras em cascata
+
+A primeira regra que casa decide (ordem da mais crítica para a menos):
+
+| # | Critério | Urgência | Abre PRB? | Ação |
+|---|----------|----------|-----------|------|
+| 1 | `inef ≥ 0.60` **e** `sev ≥ 0.50` | **CRITICA** | ✅ SIM | `Abrir PRB CRÍTICO para <produto>` |
+| 2 | `sev ≥ 0.75` (isolado) | **ALTA** | ✅ SIM | `Abrir PRB para <produto>` |
+| 3 | `sev ≥ 0.50` **e** `inef ≥ 0.30` | **MEDIA** | ❌ não | `Investigar candidato a PRB em <produto>` |
+| 4 | `inef ≥ 0.60` (isolado) | **MEDIA** | ❌ não | `Revisar fluxo de atendimento em <produto>` |
+| 5 | nenhuma | **BAIXA** | ❌ não | `Monitorar <produto>` |
+
+### Score composto
+
+Combina os dois scores com bônus de volume — clusters grandes sobem na ordenação mesmo com scores individuais parecidos:
+
+```
+score_composto = min(1, 0.5*score_severidade + 0.5*ineficiencia_score + bonus_volume)
+bonus_volume   = +0.10 se n_incidentes >= 10
+                 +0.05 se n_incidentes >= 5
+                  0   caso contrário
+```
+
+### Evidências automáticas
+
+`_coletar_evidencias()` cruza até **7 sinais** (cada um vira um bullet só se for relevante):
+
+1. Volume do cluster (sempre).
+2. Faixa de severidade + score (sempre).
+3. Faixa de ineficiência + score (sempre).
+4. Servidores afetados (se houver, mostra até 3 + indicador `(+N)`).
+5. INCs com prioridade crítica/alta (heurística por substring).
+6. Categorias distintas (só se > 1 — indica amplitude do problema).
+7. Clientes distintos impactados (`login_cliente`).
+
+### Texto que vai para o banco
+
+O campo `sugestao_acao` continua sendo a string curta da `PrescricaoPRB.acao`. **O schema do banco não muda** — apenas o conteúdo do campo passa a refletir a prescrição rica. O objeto `PrescricaoPRB` completo viaja apenas até o Slack.
 
 ## Slack: formato e limitações
 
@@ -246,31 +289,55 @@ O Block Kit não aplica cores no texto; os emojis dão pista visual rápida. Map
 
 | Uso | Emoji |
 |-----|-------|
+| **Urgência PRB**: CRITICA / ALTA / MEDIA / BAIXA | 🆘 / 🔺 / 🔶 / 🔹 |
 | Severidade ALTA / MÉDIA / BAIXA | 🔴 / 🟡 / 🟢 |
 | Operação CRÍTICO / ATENÇÃO / SAUDÁVEL | 🚨 / ⚠️ / ✅ |
-| Ação: Abrir PRB / Monitorar / Revisar fluxo | 📌 / 👀 / 🔄 |
+| Ação: Abrir PRB / Investigar / Revisar fluxo / Monitorar | 📌 / 🔍 / 🔄 / 👀 |
+| Decisão "Abrir PRB?" SIM / não | ✅ / ❌ |
 | Cluster (contexto) | 📍 |
 | Lista de INCs | 🎫 |
-| Título do alerta | 📊 |
-| Intro “Insights com score…” | 📋 |
+| Título do alerta + contagem | 📊 / 📌 |
+| Intro "Insights com score…" | 📋 |
 
-**Exemplo (resumo de uma linha de insight):**  
-`• 🔴✅ *Produto* — 🔴 *SEV:ALTA* · ✅ *OPS:SAUDAVEL* — score … — ineficiência … — *N* inc.`  
-As linhas seguintes trazem a ação com o emoji correspondente (📌 / 👀 / 🔄), o cluster com 📍 e os INCs com 🎫.
+**Exemplo de cabeçalho do alerta:**
+```
+📊 LocaPredict — alerta PRB · 📌 1 PRB(s) recomendado(s)
+```
+
+**Exemplo de bloco de insight (formato rico, com `PrescricaoPRB`):**
+```
+• 🔺 *Locaweb - Email* — 🔴 *SEV:ALTA* · ✅ *OPS:SAUDAVEL* · 🔺 *PRB:ALTA* — *16* inc.
+  📌 Abrir PRB para Locaweb - Email → grupo *Email nivel 1*
+  Abrir PRB? ✅ SIM · sev *0.89* · inef *0.03* · composto *0.56*
+  _Cluster concentrado em Locaweb - Email com 16 INC(s) semanticamente próximos…_
+  • Volume: 16 incidente(s) no cluster
+  • Severidade ALTA (score 0.89)
+  • Ineficiência SAUDAVEL (score 0.03)
+  • Servidores afetados: 1 — lisa0660
+  📍 _Incidentes em Locaweb - Email: problem nfs client_
+  🎫 INC: `INC8831573, INC8831572, … (+6)`
+```
+
+### Retrocompatibilidade do alerta
+
+O import de `PrescricaoPRB` em `alertas_slack.py` é feito em `try/except ImportError`. Se o módulo `prescricao_prb.py` não estiver presente (deploy parcial / teste isolado), a tupla de insight cai automaticamente no **formato legado** — uma linha mais simples sem urgência/evidências/composto, baseada apenas em `score_severidade` e `ineficiencia_score`. O usuário não precisa configurar nada para a retrocompat funcionar.
 
 Na próxima execução de `main.py`, o layout atualizado aparece no canal configurado em `[slack]`.
 
 ## Tabela de saída (`lwsa.locapredict_insights`)
 
-Colunas gravadas:
+Colunas gravadas (o INSERT segue exatamente esta ordem — `[row[:8]]`):
 
 - `cluster_nome`
 - `quantidade_inc_afetados`
 - `produto_afetado`
 - `score_severidade`
 - `ineficiencia_score`
-- `sugestao_acao`
+- `sugestao_acao` — texto curto da `PrescricaoPRB.acao` (motor prescritivo)
 - `incidentes_relacionados`
+- `servidores_afetados`
+
+O objeto `PrescricaoPRB` completo (urgência, decisão de PRB, evidências, descrição rica, score composto) **não é persistido** — viaja em memória só até o alerta Slack. Se no futuro for útil persistir esses campos para análise histórica, basta um `ALTER TABLE ADD COLUMN IF NOT EXISTS` — nada quebra na versão atual.
 
 ## Guardião da Saúde do Cliente (recorrência / risco de churn)
 
@@ -376,10 +443,11 @@ Para diagnosticar sempre: abra `logs/locapredict.log` logo após a execução pr
 ## Arquivos
 
 - `main.py` — LocaPredict: pipeline NLP, scores, `locapredict_insights`, Slack opcional.
+- `prescricao_prb.py` — motor prescritivo: dataclass `PrescricaoPRB` e função `prescrever_acao_prb()` com 5 regras em cascata, evidências automáticas e `score_composto`.
 - `certificados_https.py` — `configurar_certificados_https()` (CA bundle corporativo, compartilhado).
 - `locapredict_db.py` — `load_db_config`, `get_table_columns`.
 - `locapredict_log.py` — log em arquivo rotativo (`setup_locapredict_logging`, `get_logger`).
-- `alertas_slack.py` — `[slack]`, alertas do LocaPredict e do Guardião (`WebClient`).
+- `alertas_slack.py` — `[slack]`, alertas do LocaPredict (formato rico com urgência/decisão/evidências) e do Guardião (`WebClient`); import opcional de `PrescricaoPRB` para retrocompat.
 - `guardiao_saude_cliente.py` — aplicação **Guardião da Saúde do Cliente**: recorrência por `login_cliente` + produto; ponto de entrada `executar_guardiao_saude_cliente()`; configuração na seção `[customer_health_guardian]` do INI.
 - `queries.sql` — SQL de referência e DDLs.
 - `requirements.txt` — dependências Python.
