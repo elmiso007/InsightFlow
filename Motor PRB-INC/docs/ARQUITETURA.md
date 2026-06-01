@@ -1,0 +1,1077 @@
+# Arquitetura — Motor Prescritivo PRB
+
+> **Audiência:** desenvolvedores que vão contribuir com o motor, code reviewers,
+> mantenedores futuros. Para quem **usa** o motor, veja [MANUAL.md](MANUAL.md).
+> Para as **regras de negócio** (matriz P1-P5), veja [REGRAS.md](REGRAS.md).
+> Para termos técnicos, veja [../GLOSSARIO.md](../GLOSSARIO.md).
+
+Este documento explica **como o motor foi construído e por quê**. Decisões de
+design, padrões adotados, alternativas descartadas. Não é manual de uso — é
+documentação técnica para quem precisa **entender o motor por dentro**.
+
+---
+
+## Sumário
+
+1. [Visão de uma página](#1-visão-de-uma-página)
+2. [Arquitetura em camadas](#2-arquitetura-em-camadas)
+3. [Fluxo de dados end-to-end](#3-fluxo-de-dados-end-to-end)
+4. [Os 12 módulos abertos](#4-os-12-módulos-abertos)
+5. [Os 7 princípios transversais](#5-os-7-princípios-transversais)
+6. [Decisões importantes (e por quê)](#6-decisões-importantes-e-por-quê)
+7. [Pontos de extensão](#7-pontos-de-extensão)
+8. [Limitações conscientes do MVP](#8-limitações-conscientes-do-mvp)
+9. [Como contribuir sem quebrar](#9-como-contribuir-sem-quebrar)
+
+---
+
+## 1. Visão de uma página
+
+### O que o motor faz
+
+O motor opera em **dois prismas independentes**, cada um com sua cadência:
+
+**Prisma preventivo (`main.py`)** — a cada 15 minutos:
+
+1. **Lê do PostgreSQL:** todas as INCs abertas nas últimas 24h, todos os PRBs
+   ativos, todos os chamados de suporte das últimas 24h (Locaweb + Kinghost).
+2. **Agrupa INCs semanticamente similares** (TF-IDF + DBSCAN do scikit-learn)
+   em "clusters" — problemas que falam do mesmo assunto.
+3. **Calcula scores** de criticidade e ineficiência para cada cluster.
+4. **Aplica a matriz oficial P1-P5** para classificar cada cluster.
+5. **Sugere ações:** abrir PRB novo, repriorizar PRB existente, monitorar ou
+   nada.
+6. **Avalia "Saúde do Cliente":** clientes com ≥3 INCs em 6 meses recebem
+   alerta de recorrência alta + linha do tempo consolidada (ServiceNow +
+   chamados).
+7. **Emite 3 saídas:** JSON em arquivo, persistência em Postgres, alertas
+   críticos no Slack.
+
+**Prisma retrospectivo (`validar_entregas.py`)** — a cada 6 horas (Radar CT):
+
+1. **Lê PRBs encerrados nos últimos 14 dias** (status `Encerrado Automaticamente`
+   ou `Concluído`).
+2. **Match de reincidência:** conta INCs no mesmo `(produto, servidor)` após
+   `data_encerrado`. Veredicto: REINCIDENCIA / ENTREGA_VALIDADA / INCONCLUSIVO.
+3. **Volumetria pré-resolução:** quantas INCs o PRB consolidou nos 60d
+   anteriores (`qtd_incs_pre`, `clientes_unicos_pre`, `categorias_pre`).
+4. **Δ de chamados pré vs pós:** janela simétrica 14d — heurística por
+   palavra-chave do produto. KPI do Change Team ("contatos zeraram?").
+5. **Emite alerta Slack ⚠️🔁** apenas para `REINCIDENCIA`. Persiste em
+   `lwsa.motor_validacao_entrega`.
+
+### Para quem o motor existe
+
+- **Time de plantão:** recebe alertas Slack quando há crise (P1) ou padrão
+  preocupante. **Quem age.**
+- **Coordenadores:** acompanham dashboard com clusters, prescrições, saúde de
+  clientes. **Quem prioriza e calibra.**
+- **PO/Liderança:** análise de tendências via SQL no banco. **Quem decide
+  rumos.**
+
+### Por que existe
+
+Sem o motor, plantão dependia de **percepção humana** para notar que 5 INCs
+isoladas eram, na verdade, o mesmo problema crescendo. O motor faz essa
+detecção sistematicamente e **antecipa** crises antes que escalem.
+
+Requisito original levantado em reunião com Jéssica, Victor e Bruno.
+
+---
+
+## 2. Arquitetura em camadas
+
+O motor é organizado em **4 níveis** de dependência. Imports só vão "para baixo"
+— nunca para cima. Garantia: **sem ciclos de import**.
+
+```
+┌─────────────────────────────────────────────────┐
+│  Nível 4 — ORQUESTRAÇÃO                         │
+│  main.py, scheduler.py                          │
+│  (entry points, loop, signal handling)          │
+└────────────────────┬────────────────────────────┘
+                     │ depende de
+┌────────────────────┴────────────────────────────┐
+│  Nível 3 — DOMÍNIO                              │
+│  extractor.py, analyzer.py, rules_engine.py     │
+│  customer_monitor.py, notifier.py, notifier_db  │
+└────────────────────┬────────────────────────────┘
+                     │ depende de
+┌────────────────────┴────────────────────────────┐
+│  Nível 2 — UTILITÁRIOS                          │
+│  time_utils.py, db.py                           │
+└────────────────────┬────────────────────────────┘
+                     │ depende de
+┌────────────────────┴────────────────────────────┐
+│  Nível 1 — FUNDAÇÃO                             │
+│  config.py, models.py                           │
+└─────────────────────────────────────────────────┘
+```
+
+### Por que essa organização
+
+**Nível 1 (Fundação)** não importa nada interno — só stdlib. Isso permite:
+- Testar `config.py` ou `models.py` sem instalar nada.
+- Garantir que mudança aqui não cascateia (poucos têm acesso, mas tudo depende).
+
+**Nível 2 (Utilitários)** importam só de Nível 1. São funções/classes
+reutilizáveis sem domínio.
+
+**Nível 3 (Domínio)** é onde mora **a lógica de negócio**. Cada módulo tem
+responsabilidade única e pode importar de Níveis 1 e 2.
+
+**Nível 4 (Orquestração)** importa quase tudo — papel é juntar as peças.
+
+### Verificação concreta
+
+Você pode verificar a hierarquia com:
+
+```bash
+grep -h "^import\|^from" config.py models.py time_utils.py db.py | grep -v stdlib
+```
+
+Resultado esperado: apenas `import config` (do `time_utils.py`). Nenhum import
+de Nível 3 ou 4 em Níveis 1-2.
+
+---
+
+## 3. Fluxo de dados end-to-end
+
+Trajeto completo dos dados em um ciclo de 15 min, com volumes reais do mock.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  FASE 1: EXTRAÇÃO                                                     │
+└──────────────────────────────────────────────────────────────────────┘
+
+  Postgres (lwsa.service_now_incidentes)
+        ↓ SELECT WHERE data_abertura >= NOW() - 24h
+        ↓
+  91 rows (text cru, BRT naive)
+        ↓
+  extractor._row_para_incidente() × 91
+        ↓ (parsers: data BRT→UTC, prioridade "3"→"P3", etc.)
+        ↓
+  91 objetos Incidente (UTC tz-aware)
+        ↓
+  + 80 InteracaoChamado (dynamics.chamados + kinghost.chamados)
+  + 2 PRBExistente (lwsa.service_now_problemas, status ativos)
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  FASE 2: ANÁLISE                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+  91 Incidentes
+        ↓
+  analyzer._preparar_textos [normaliza, lowercase, remove acentos via NFKD]
+        ↓
+  91 strings limpas
+        ↓
+  analyzer._clusterizar [TF-IDF + DBSCAN cosine, eps=0.55]
+        ↓
+  91 labels
+        ↓
+  Agrupa por label, singletons viram clusters próprios
+        ↓
+  5 clusters formados
+        ↓
+  Para cada cluster:
+    ├─ _score_criticidade (4 componentes ponderados: 0.35+0.30+0.25+0.10)
+    ├─ _score_ineficiencia (0.6 volume + 0.4 velocidade)
+    ├─ detectar_cis_recorrentes (CIs que se repetem em 15 dias)
+    └─ contar chamados Locaweb/Kinghost relacionados (por produto)
+        ↓
+  5 objetos Cluster (ordenados por criticidade DESC)
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  FASE 3: REGRAS                                                       │
+└──────────────────────────────────────────────────────────────────────┘
+
+  5 Cluster + 2 PRBExistente
+        ↓
+  rules_engine.prescrever_lote [defesa por cluster]
+        ↓ Para cada cluster:
+        ↓
+  ├─ _avaliar_cascata (P1 → P2 → P3 → P4 → P5)
+  │  (primeira regra que casar vence)
+  │
+  ├─ _gatilho_proativo_p3 (≥5 INCs P3 idênticas → promove para P2)
+  │
+  ├─ _sugerir_repriorizacao (match cluster ↔ PRB por produto+servidor)
+  │
+  └─ _determinar_acao (ABRIR_PRB | REPRIORIZAR_PRB | MONITORAR | NENHUMA)
+        ↓
+  5 objetos PrescricaoPRB (com justificativas auditáveis em texto livre)
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  FASE 4: SAÚDE DO CLIENTE                                             │
+└──────────────────────────────────────────────────────────────────────┘
+
+  91 Incidentes (da janela atual)
+        ↓
+  _clientes_com_volume [filtro >= 3 INCs em 24h]
+        ↓
+  13 candidatos (logins)
+        ↓
+  Para cada candidato:
+    ├─ fonte_incidentes.listar_incidentes_cliente(login, 6m) [SQL]
+    │     → ~10-30 INCs históricas
+    ├─ fonte_chamados.listar_chamados_cliente(login, 6m)
+    │     ├─ _descobrir_organizacao_via_inc(login)
+    │     ├─ Locaweb → dynamics.chamados | Kinghost → kinghost.chamados
+    │     └─ → ~5-20 chamados
+    ├─ _calcular_severidade_media [P1=1.0 ... P5=0.0]
+    ├─ _tem_inc_recente(7 dias) [anti alert-fatigue]
+    └─ _montar_linha_do_tempo [INCs + chamados ordenados cronologicamente]
+        ↓
+  13 objetos SaudeCliente (ordenados por volume DESC)
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  AGREGAÇÃO                                                            │
+└──────────────────────────────────────────────────────────────────────┘
+
+  ExecucaoMotor consolidado:
+    ├─ timestamp_utc
+    ├─ clusters: 5
+    ├─ prescricoes: 5
+    ├─ saude_clientes: 13
+    ├─ total_incs_lidas: 91
+    ├─ total_chamados: 80
+    ├─ duracao_ciclo_ms (medido até FASE 5b)
+    └─ erros: []
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  FASE 5: SAÍDAS (3 paralelas, defesa independente)                    │
+└──────────────────────────────────────────────────────────────────────┘
+
+  5a. JSON   (sempre primeiro — fallback robusto)
+      ↓ notifier.gravar_payload_dashboard(execucao)
+      ↓
+      ./output/dashboard_state.json
+
+  5b. POSTGRES (lwsa.motor_*)
+      ↓ notifier_db.persistir_execucao(execucao)
+      ↓ Transação atômica:
+      ↓   INSERT motor_execucao → execucao_id
+      ↓   INSERT motor_cluster × 5
+      ↓   INSERT motor_prescricao × 5
+      ↓   INSERT motor_saude_cliente × 13
+      ↓
+      24 rows persistidas
+
+  5c. SLACK (apenas alertas críticos)
+      ↓ notifier.disparar_alertas_criticos(execucao)
+      ↓ Filtra: prescricoes.urgencia=CRITICA + saude.alerta_recorrencia_alta
+      ↓ Rate limit 1s entre envios (se webhook configurado)
+      ↓
+      N mensagens enviadas
+```
+
+### Volumes consolidados (mock)
+
+- **Entrada:** ~173 rows do Postgres (91 INCs + 80 chamados + 2 PRBs).
+- **Memória durante ciclo:** ~196 objetos Python.
+- **Saída:** 1 arquivo JSON (~30 KB) + 24 rows Postgres + ~13-15 mensagens Slack.
+- **Tempo total:** ~5-10s.
+
+### A ordem das saídas é deliberada
+
+```
+5a. JSON      → rápido (~10ms), sem rede, fallback
+5b. Postgres  → médio (50-100ms), rede local
+5c. Slack     → lento (~5s com rate limit), rede externa
+```
+
+**Princípio:** ordem por **probabilidade de sucesso decrescente**. Se uma cair,
+as anteriores já gravaram tudo.
+
+---
+
+## 4. Os 13 módulos abertos
+
+Resumo do papel de cada um. Para detalhes técnicos profundos, consulte o código
+(citações `arquivo.py:linhas` para referência).
+
+### Nível 1 — Fundação
+
+#### `config.py` (~200 linhas)
+
+**Papel:** centralizar **todas as decisões de produto** do motor. Thresholds,
+janelas temporais, termos heurísticos, credenciais (via env vars), registry de
+chamados por organização, mapeamento prioridade→peso.
+
+**Princípio:** zero número mágico no código. Tudo que afeta decisão mora aqui.
+
+**Como evoluir:** ajustar threshold = mudar 1 linha. Adicionar organização =
+adicionar entrada no dict `TABELAS_CHAMADOS_POR_ORGANIZACAO`.
+
+#### `models.py` (~165 linhas)
+
+**Papel:** 6 dataclasses tipados que formam o domínio do motor:
+
+- **Dados primários:** `Incidente`, `PRBExistente`, `InteracaoChamado`.
+- **Resultados:** `Cluster`, `PrescricaoPRB`, `SaudeCliente`.
+- **Agregador raiz:** `ExecucaoMotor`.
+
+**Princípio:** dataclass para conceitos de domínio, não para detalhes técnicos
+internos.
+
+**Hierarquia:** rasa (3 níveis: dados → resultados → agregador). Sem classes
+intermediárias técnicas (Token, Vetor, etc. — esses são detalhes do `analyzer`).
+
+### Nível 2 — Utilitários
+
+#### `time_utils.py` (~60 linhas)
+
+**Papel:** padronização UTC ↔ BRT. Funções:
+- `agora_utc()` — substituto de `datetime.now()` (sempre UTC tz-aware).
+- `naive_banco_para_utc(dt)` — converte texto BRT do banco para UTC interno.
+- `utc_para_string_banco(dt)` — caminho inverso, para queries SQL.
+
+**Princípio:** **internamente UTC, externamente BRT**. Sem ambiguidade de fuso
+em comparações ou ordenações.
+
+#### `db.py` (~110 linhas)
+
+**Papel:** acesso ao PostgreSQL via `psycopg2`. Lê `config.ini` compartilhado
+com o projeto irmão locapredict.
+
+- `resolve_config_path()` — busca `config.ini` em paths conhecidos.
+- `load_db_config()` — carrega seção `[database]`.
+- `conectar()` — context manager que garante fechamento.
+
+**Lazy import de psycopg2:** módulo importável mesmo sem a lib (testes, CI).
+
+### Nível 3 — Domínio
+
+#### `extractor.py` (~720 linhas, o maior módulo)
+
+**Papel:** trazer dados de fora para Python.
+
+**ABCs (contratos):**
+- `FonteIncidentes` — `listar_incidentes_recentes/cliente`, `listar_prbs_abertos`.
+- `FonteChamados` — `listar_chamados_periodo/cliente`.
+
+**Implementações concretas:**
+- `ServiceNowExtractor` — SQL real em `lwsa.service_now_*`.
+- `ChamadosExtractor` — SQL real iterando registry declarativo.
+- `ServiceNowExtractorMock`, `ChamadosExtractorMock` — dados sintéticos.
+
+**Parsers defensivos** (em `extractor.py:57-104`):
+- `_parse_datetime` — text → UTC tz-aware (fallback None se inválido).
+- `_parse_prioridade` — "3" → "P3" (default "P4" se inválido).
+- `_contar_atualizacoes` — regex de timestamps no texto livre + fallback.
+- `_detectar_contorno` — heurística textual.
+
+**Factory pattern:** `criar_fonte_incidentes()` / `criar_fonte_chamados()`
+decidem mock vs. real via `USAR_MOCKS`.
+
+**Registry declarativo:** `_montar_sql_chamados(spec, where)` constrói SQL
+dinamicamente para qualquer organização, lendo de
+`config.TABELAS_CHAMADOS_POR_ORGANIZACAO`.
+
+#### `analyzer.py` (~310 linhas)
+
+**Papel:** clusterização semântica + scores. **Único módulo que usa ML.**
+
+**Pré-processamento** (`_normalizar`):
+- Remove acentos via NFKD.
+- Lower-case.
+- Remove pontuação não-alfanumérica.
+- Colapsa espaços.
+
+**Stop-words customizadas PT-BR** (60 palavras, sem acentos para casar com texto
+normalizado).
+
+**Clusterização:**
+- `TfidfVectorizer(max_features=5000, ngram_range=(1,2))` — TF-IDF com unigrams
+  e bigrams.
+- `DBSCAN(eps=0.55, min_samples=2, metric='cosine')` — descobre número de
+  clusters automaticamente, identifica outliers.
+- **Fallback Jaccard** se sklearn não disponível.
+
+**Scores:**
+- **Criticidade** (0-1): combinação ponderada de volume (0.35) + indisponibilidade
+  (0.30) + sem-contorno (0.25) + recorrência CI (0.10).
+- **Ineficiência** (0-1): composição volume de updates (0.6) + velocidade em
+  updates/hora (0.4).
+
+**Detecção de CI recorrente:** mapa `Counter` de servidores em janela móvel de
+15 dias. Requisito do Victor.
+
+#### `rules_engine.py` (~415 linhas, o "coração regulatório")
+
+**Papel:** aplicar a matriz oficial P1-P5. **Determinístico — sem ML.**
+
+**Cascata** (`_avaliar_cascata`): avalia P1 → P2 → P3 → P4 → P5 em ordem.
+Primeira que casar vence. Cada nível tem função própria (`_avaliar_p1` a
+`_avaliar_p4`).
+
+**Helpers compartilhados:**
+- `_qualquer_termo_no_cluster(termos)` — usa regex `\b...\b` (word boundary)
+  para evitar falsos positivos com siglas curtas. Esse helper foi corrigido
+  durante o desenvolvimento por causa de um bug onde "ra " (Reclame Aqui)
+  casava em "fora". Hoje protege todos os termos curtos.
+- `_qtd_sem_contorno`, `_qtd_com_contorno` — contagens.
+- `_ola_estourado_implicito` — heurística MVP (banco não tem `breach_time` do
+  SNow ainda).
+
+**Gatilho proativo** (`_gatilho_proativo_p3`): ≥5 INCs P3 no mesmo cluster →
+adiciona justificativa textual + **promove P3 para P2** (se a cascata
+classificou como P3). Antecipa escalada.
+
+**Sugestão de repriorização:**
+- `_buscar_prb_correspondente` — match por (produto + servidor).
+- `_sugerir_repriorizacao` — compara prioridade nova vs. atual via
+  `ORDEM_PRIORIDADE`. **Só sugere upgrade**, nunca downgrade (conservadorismo).
+
+**Determinação da ação final** (`_determinar_acao`): cascata interna que decide
+entre `ABRIR_PRB`, `REPRIORIZAR_PRB`, `MONITORAR`, `NENHUMA`.
+
+**Defesa em camadas:** `prescrever_lote` envolve `prescrever` com try/except
+por cluster. Falha em 1 cluster não derruba os outros.
+
+#### `customer_monitor.py` (~155 linhas, "Saúde do Cliente")
+
+**Papel:** avaliar clientes recorrentes (requisito Emerson/Bruno).
+
+**Estratégia em 2 fases:**
+1. **`_clientes_com_volume`** — filtra candidatos (≥3 INCs na janela atual de
+   24h). Reduz queries downstream em ~400x.
+2. **Para cada candidato:** query histórica de 6 meses (ServiceNow + chamados
+   via roteamento por organização).
+
+**Cálculos:**
+- `_calcular_severidade_media` — média ponderada de prioridades (P1=1.0,
+  P5=0.0).
+- `_tem_inc_recente` — INC nas últimas 7 dias (anti alert-fatigue).
+- `_montar_linha_do_tempo` — mescla INCs + chamados em ordem cronológica
+  decrescente.
+
+**Veredicto:** `alerta_recorrencia_alta = (qtd_incs >= 3) AND _tem_inc_recente(7)`.
+
+#### `validador_entrega.py` (~145 linhas) — prisma retrospectivo (V2 Radar CT)
+
+**Papel:** complemento ao `rules_engine` (preventivo) — olha PRBs **já
+entregues** pelo Change Team e verifica se o problema realmente foi resolvido.
+Fecha o loop de qualidade do fix. Requisito gerencial (2026-05-29).
+
+**Estratégia em 3 etapas por PRB:**
+1. **Match de reincidência** — `fonte_inc.listar_incidentes_por_produto_servidor`
+   busca INCs no mesmo CI após `data_encerrado`. Veredicto via `_classificar`:
+   - `REINCIDENCIA` se `qtd ≥ LIMIAR_INCS_REINCIDENCIA` (3).
+   - `ENTREGA_VALIDADA` se `qtd == 0` E `dias_pos ≥ MIN_DIAS_PARA_VALIDAR` (7).
+   - `INCONCLUSIVO` no resto.
+2. **Volumetria pré-resolução** — `fonte_inc.contar_incidentes_no_ci_periodo`
+   conta INCs nos 60d anteriores no mesmo `(produto, servidor)`. Devolve
+   `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre`. Mede o
+   tamanho do problema que o CT cobriu.
+3. **Δ de chamados pré vs pós** — `fonte_chamados.contar_chamados_por_palavra`
+   em janela simétrica de 14d. Heurística por palavra-chave
+   (`extrair_palavra_chave_produto`: "Locaweb - Email" → "Email") porque
+   produto do PRB ≠ taxonomia de chamados. KPI do gestor: "contatos zeraram?".
+
+**Defesa em camadas:** falha em um PRB (ex.: exceção na consulta de chamados)
+não derruba o ciclo — registra warning e segue com os demais.
+
+**Entry-point separado:** `validar_entregas.py` (≈165 linhas) — análogo ao
+`main.py` mas com cadência default 6h (validações não mudam de minuto em
+minuto). Compartilha persistência Postgres (mesma `motor_execucao`).
+
+#### `notifier.py` (~290 linhas)
+
+**Papel:** comunicação push (Slack) + dashboard JSON.
+
+**Slack:**
+- `formatar_alerta_slack(prescricao, cluster)` — texto markdown com emojis
+  combinados (urgência + ação: 🚨🆘 = crítico+abrir, ⚠️🔧 = alta+repriorizar).
+- `formatar_alerta_saude_cliente(saude)` — emoji `:thermometer:` para Saúde.
+- `formatar_alerta_reincidencia(validacao)` — emoji ⚠️🔁 para PRB com
+  reincidência detectada; inclui volumetria pré + Δ chamados (Radar CT V2).
+- `enviar_slack(texto)` — preferência: `slack_sdk.WebClient.chat_postMessage`
+  (Bot Token API, padrão locapredict). Fallback: HTTP POST webhook legado.
+- `disparar_alertas_criticos(execucao)` — orquestra, rate limit 1s se Slack
+  configurado. Inclui reincidências do ValidadorEntrega.
+
+**Dashboard JSON:**
+- `montar_payload_dashboard(execucao)` — JSON normalizado com separação
+  clusters/incidentes (evita duplicação).
+- `gravar_payload_dashboard(execucao)` — escreve `output/dashboard_state.json`
+  com UTF-8, indent 2.
+
+**Helper opcional:** `montar_dataframes_dashboard()` — DataFrames pandas para
+consumidores Python (Streamlit, Jupyter).
+
+#### `notifier_db.py` (~280 linhas)
+
+**Papel:** persistência Postgres em `lwsa.motor_*` (histórico com TTL 30 dias).
+
+- `persistir_execucao(execucao)` — transação atômica que INSERT em 5 tabelas.
+- `purgar_execucoes_antigas(dias=30)` — DELETE de execuções antigas.
+- Helpers privados: `_insert_execucao`, `_insert_clusters`,
+  `_insert_prescricoes`, `_insert_saude_clientes`, `_insert_validacoes_entrega`.
+
+**Tabelas persistidas:**
+- `motor_execucao` (cabeça do ciclo)
+- `motor_cluster` (1 linha por cluster)
+- `motor_prescricao` (1 linha por prescrição)
+- `motor_saude_cliente` (1 linha por avaliação de cliente)
+- `motor_validacao_entrega` (1 linha por PRB validado pelo prisma retrospectivo)
+
+**Defesa:** se Postgres falhar, motor continua (JSON e Slack tentam).
+
+**Configurável:** `PERSISTIR_NO_BANCO=true/false`, `CLEANUP_TTL_HABILITADO`
+(default false porque conta da Locaweb não tem DELETE — DBA cuida).
+
+### Nível 4 — Orquestração
+
+#### `scheduler.py` (~210 linhas)
+
+**Papel:** loop principal + signal handling.
+
+**Função core:** `executar_ciclo(fonte_inc, fonte_chamados)` — executa pipeline
+de 5 fases, com defesa em camadas. Retorna `ExecucaoMotor` sempre (mesmo em
+falha).
+
+**Loop:** `rodar_loop(intervalo_min=15)`:
+- Cria fontes uma vez no setup.
+- Registra signal handlers (SIGINT/SIGTERM).
+- Lazy import de `schedule` (com fallback `_rodar_loop_manual` se faltar).
+- Executa `_job()` **imediatamente** + agenda recorrente.
+- `while not _STOP_REQUESTED: schedule.run_pending(); time.sleep(1)`.
+
+**Signal handling:**
+- `_stop_handler(signum, frame)` seta `_STOP_REQUESTED=True`.
+- Encerramento gracioso após ciclo atual terminar.
+
+**Métrica:** `duracao_ciclo_ms` populada antes da persistência Postgres (não
+inclui Slack que é variável).
+
+#### `main.py` (~95 linhas, entry point preventivo)
+
+**Papel:** CLI + setup de logging do prisma preventivo.
+
+- `parse_args()` — `--once` (single run) ou `--interval N` (minutos).
+- `configurar_logging()` — handlers console (UTF-8 forçado) + arquivo
+  rotacionado por dia (`motor-prb-{data}.log`).
+- `main()` — chama `executar_ciclo()` (single) ou `rodar_loop()` (loop).
+
+**Agendado:** Windows Task Scheduler → cada 15 min (via `Motor-PRB.bat`).
+
+#### `validar_entregas.py` (~165 linhas, entry point retrospectivo)
+
+**Papel:** entry-point do ValidadorEntrega — separado do `main.py` por design.
+
+- `executar_validacao()` — cria `ExecucaoMotor`, popula
+  `validacoes_entrega` via `gerar_validacoes_entrega(fonte_inc, fonte_chamados)`,
+  persiste em Postgres + JSON, dispara Slack para reincidências.
+- `rodar_loop(intervalo_horas)` — loop simples (sem `schedule`, sem signal
+  handling complexo — task é leve).
+- `--once` / `--interval N` (horas; default 6).
+
+**Por que entry-point separado:**
+- Cadência diferente (15min vs 6h) — não faz sentido bundlear no mesmo loop.
+- Escopo distinto (INCs abertas hoje vs PRBs encerrados nos últimos 14d).
+- Logs separados (`validador-entrega-{data}.log`) para facilitar auditoria.
+
+**Agendado:** opcional — pode rodar via Task Scheduler (cada 6h) ou manual.
+
+---
+
+## 5. Os 7 princípios transversais
+
+Padrões que apareceram repetidamente ao longo do código. Aplicar consistentemente
+mantém o motor coeso.
+
+### Princípio 1 — Defesa em camadas (`Defense in Depth`)
+
+**Onde aparece:** try/except em 4 níveis:
+
+```
+scheduler.executar_ciclo
+├── try/except em cada fase            ← Camada 1
+├── _job (wrapper)                     ← Camada 2
+│   └── try/except envolvente          ← Camada 3
+└── prescrever_lote
+    └── try/except por cluster         ← Camada 4 (interna a rules_engine)
+```
+
+**Princípio:** **um único bug não derruba o motor**. Falhas contidas no menor
+escopo possível.
+
+**Trade-off:** mais código (~30% das linhas são tratamento de erro), mais difícil
+debugar **exatamente onde quebrou** sem ler logs. **Aceito** porque uptime é
+prioridade.
+
+**Quando NÃO aplicar:** código de lógica pura interna (`_avaliar_p1`, etc.). Lá,
+exceções **devem** propagar para defesa externa capturar.
+
+### Princípio 2 — Single Responsibility por módulo
+
+| Módulo | Responsabilidade única |
+|---|---|
+| `extractor.py` | Trazer dados de fora para Python |
+| `analyzer.py` | Clusterizar + calcular scores |
+| `rules_engine.py` | Aplicar matriz P1-P5 |
+| `customer_monitor.py` | Avaliar saúde de clientes |
+| `notifier.py` | Comunicação push (Slack, JSON) |
+| `notifier_db.py` | Persistência Postgres |
+| `scheduler.py` | Orquestrar |
+| `config.py` | Decisões de produto |
+| `db.py` | Conexão SQL |
+| `time_utils.py` | Conversão de fuso |
+| `models.py` | Estruturas de dados |
+
+**Princípio:** cada módulo faz **uma coisa** e faz bem. Não há "módulo que faz
+tudo".
+
+**Sinal de violação:** se você precisar tocar 5 arquivos para adicionar uma
+feature, há acoplamento errado. Adições típicas tocam 1-2 arquivos.
+
+### Princípio 3 — Configurabilidade externa
+
+**Toda decisão de produto vive em `config.py`.** Código nunca tem "número mágico":
+
+```python
+# ANTI-PADRÃO:
+if qtd >= 5:  # ← por que 5? Quem decidiu?
+    ...
+
+# PADRÃO:
+if qtd >= config.LIMIAR_P2_INCS_SEM_CONTORNO:  # ← rastreável
+    ...
+```
+
+**Vantagem:** mudanças de produto (ajuste de threshold, adição de organização)
+**não exigem código novo**.
+
+**Indicador:** se você precisa de PR para ajustar `5` → `7`, o motor está mal
+feito. Hoje: ajuste é env var ou 1 linha em config.
+
+### Princípio 4 — UTC interno, fronteiras locais
+
+```python
+# Interno (todo o motor):
+inicio = time_utils.agora_utc()  # UTC tz-aware
+
+# Fronteira SQL:
+corte_str = time_utils.utc_para_string_banco(corte_utc)  # → BRT naive
+
+# Fronteira JSON:
+"data": inc.abertura.isoformat()  # → "2026-05-26T17:30:00+00:00"
+
+# Exceção deliberada:
+arquivo_log = f"motor-prb-{datetime.now().strftime('%Y-%m-%d')}.log"  # ← BRT local
+```
+
+**Princípio:** **internamente UTC**, **converte na fronteira**. Comparações de
+data sempre corretas independente do servidor.
+
+**Vimos bug real causado por isso** durante o desenvolvimento (Postgres BRT vs
+Python naive). Lição aplicada de forma consistente.
+
+### Princípio 5 — Justificativa auditável em decisões
+
+**Toda decisão automatizada explica-se em texto livre:**
+
+```python
+# rules_engine acumula justificativas:
+justificativas: List[str] = []
+if qtd_sem >= 5:
+    justificativas.append(f"{qtd_sem} INCs sem contorno (limiar P2: 5).")
+
+# notifier renderiza no Slack como bullets:
+"*Justificativas:*\n    • ...\n    • ...\n"
+```
+
+**Princípio:** motor não é caixa-preta. Coordenador olhando alerta entende
+**por que** o motor decidiu, não só **o que** decidiu.
+
+**Vimos o valor disso quando o bug do "ra " foi descoberto** — justificativa
+explícita "*Reclame Aqui sem solução de contorno...*" em cluster que NÃO
+mencionava RA acendeu alerta vermelho.
+
+### Princípio 6 — `ExecucaoMotor` como agregador único
+
+**Um objeto único** carrega todo o estado de um ciclo. Não há "passar 5 listas
+separadas entre funções":
+
+```python
+# scheduler.executar_ciclo:
+execucao = ExecucaoMotor(timestamp=...)
+execucao.clusters = analyzer.analisar(...)
+execucao.prescricoes = rules_engine.prescrever_lote(...)
+execucao.saude_clientes = customer_monitor.gerar_saude_clientes(...)
+notifier.gravar_payload_dashboard(execucao)
+notifier_db.persistir_execucao(execucao)
+notifier.disparar_alertas_criticos(execucao)
+```
+
+**Princípio:** clareza de API. Função `notifier.X(execucao)` sempre recebe
+`execucao`. Sem ambiguidade.
+
+### Princípio 7 — Degradação suave (`graceful degradation`)
+
+**Funcionalidade reduzida é melhor que funcionalidade ausente.**
+
+```python
+# extractor: fallback se schedule/psycopg2 faltar
+try:
+    import schedule
+except ImportError:
+    return _rodar_loop_manual(...)
+
+# scheduler: hierarquia de criticidade entre fontes
+try:
+    incidentes = ...
+except:
+    return execucao  # aborta (crítico)
+try:
+    chamados = ...
+except:
+    chamados = []  # segue sem (não-crítico)
+
+# notifier: webhook sem config
+if not cfg.configurado:
+    log.info("[Slack desabilitado/sem webhook] ...")
+    return False
+```
+
+**Princípio:** motor **sempre funciona**, mesmo em ambiente quebrado.
+
+**Indicador:** operador percebe degradação **via warnings**, não via "motor não
+fez nada".
+
+---
+
+## 6. Decisões importantes (e por quê)
+
+Decisões arquiteturais que vale registrar com a justificativa de cada uma.
+
+### Por que `schedule` em vez de APScheduler/Celery/asyncio
+
+| Lib | Por que descartada |
+|---|---|
+| **APScheduler** | Overkill. ~20 deps transitivas. Persistência que não precisamos. |
+| **Celery** | Distributed task queue. Requer broker (Redis/RabbitMQ). Complexidade desproporcional. |
+| **asyncio** | Motor é síncrono. Trocar quebraria psycopg2 (não-async). |
+| **cron do sistema** | Adicional ao motor. Mais um lugar para manter. |
+| **`schedule`** ✅ | Zero deps. Sintaxe declarativa. Síncrono. Suficiente. |
+
+**Princípio:** simplicidade > flexibilidade quando flexibilidade não é
+exigida.
+
+### Por que TF-IDF + DBSCAN em vez de sentence-transformers
+
+Comparação com o projeto irmão (locapredict) que usa sentence-transformers:
+
+| Aspecto | TF-IDF + DBSCAN (motor) | sentence-transformers (locapredict) |
+|---|---|---|
+| Tamanho do modelo | 0 MB (lib) | ~500 MB (modelo) |
+| Inicialização | Instantânea | ~5s |
+| Qualidade semântica | Boa para textos técnicos curtos | Excelente (entende sinônimos) |
+| Dependências | `scikit-learn` | `sentence-transformers`, `torch` |
+
+**Motor escolheu TF-IDF** porque INCs são textos curtos e técnicos com vocabulário
+consistente. Investimento em embeddings profundos não traz retorno proporcional
+ao custo.
+
+**Locapredict escolheu sentence-transformers** porque análise é semanal (não
+exige startup rápido) e busca padrões mais sutis.
+
+### Por que stateless (não persiste estado entre ciclos)
+
+**Estado entre ciclos resolveria:**
+- Detecção de "escalada gradual" (4 P3 ontem → 5 hoje).
+- Anti alert-fatigue para PRBs (não repetir mesma mensagem).
+- Tendência por cliente.
+
+**Mas exigiria:**
+- Persistência adicional (já temos no Postgres com histórico, mas exige queries
+  comparativas).
+- Lógica de "primeira vez vs. continuação".
+- Testes mais complexos.
+
+**Decisão MVP:** começar stateless. **Análise temporal** se faz via SQL no
+histórico persistido (subtópico de evolução).
+
+**Workaround para alert-fatigue:** critério de recência (`_tem_inc_recente(7
+dias)`) para Saúde do Cliente. Para PRBs, ainda não temos solução — limitação
+documentada.
+
+### Por que Postgres `json` em vez de `jsonb`
+
+**Versão do Postgres da Locaweb:** 9.2 ou 9.3. **`jsonb` só existe em 9.4+.**
+
+Decisão: usar `json` (existe desde 9.2) para compatibilidade.
+
+**Impacto operacional:** zero. Motor apenas serializa Python → JSON. Sem queries
+internas com operadores específicos de `jsonb`.
+
+**Migração futura:** quando infra atualizar para 9.4+, ALTER TABLE para `jsonb`
+em 6 colunas + trocar `::json` por `::jsonb` em 5 lugares no `notifier_db.py`.
+Documentado no rodapé de `sql/motor_tables.sql`.
+
+### Por que motor lê do data warehouse (não da API do SNow)
+
+**Alternativas consideradas:**
+
+| Fonte | Por que descartada/escolhida |
+|---|---|
+| **ServiceNow REST API** | Rate limit. Autenticação OAuth complexa. Latência variável. Acoplamento direto. |
+| **Webhook do SNow** | Push em vez de pull. Mais complexo. Requer endpoint HTTP no motor. |
+| **Data warehouse Postgres** ✅ | ETL já existe (locapredict usa). Latência previsível. Junção com outras tabelas. Backups inclusos. |
+
+**Princípio:** **lazy data** — usar o que já existe antes de criar nova
+integração.
+
+### Por que registry declarativo para chamados (Abordagem 2)
+
+Considerei 3 abordagens para suportar Locaweb + Kinghost:
+
+1. **If/else hardcoded em cada query.**
+2. **Strategy pattern com classes Estratégia*.**
+3. **Registry declarativo** (`dict` rico com colunas/joins por organização). ✅
+
+**Abordagem 2 escolhida** porque:
+- Adicionar organização nova = **editar dict**, zero código novo.
+- Diferenças entre orgs ficam explícitas num único lugar.
+- Validação de schema no startup.
+- Strategy pattern seria boilerplate para 2 orgs.
+
+**Trade-off:** construção dinâmica de SQL exige cuidado com SQL injection.
+Mitigação: schema/tabela/colunas SÓ vêm do config (whitelist), valores via
+`%s` (psycopg2 escapa).
+
+### Por que JSON em paralelo a Postgres
+
+Quando migramos de "JSON only" para Postgres, optamos por **manter JSON em
+paralelo** (Opção 1 — histórico Postgres com TTL + JSON sempre). Razões:
+
+1. **Custo zero:** código JSON já existe e funciona.
+2. **Rede de segurança:** se Postgres cair, JSON ainda preserva o estado atual.
+3. **Front-end simples:** scripts ad-hoc, Streamlit, HTML estático podem ler
+   JSON sem configurar SQL.
+4. **Debug humano:** abrir JSON num editor é mais rápido que conectar DBeaver.
+
+**Quando deprecar JSON:** após validação de que ninguém o usa. Hoje, mantém-se.
+
+### Por que defesa em camadas é redundante (e por quê isso é bom)
+
+**Exemplo de redundância:**
+
+- `prescrever_lote` tem try/except por cluster (camada interna).
+- `scheduler.executar_ciclo` tem try/except em volta de `prescrever_lote`
+  (camada externa).
+
+A camada externa "nunca deveria ser acionada" porque a interna já captura. Por
+que mantemos?
+
+**Defense in depth:** se houver bug **em `prescrever_lote` em si** (não num
+cluster específico), camada externa salva o motor. Custo: 4 linhas extras.
+Benefício: catastrophe avoidance.
+
+**Princípio:** redundância defensiva em sistemas críticos paga. Em código de
+algoritmo puro, não vale.
+
+---
+
+## 7. Pontos de extensão
+
+Onde o motor está **preparado para crescer** sem refactor.
+
+### Configurações ajustáveis sem código
+
+| O que ajustar | Onde |
+|---|---|
+| Threshold de qualquer regra P1-P5 | `config.LIMIAR_*` |
+| Pesos do score de criticidade | `config.PESO_*` |
+| Pesos do score de ineficiência | `config.PESO_INEFICIENCIA_*` |
+| Pesos de severidade por prioridade | `config.PESO_PRIORIDADE_SEVERIDADE` |
+| Janelas temporais | `config.JANELA_*` |
+| Termos heurísticos (Reclame Aqui, contratação, etc.) | `config.TERMOS_*` |
+| Organizações de chamados | `config.TABELAS_CHAMADOS_POR_ORGANIZACAO` |
+| Status PRB ativos | `config.STATUS_PRB_ATIVOS` |
+| TTL do banco | `config.JANELA_TTL_BANCO_DIAS` + env `CLEANUP_TTL_HABILITADO` |
+| Timezone do banco | `config.TIMEZONE_BANCO` |
+
+### Pontos com ABCs (substituibilidade)
+
+| ABC | Para substituir | Como |
+|---|---|---|
+| `FonteIncidentes` | ServiceNow por Jira/outro | Nova classe + factory |
+| `FonteChamados` | Adicionar nova org | Editar registry + (opcional) implementar lógica específica |
+
+### Pontos extensíveis sem ABCs
+
+| Extensão | Onde |
+|---|---|
+| Nova ação prescrita (além de ABRIR/REPRIORIZAR/MONITORAR/NENHUMA) | `_determinar_acao` em `rules_engine.py` |
+| Nova saída (e-mail, Teams, webhook) | Novo módulo `notifier_X.py` + chamada no scheduler |
+| Novo nível de prioridade (P0) | `config.MAPA_URGENCIA_PRIORIDADE` + nova função `_avaliar_p0` + emoji |
+| Novo cenário no mock | Adicionar entrada em `_GeradorMock.CENARIOS` |
+| Novo campo em Incidente/PRB | `models.py` + parser no `extractor.py` |
+
+### Exemplo concreto — adicionar organização "Hostgator"
+
+```python
+# config.py — UMA mudança
+TABELAS_CHAMADOS_POR_ORGANIZACAO = {
+    "Locaweb": {...},
+    "Kinghost": {...},
+    "Hostgator": {                        # ← NOVA
+        "schema": "hostgator",
+        "tabela": "chamados",
+        "alias": None,
+        "join": None,
+        "colunas": {
+            "chamado_id": "idchamado",
+            "login_cliente": "logincliente",
+            "data": "datacriacao",
+            "assunto": "assunto",
+            "origem": "origem",
+            "produto": "fila",
+            "qtd_interacoes_cliente": "qtd_interacoes",
+        },
+    },
+}
+```
+
+**Zero código novo.** Restart motor → próximo ciclo já consulta Hostgator.
+
+### Exemplo concreto — adicionar saída por e-mail
+
+```python
+# notifier_email.py (NOVO)
+def enviar_resumo_diario(execucao: ExecucaoMotor) -> bool:
+    """Envia resumo via SMTP."""
+    import smtplib
+    ...
+
+# scheduler.py — adicionar 5d
+try:
+    notifier_email.enviar_resumo_diario(execucao)
+except Exception as exc:
+    log.exception("Falha ao enviar e-mail: %s", exc)
+    execucao.erros.append(f"email: {exc}")
+```
+
+~50 linhas de código novo + 6 linhas no scheduler. Mesma estrutura defensiva
+das outras saídas.
+
+---
+
+## 8. Limitações conscientes do MVP
+
+Itens **deliberadamente fora do MVP**. Cada um com mitigação documentada e
+caminho para o futuro. Detalhes em [../GLOSSARIO.md](../GLOSSARIO.md) seção
+"Limitações reais".
+
+### Resumo executivo
+
+| Categoria | Status | Mitigação atual |
+|---|---|---|
+| Motor stateless | Aceito | Persistência histórica em Postgres permite análise temporal via SQL |
+| Repetição de alertas Slack PRB | Aceito | Slack pode silenciar similares manualmente |
+| Sem retry/backoff | Aceito | Próximo ciclo (15 min) tenta de novo |
+| Sem health check HTTP | Aceito | Monitorar timestamp do JSON ou MAX(timestamp_utc) no Postgres |
+| Limiar de Saúde único por porte | Aceito | Pendente dado de "porte do cliente" no banco |
+| Sem ML aprendendo com feedback | Decidido | Regras determinísticas auditáveis vencem ML opaco no MVP |
+| Sem integração bidirecional com SNow | Decidido | Motor sugere, humano decide |
+| Sem microservices | Decidido | Monolito modular adequado ao tamanho |
+
+### Limitações ↔ Riscos operacionais
+
+| Limitação | Risco | Probabilidade |
+|---|---|---|
+| Repetição Slack PRB | Alert fatigue → time ignora canal | **Alta** em produção 24/7 |
+| Sem retry | Falha transitória = ciclo perdido | Baixa (próximo ciclo tenta) |
+| Sem health check | Motor pode estar morto sem alguém perceber | Média |
+| Cleanup TTL desabilitado | Banco cresce indefinidamente | Baixa (~800k rows em 1 ano, OK) |
+| Limiar único por porte | Falsos positivos para clientes enterprise | Média |
+
+### Quando revisitar
+
+**Revisitar limitações em 2 marcos:**
+1. **Após 3 meses em produção:** com dados reais, validar se as mitigações
+   manuais (silenciar Slack, DBA cuida do cleanup) são sustentáveis.
+2. **Após 1 ano:** considerar evoluções que dependem de feedback de uso real
+   (limiar por porte, ML, integração bidirecional).
+
+---
+
+## 9. Como contribuir sem quebrar
+
+Diretrizes para devs que vão evoluir o motor.
+
+### Antes de mexer
+
+1. **Leia este documento + GLOSSARIO.md.** Entenda os 7 princípios.
+2. **Rode `python -m pytest tests/`.** Confirme que tudo passa antes da
+   mudança. Garante baseline.
+3. **Rode `python main.py --once` com `USAR_MOCKS=true`.** Veja saída atual.
+
+### Durante a mudança
+
+1. **Identifique o nível do módulo que vai tocar** (1-4).
+2. **Não importe para cima** (config.py não pode importar extractor.py).
+3. **Adicione testes** para o que você mudou (`tests/test_*.py`).
+4. **Configurabilidade > hardcode:** se introduziu um número, ele vai para
+   `config.py`.
+5. **Defensiva em I/O:** qualquer chamada externa (banco, HTTP, arquivo) deve
+   ter try/except apropriado.
+
+### Antes de fazer commit
+
+1. **Rode `python -m pytest tests/ -v`.** Todos os 54+ testes devem passar.
+2. **Rode `python main.py --once`.** Pipeline completo sem erros.
+3. **Verifique o JSON de output** (`output/dashboard_state.json`). Sanity check.
+4. **Se mudou regra de negócio:** atualize [REGRAS.md](REGRAS.md).
+5. **Se mudou comportamento operacional:** atualize [MANUAL.md](MANUAL.md).
+6. **Se mudou arquitetura:** atualize este documento.
+
+### Padrões de código
+
+- **PT-BR:** variáveis, funções, comentários, logs em português.
+- **Termos técnicos universais** preservados em inglês (TF-IDF, DBSCAN, UTC).
+- **snake_case** para funções e variáveis.
+- **PascalCase** para classes.
+- **UPPER_SNAKE_CASE** para constantes do `config.py`.
+- **Docstrings** explicam o "por quê", não o "como".
+
+### Quando criar novo módulo vs. estender um existente
+
+**Criar novo módulo se:**
+- Nova responsabilidade conceitual (nova "saída", nova "fonte").
+- Mais de ~100 linhas de código novo coeso.
+- Pode ser desenvolvido em isolamento.
+
+**Estender módulo existente se:**
+- Refino de comportamento já existente.
+- Menos de ~50 linhas de código novo.
+- Não introduz nova dimensão de complexidade.
+
+### Pull request checklist (futuro)
+
+- [ ] Testes adicionados ou ajustados.
+- [ ] Todos os testes passam (`pytest`).
+- [ ] `--once` funciona sem erros.
+- [ ] Configurabilidade respeitada (sem números mágicos).
+- [ ] Documentação atualizada (ARQUITETURA / MANUAL / REGRAS conforme escopo).
+- [ ] Justificativa de design no commit message.
+
+---
+
+## Referências cruzadas
+
+- **[MANUAL.md](MANUAL.md):** como usar o motor (operadores).
+- **[REGRAS.md](REGRAS.md):** matriz oficial P1-P5 e critérios de negócio.
+- **[../GLOSSARIO.md](../GLOSSARIO.md):** termos técnicos.
+- **`sql/motor_tables.sql`:** DDL das tabelas de persistência.
+- **`config.py`:** todas as decisões de produto centralizadas.
+- **`tests/`:** suíte de testes unitários.
+
+---
+
+_Documento mantido sob responsabilidade dos contribuidores do motor. Última
+atualização: 2026-05-27._
