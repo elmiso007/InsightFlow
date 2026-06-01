@@ -81,7 +81,7 @@ A cada **15 minutos**, o motor:
 
 ## Requisitos atendidos
 
-Levantados na reunião original + demanda gerencial 2026-05-29:
+Levantados na reunião original:
 
 | Requisito | Quem pediu | Status |
 |---|---|---|
@@ -92,10 +92,8 @@ Levantados na reunião original + demanda gerencial 2026-05-29:
 | **Saúde do Cliente** — clientes com ≥3 INCs em 6 meses | Emerson/Bruno | ✅ |
 | Slack para crítico + Dashboard tabulado | Reunião | ✅ |
 | Antecipar com **5 INCs P3 idênticas** | Reunião | ✅ Gatilho proativo |
-| **Radar CT** — acompanhar PRBs entregues pelo Change Team | Gerência | ✅ V2 |
-| Volumetria + Δ de chamados pré/pós resolução | Gerência | ✅ V2 |
 
-**9 de 9 requisitos implementados (7 do MVP + 2 do Radar CT V2).**
+**Todos os 7 requisitos do levantamento original implementados.**
 
 ---
 
@@ -153,40 +151,6 @@ Coordenador abre dashboard. Card do cliente já mostra:
 ```
 
 **Tempo: 5 segundos.**
-
----
-
-## Radar CT — Validador de Entrega (V2)
-
-**Demanda gerencial:** depois que o Change Team entrega um fix, o problema
-realmente foi resolvido? Os contatos sobre o tema reduziram?
-
-### Como o motor responde
-
-A cada 6h, para cada PRB encerrado nos últimos 14 dias:
-
-| Verificação | Cálculo | Resposta |
-|---|---|---|
-| **Houve reincidência?** | INCs novas no mesmo (produto, CI) pós-resolução | REINCIDENCIA / ENTREGA_VALIDADA / INCONCLUSIVO |
-| **Qual era o tamanho do problema?** | INCs nos 60d antes do fix | Volume + clientes + categorias |
-| **Os chamados zeraram?** | Chamados 14d antes vs 14d depois (heurística por palavra-chave) | Δ % (↓ é bom, ↑ é ruim) |
-
-### Alerta Slack para reincidência
-
-```
-⚠️🔁 *PRB PRB0055135 — REINCIDÊNCIA DETECTADA*
-*Descrição:* Ações do Post-Mortem INC4629249 - RITM0296949
-*Produto:* Locaweb - Email  |  *CI:* Email Locaweb
-*Grupo:* Squad E-mail Locaweb
-*Resolvido em:* 2026-05-22 (6d atrás)
-*Histórico (60d antes):* 32 INCs · 31 clientes · 3 categorias
-*Pós-resolução:* 10 novas INCs no mesmo (produto, CI)
-*Chamados (palavra='Email'):* pré=145 → pós=92 (↓ -37%)
-_Change Team: validar se o fix entregue cobre os novos casos._
-```
-
-**Validação real (29/05/2026):** 10 PRBs encerrados →
-**1 reincidência** + **6 entregas validadas** + **3 inconclusivos**.
 
 ---
 

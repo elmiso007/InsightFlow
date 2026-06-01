@@ -29,9 +29,7 @@ documentação técnica para quem precisa **entender o motor por dentro**.
 
 ### O que o motor faz
 
-O motor opera em **dois prismas independentes**, cada um com sua cadência:
-
-**Prisma preventivo (`main.py`)** — a cada 15 minutos:
+A cada 15 minutos, **automaticamente**:
 
 1. **Lê do PostgreSQL:** todas as INCs abertas nas últimas 24h, todos os PRBs
    ativos, todos os chamados de suporte das últimas 24h (Locaweb + Kinghost).
@@ -46,19 +44,6 @@ O motor opera em **dois prismas independentes**, cada um com sua cadência:
    chamados).
 7. **Emite 3 saídas:** JSON em arquivo, persistência em Postgres, alertas
    críticos no Slack.
-
-**Prisma retrospectivo (`validar_entregas.py`)** — a cada 6 horas (Radar CT):
-
-1. **Lê PRBs encerrados nos últimos 14 dias** (status `Encerrado Automaticamente`
-   ou `Concluído`).
-2. **Match de reincidência:** conta INCs no mesmo `(produto, servidor)` após
-   `data_encerrado`. Veredicto: REINCIDENCIA / ENTREGA_VALIDADA / INCONCLUSIVO.
-3. **Volumetria pré-resolução:** quantas INCs o PRB consolidou nos 60d
-   anteriores (`qtd_incs_pre`, `clientes_unicos_pre`, `categorias_pre`).
-4. **Δ de chamados pré vs pós:** janela simétrica 14d — heurística por
-   palavra-chave do produto. KPI do Change Team ("contatos zeraram?").
-5. **Emite alerta Slack ⚠️🔁** apenas para `REINCIDENCIA`. Persiste em
-   `lwsa.motor_validacao_entrega`.
 
 ### Para quem o motor existe
 
@@ -287,7 +272,7 @@ as anteriores já gravaram tudo.
 
 ---
 
-## 4. Os 13 módulos abertos
+## 4. Os 12 módulos abertos
 
 Resumo do papel de cada um. Para detalhes técnicos profundos, consulte o código
 (citações `arquivo.py:linhas` para referência).
@@ -450,33 +435,24 @@ por cluster. Falha em 1 cluster não derruba os outros.
 
 **Veredicto:** `alerta_recorrencia_alta = (qtd_incs >= 3) AND _tem_inc_recente(7)`.
 
-#### `validador_entrega.py` (~145 linhas) — prisma retrospectivo (V2 Radar CT)
+#### `validador_entrega.py` (~145 linhas) — prisma retrospectivo
 
 **Papel:** complemento ao `rules_engine` (preventivo) — olha PRBs **já
 entregues** pelo Change Team e verifica se o problema realmente foi resolvido.
-Fecha o loop de qualidade do fix. Requisito gerencial (2026-05-29).
+Fecha o loop de qualidade do fix.
 
-**Estratégia em 3 etapas por PRB:**
-1. **Match de reincidência** — `fonte_inc.listar_incidentes_por_produto_servidor`
-   busca INCs no mesmo CI após `data_encerrado`. Veredicto via `_classificar`:
-   - `REINCIDENCIA` se `qtd ≥ LIMIAR_INCS_REINCIDENCIA` (3).
-   - `ENTREGA_VALIDADA` se `qtd == 0` E `dias_pos ≥ MIN_DIAS_PARA_VALIDAR` (7).
-   - `INCONCLUSIVO` no resto.
-2. **Volumetria pré-resolução** — `fonte_inc.contar_incidentes_no_ci_periodo`
-   conta INCs nos 60d anteriores no mesmo `(produto, servidor)`. Devolve
-   `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre`. Mede o
-   tamanho do problema que o CT cobriu.
-3. **Δ de chamados pré vs pós** — `fonte_chamados.contar_chamados_por_palavra`
-   em janela simétrica de 14d. Heurística por palavra-chave
-   (`extrair_palavra_chave_produto`: "Locaweb - Email" → "Email") porque
-   produto do PRB ≠ taxonomia de chamados. KPI do gestor: "contatos zeraram?".
+**Estratégia por PRB:** `fonte_inc.listar_incidentes_por_produto_servidor`
+busca INCs no mesmo CI após `data_encerrado`. Veredicto via `_classificar`:
+- `REINCIDENCIA` se `qtd ≥ LIMIAR_INCS_REINCIDENCIA` (3).
+- `ENTREGA_VALIDADA` se `qtd == 0` E `dias_pos ≥ MIN_DIAS_PARA_VALIDAR` (7).
+- `INCONCLUSIVO` no resto.
 
-**Defesa em camadas:** falha em um PRB (ex.: exceção na consulta de chamados)
-não derruba o ciclo — registra warning e segue com os demais.
+**Defesa em camadas:** falha em um PRB não derruba o ciclo — registra warning
+e segue com os demais.
 
-**Entry-point separado:** `validar_entregas.py` (≈165 linhas) — análogo ao
-`main.py` mas com cadência default 6h (validações não mudam de minuto em
-minuto). Compartilha persistência Postgres (mesma `motor_execucao`).
+**Entry-point separado:** `validar_entregas.py` — análogo ao `main.py` mas com
+cadência default 6h (validações não mudam de minuto em minuto). Compartilha
+persistência Postgres (mesma `motor_execucao`).
 
 #### `notifier.py` (~290 linhas)
 
@@ -487,7 +463,7 @@ minuto). Compartilha persistência Postgres (mesma `motor_execucao`).
   combinados (urgência + ação: 🚨🆘 = crítico+abrir, ⚠️🔧 = alta+repriorizar).
 - `formatar_alerta_saude_cliente(saude)` — emoji `:thermometer:` para Saúde.
 - `formatar_alerta_reincidencia(validacao)` — emoji ⚠️🔁 para PRB com
-  reincidência detectada; inclui volumetria pré + Δ chamados (Radar CT V2).
+  reincidência detectada pelo ValidadorEntrega.
 - `enviar_slack(texto)` — preferência: `slack_sdk.WebClient.chat_postMessage`
   (Bot Token API, padrão locapredict). Fallback: HTTP POST webhook legado.
 - `disparar_alertas_criticos(execucao)` — orquestra, rate limit 1s se Slack

@@ -125,12 +125,6 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   `validar_entregas.py` (cadência default 6h). Complementa o prisma
   preventivo do `rules_engine` — fecha o loop de qualidade do fix.
 
-- **Radar do CT** — Conjunto de PRBs entregues pelo Change Team sob
-  acompanhamento ativo. No DW, é a proxy "PRBs com `status IN (Encerrado
-  Automaticamente, Concluído)` e `data_encerrado` na janela de 14 dias"
-  (`config.STATUS_PRB_ENCERRADOS` + `JANELA_VALIDACAO_ENTREGA_DIAS`). Não há
-  campo dedicado de "Change Team" no SNow — squads operacionais são donos.
-
 - **Veredictos do ValidadorEntrega**
   - `REINCIDENCIA` — ≥`LIMIAR_INCS_REINCIDENCIA` (3) INCs no mesmo
     (produto, servidor) **após** `data_encerrado`. Dispara Slack para CT.
@@ -138,26 +132,6 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
     `MIN_DIAS_PARA_VALIDAR` (7 dias) decorridos. Confirma que o fix segurou.
   - `INCONCLUSIVO` — caso intermediário (janela curta, INCs sub-limiar). Continua
     sob observação até próxima rodada.
-
-- **Volumetria pré-resolução** — Tamanho do problema que o PRB cobriu antes
-  do fix: `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre`.
-  Calculado por match `(produto, servidor)` nos `JANELA_VOLUMETRIA_PRE_DIAS`
-  (60) dias anteriores a `data_encerrado`. Não há ligação direta INC→PRB
-  no DW (`task_for` é pessoa, não INC).
-
-- **Δ de chamados (delta pré/pós)** — KPI do Radar CT: "os contatos sobre
-  o tema reduziram após a entrega?". Compara volume de chamados em
-  `JANELA_CHAMADOS_DELTA_DIAS` (14) antes vs depois de `data_encerrado`.
-  Calculado como `(pos - pre) / pre`. Redução ≥50% destacada no Slack
-  (`LIMIAR_REDUCAO_CHAMADOS_PCT = -0.5`) mas não influencia o veredicto.
-
-- **Heurística da palavra-chave** — Match fuzzy de chamados ao PRB. A
-  taxonomia de chamados (Kinghost: "N2 E-mails", "Abuse Bloqueio E-MAIL")
-  não bate diretamente com produto do PRB ("Locaweb - Email"). Solução
-  V1: extrair primeira palavra do último segmento após " - " e usar como
-  filtro `ILIKE %palavra%` (função `extrair_palavra_chave_produto` em
-  `extractor.py`). Documentada no alerta para revisão humana. Mapeamento
-  curado fica para V2.5.
 
 ---
 

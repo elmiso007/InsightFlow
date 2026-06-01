@@ -799,42 +799,11 @@ _Use o dashboard para ver a linha do tempo completa._
 - Volume alto + severidade baixa → "cliente ruidoso", acompanhar.
 - Volume baixo + severidade alta → casos isolados graves, monitorar.
 
-### 6.4 Alerta de Reincidência (Radar CT — ValidadorEntrega V2)
-
-Disparado pelo `validar_entregas.py` (cadência separada, default 6h) quando
-um PRB já entregue pelo Change Team **continua gerando INCs** no mesmo CI.
-
-```
-⚠️🔁 *PRB PRB0055135 — REINCIDÊNCIA DETECTADA*
-*Descrição:* Ações do Post-Mortem INC4629249 - RITM0296949
-*Produto:* Locaweb - Email  |  *CI:* Email Locaweb
-*Grupo:* Squad E-mail Locaweb
-*Resolvido em:* 2026-05-22 (6d atrás)
-*Histórico (60d antes):* 32 INCs · 31 clientes · 3 categorias
-*Pós-resolução:* 10 novas INCs no mesmo (produto, CI)
-*INCs:* INC1234567 (P3), INC1234568 (P3), ... (+8)
-*Chamados (palavra='Email'):* pré=145 → pós=92 (↓ -37%)
-_Change Team: validar se o fix entregue cobre os novos casos._
-```
-
-| Bloco | Significado |
-|---|---|
-| `Histórico (60d antes)` | Tamanho original do problema — quantas INCs o PRB cobriu |
-| `Pós-resolução` | Quantas novas INCs no mesmo CI depois do fix (≥3 = REINCIDENCIA) |
-| `Chamados (palavra='X')` | KPI do CT: contatos sobre o tema reduziram? `↓` é bom, `↑` é ruim |
-| `palavra=` | Heurística usada — derivada do produto do PRB (ILIKE %palavra% em chamados) |
-
-**Limitação da palavra-chave:** PRB "Locaweb - Email" busca chamados com "Email"
-no produto/fila — pode misturar Email Marketing, Email GO etc. Documentado no
-próprio alerta pra revisão humana. Mapeamento explícito vira no V2.5.
-
-### 6.5 Quando NÃO chega alerta
+### 6.4 Quando NÃO chega alerta
 
 O Slack é seletivo:
-- **PRBs preventivos:** apenas `urgencia == "CRITICA"` (P1).
+- **PRBs:** apenas `urgencia == "CRITICA"` (P1).
 - **Saúde:** apenas `alerta_recorrencia_alta == true`.
-- **Radar CT:** apenas veredicto `REINCIDENCIA` (`ENTREGA_VALIDADA` e
-  `INCONCLUSIVO` ficam só no dashboard/banco).
 
 Alertas P2, P3, P4, P5 **não vão para Slack** — só dashboard. Coordenador deve
 revisar dashboard periodicamente para esses.

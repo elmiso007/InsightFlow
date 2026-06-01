@@ -156,16 +156,6 @@ LIMIAR_INCS_REINCIDENCIA = 3        # >= INCs no mesmo (produto,servidor) pós-r
 MIN_DIAS_PARA_VALIDAR = 7           # PRB precisa ter >= N dias pós-resolução para virar ENTREGA_VALIDADA
                                     # (abaixo disso, sem INCs novas = INCONCLUSIVO)
 
-# Volumetria pré-resolução: olhar janela ampla para capturar todo o histórico
-# que o PRB consolidou (PRBs grandes nascem após meses de INCs recorrentes).
-JANELA_VOLUMETRIA_PRE_DIAS = 60     # INCs no mesmo (produto,servidor) antes da resolução
-
-# Delta de chamados pré vs pós-resolução: KPI principal do Radar CT
-# ("os contatos zeraram?"). Janela simétrica em ambos lados da data_encerrado.
-JANELA_CHAMADOS_DELTA_DIAS = 14
-# Limiar para destacar redução significativa no alerta Slack (>= 50% queda).
-LIMIAR_REDUCAO_CHAMADOS_PCT = -0.5
-
 # -----------------------------------------------------------------------------
 # Registry declarativo de tabelas de chamados por organização (Abordagem 2)
 # -----------------------------------------------------------------------------

@@ -114,54 +114,23 @@ def formatar_alerta_saude_cliente(saude: SaudeCliente) -> str:
 
 
 def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
-    """Slack textual para Change Team quando reincidência é detectada (V2 Radar CT).
-
-    Inclui volumetria pré-resolução (tamanho do problema que o CT cobriu) +
-    delta de chamados pré vs pós (o KPI principal do gestor: "zerou contatos?").
-    """
+    """Slack textual para Change Team quando reincidência é detectada."""
     incs_resumo = ", ".join(
         f"{i.inc_id} ({i.prioridade_atual})" for i in v.incs_reincidentes[:5]
     )
     if len(v.incs_reincidentes) > 5:
         incs_resumo += f" (+{len(v.incs_reincidentes) - 5})"
-
-    linhas = [
-        f":warning::arrows_counterclockwise: *PRB {v.prb_id} — REINCIDÊNCIA DETECTADA*",
-        f"*Descrição:* {v.descricao_curta}",
-        f"*Produto:* {v.produto or 'n/d'}  |  *CI:* {v.servidor or 'n/d'}",
-    ]
-    if v.grupo_designado:
-        linhas.append(f"*Grupo:* {v.grupo_designado}")
-    linhas.append(
+    return (
+        f":warning::arrows_counterclockwise: *PRB {v.prb_id} — REINCIDÊNCIA DETECTADA*\n"
+        f"*Descrição:* {v.descricao_curta}\n"
+        f"*Produto:* {v.produto or 'n/d'}\n"
+        f"*Servidor/CI:* {v.servidor or 'n/d'}\n"
         f"*Resolvido em:* {v.data_resolucao.strftime('%Y-%m-%d')} "
-        f"({v.dias_pos_resolucao}d atrás)"
+        f"({v.dias_pos_resolucao}d atrás)\n"
+        f"*Pós-resolução:* {v.qtd_incs_pos_resolucao} novas INCs no mesmo (produto, servidor)\n"
+        f"*INCs:* {incs_resumo}\n"
+        f"_Change Team: validar se o fix entregue cobre os novos casos._"
     )
-
-    # Volumetria pré: dá tamanho do problema original
-    if v.qtd_incs_pre_resolucao > 0:
-        linhas.append(
-            f"*Histórico (60d antes):* {v.qtd_incs_pre_resolucao} INCs · "
-            f"{v.clientes_unicos_pre} clientes · {v.categorias_pre} categorias"
-        )
-
-    # Reincidência pós
-    linhas.append(
-        f"*Pós-resolução:* {v.qtd_incs_pos_resolucao} novas INCs no mesmo (produto, CI)"
-    )
-    if incs_resumo:
-        linhas.append(f"*INCs:* {incs_resumo}")
-
-    # Delta de chamados — o KPI do gestor
-    if v.palavra_chave_chamados and (v.chamados_pre or v.chamados_pos):
-        sinal = "↑" if v.delta_chamados_pct > 0 else ("↓" if v.delta_chamados_pct < 0 else "→")
-        linhas.append(
-            f"*Chamados (palavra='{v.palavra_chave_chamados}'):* "
-            f"pré={v.chamados_pre} → pós={v.chamados_pos} "
-            f"({sinal} {v.delta_chamados_pct*100:+.0f}%)"
-        )
-
-    linhas.append("_Change Team: validar se o fix entregue cobre os novos casos._")
-    return "\n".join(linhas)
 
 
 # -----------------------------------------------------------------------------
@@ -363,21 +332,10 @@ def _validacao_entrega_para_dict(v: ValidacaoEntrega) -> Dict[str, Any]:
         "produto": v.produto,
         "servidor": v.servidor,
         "status_prb": v.status_prb,
-        "grupo_designado": v.grupo_designado,
         "data_resolucao": v.data_resolucao.isoformat(),
-        "data_abertura_prb": v.data_abertura_prb.isoformat() if v.data_abertura_prb else None,
         "dias_pos_resolucao": v.dias_pos_resolucao,
         "qtd_incs_pos_resolucao": v.qtd_incs_pos_resolucao,
         "veredicto": v.veredicto,
-        # Volumetria pré-resolução
-        "qtd_incs_pre_resolucao": v.qtd_incs_pre_resolucao,
-        "clientes_unicos_pre": v.clientes_unicos_pre,
-        "categorias_pre": v.categorias_pre,
-        # Delta de chamados pré vs pós
-        "palavra_chave_chamados": v.palavra_chave_chamados,
-        "chamados_pre": v.chamados_pre,
-        "chamados_pos": v.chamados_pos,
-        "delta_chamados_pct": v.delta_chamados_pct,
         "incs_reincidentes": [
             {
                 "inc_id": i.inc_id,

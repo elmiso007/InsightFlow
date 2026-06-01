@@ -156,9 +156,6 @@ class ValidacaoEntrega:
     o ValidadorEntrega olha PRBs já resolvidos e verifica se INCs do mesmo
     (produto, servidor) continuam aparecendo após a data de resolução.
     Fecha o loop de qualidade do fix.
-
-    Campos da V2 (Radar CT): volumetria pré-resolução + delta de chamados
-    pré/pós permitem responder "o PRB reduziu os contatos sobre o tema?".
     """
     prb_id: str
     descricao_curta: str
@@ -170,26 +167,6 @@ class ValidacaoEntrega:
     qtd_incs_pos_resolucao: int
     veredicto: str                        # "REINCIDENCIA" | "ENTREGA_VALIDADA" | "INCONCLUSIVO"
     incs_reincidentes: List[Incidente] = field(default_factory=list)
-
-    # --- Contexto do PRB (V2 Radar CT) -----------------------------------------
-    grupo_designado: str = ""             # squad/grupo dono do PRB no SNow
-    data_abertura_prb: Optional[datetime] = None  # quando o PRB foi aberto (idade total)
-
-    # --- Volumetria pré-resolução (V2) ----------------------------------------
-    # Quantas INCs no mesmo (produto, servidor) o PRB cobriu nos 60 dias
-    # anteriores à data_encerrado. Mede tamanho do problema que o CT resolveu.
-    qtd_incs_pre_resolucao: int = 0
-    clientes_unicos_pre: int = 0          # clientes distintos impactados pré-fix
-    categorias_pre: int = 0               # diversidade de categorização
-
-    # --- Delta de chamados pré vs pós (V2) ------------------------------------
-    # Mesma janela em dias antes e depois da data_encerrado (config.JANELA_CHAMADOS_DELTA_DIAS).
-    # Match via heurística por palavra-chave (ILIKE) — não há mapeamento direto
-    # entre produto do PRB e produto/fila de chamados.
-    palavra_chave_chamados: str = ""      # ex.: "Email" extraído de "Locaweb - Email"
-    chamados_pre: int = 0
-    chamados_pos: int = 0
-    delta_chamados_pct: float = 0.0       # (pos - pre) / max(pre, 1); -1.0 a +inf
 
 
 @dataclass

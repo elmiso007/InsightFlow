@@ -23,7 +23,7 @@ from datetime import datetime
 
 import config
 import time_utils
-from extractor import criar_fonte_incidentes, criar_fonte_chamados
+from extractor import criar_fonte_incidentes
 from models import ExecucaoMotor
 from notifier import disparar_alertas_criticos, gravar_payload_dashboard
 from notifier_db import persistir_execucao
@@ -75,11 +75,10 @@ def executar_validacao() -> ExecucaoMotor:
     inicio = time.monotonic()
 
     fonte_inc = criar_fonte_incidentes()
-    fonte_chamados = criar_fonte_chamados()
     execucao = ExecucaoMotor(timestamp=time_utils.agora_utc())
 
     try:
-        execucao.validacoes_entrega = gerar_validacoes_entrega(fonte_inc, fonte_chamados)
+        execucao.validacoes_entrega = gerar_validacoes_entrega(fonte_inc)
     except Exception as exc:
         log.exception("Falha no ValidadorEntrega: %s", exc)
         execucao.erros.append(f"validador_entrega: {exc}")

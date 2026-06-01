@@ -26,9 +26,8 @@ Jéssica, Victor e Bruno.
 7. [Gatilho proativo dos 5 P3](#7-gatilho-proativo-dos-5-p3)
 8. [Sugestão de repriorização](#8-sugestão-de-repriorização)
 9. [Saúde do Cliente](#9-saúde-do-cliente)
-10. [Radar do Change Team (ValidadorEntrega)](#10-radar-do-change-team-validadorentrega)
-11. [Termos heurísticos (lista completa)](#11-termos-heurísticos-lista-completa)
-12. [Como ajustar uma regra](#12-como-ajustar-uma-regra)
+10. [Termos heurísticos (lista completa)](#10-termos-heurísticos-lista-completa)
+11. [Como ajustar uma regra](#11-como-ajustar-uma-regra)
 
 ---
 
@@ -649,121 +648,7 @@ organização = editar dict, zero código.
 
 ---
 
-## 10. Radar do Change Team (ValidadorEntrega)
-
-### Requisito original
-
-Demanda gerencial (2026-05-29): acompanhar PRBs que o Change Team entrega.
-Objetivo: validar se o problema foi de fato resolvido (sem novas INCs no mesmo
-CI) **e** se os contatos sobre o tema reduziram (chamados pré vs pós).
-
-Prisma **retrospectivo**, complementar ao preventivo. Implementação:
-`validador_entrega.py` (lógica) + `validar_entregas.py` (entry-point, cadência
-default 6h, separado do main.py preventivo).
-
-### Quais PRBs entram na avaliação
-
-Filtro implementado em `extractor.listar_prbs_para_validacao`:
-
-```python
-WHERE status IN config.STATUS_PRB_ENCERRADOS  # ("Encerrado Automaticamente", "Concluído")
-  AND data_encerrado IS NOT NULL
-  AND data_encerrado >= NOW() - INTERVAL '14 days'  # config.JANELA_VALIDACAO_ENTREGA_DIAS
-```
-
-**Por que não filtrar por "grupo Change Team":** o DW não tem campo dedicado.
-Squads operacionais ("Squad E-mail Locaweb", "Squad Hospedagem", etc.) são os
-donos. Tratamos "todos PRBs encerrados na janela" como proxy do radar do CT.
-
-**Por que excluir `Aguardando Validação da Resolução`:** no DW esses sempre
-têm `data_encerrado=NULL` — sem data confiável, não dá pra calcular
-`dias_pos_resolucao`. Decisão registrada em 2026-05-28.
-
-### Matriz oficial de veredictos
-
-Implementada em `validador_entrega._classificar(qtd_incs, dias_pos)`:
-
-| Veredicto | Condição | Significado | Slack |
-|---|---|---|---|
-| **REINCIDENCIA** | `qtd_incs ≥ 3` (LIMIAR_INCS_REINCIDENCIA) pós-resolução | Problema voltou. Time precisa avaliar fix entregue | ⚠️🔁 |
-| **ENTREGA_VALIDADA** | `qtd_incs == 0` E `dias_pos ≥ 7` (MIN_DIAS_PARA_VALIDAR) | Janela suficiente sem regressão | — (silencioso) |
-| **INCONCLUSIVO** | Resto (janela curta, INCs sub-limiar) | Continua sob observação | — (silencioso) |
-
-**Precedência:** REINCIDENCIA tem precedência sobre janela curta — se aparecer
-no 2º dia, ainda assim é reincidência.
-
-**Match de INC pós-resolução:** por `(produto, servidor)` exato, mesma chave
-que o `rules_engine` usa pra casar cluster com PRB. Janela: tudo após
-`data_encerrado`, sem upper bound.
-
-### Volumetria pré-resolução (contexto do problema)
-
-Para cada PRB, conta INCs nos 60 dias anteriores (`JANELA_VOLUMETRIA_PRE_DIAS`)
-no mesmo `(produto, servidor)`:
-
-| Campo | Significado |
-|---|---|
-| `qtd_incs_pre_resolucao` | Tamanho do problema (quantas INCs o PRB consolidou) |
-| `clientes_unicos_pre` | Quantos clientes distintos foram impactados |
-| `categorias_pre` | Diversidade da categorização (1 = problema focado; 4+ = sintomas variados) |
-
-**Por que não usar relação INC→PRB direta:** o DW não tem essa ligação.
-`service_now_problems.task_for` é o **nome da pessoa designada**, não um INC.
-Match por `(produto, servidor)` é o proxy possível.
-
-### Δ de chamados pré vs pós (KPI principal)
-
-Mede se "os contatos sobre o tema reduziram após a entrega". Janela simétrica
-de 14 dias (`JANELA_CHAMADOS_DELTA_DIAS`) em cada lado de `data_encerrado`.
-
-**Heurística da palavra-chave** — produto do PRB ("Locaweb - Email") **não bate**
-com taxonomia de chamados (Kinghost: "N2 E-mails", "Abuse Bloqueio E-MAIL";
-Dynamics via `lw_octadesk.classificacoes`). Função
-`extractor.extrair_palavra_chave_produto`:
-
-```python
-"Locaweb - Email"                       → "Email"
-"Locaweb - Hospedagem Compartilhada"    → "Hospedagem"  # primeira palavra
-"Locaweb - Servidores Gerenciados - G2" → "G2"          # último segmento
-```
-
-Conta chamados com `produto/fila ILIKE %palavra%` em Locaweb + Kinghost.
-
-**Cálculo do Δ:** `(chamados_pos - chamados_pre) / chamados_pre`.
-- Δ ≤ -0.5 (queda ≥50%) → destacado no Slack como sinal positivo. Threshold
-  em `config.LIMIAR_REDUCAO_CHAMADOS_PCT`.
-- Δ > 0 → aumento (sinal preocupante).
-- Δ = 0 ou pré=0 → não tem base pra comparar.
-
-**Limitação consciente:** palavra "Email" pega Email Marketing, Email GO etc.
-misturados. Documentado no próprio alerta para revisão humana. Mapeamento
-explícito vira no V2.5.
-
-### Por que validador roda separado do motor preventivo
-
-| Aspecto | Motor preventivo (`main.py`) | ValidadorEntrega (`validar_entregas.py`) |
-|---|---|---|
-| Cadência | 15 min | 6 horas (default) |
-| Escopo | INCs abertas nas últimas 24h | PRBs encerrados nos últimos 14d |
-| Output Slack | Alertas P1 (críticas) | Apenas REINCIDENCIA |
-| Pergunta que responde | "O que pode virar PRB?" | "O que o CT entregou ficou bom?" |
-
-PRBs validados não mudam de minuto em minuto — sem sentido rodar a cada 15min.
-
-### Exemplo prático
-
-`PRB0055135` (Email Locaweb, "Ações do Post-Mortem INC4629249") — encerrado
-em 2026-05-22, avaliado em 2026-05-29 (6 dias depois):
-
-- **Histórico pré (60d):** 32 INCs, 31 clientes únicos, 3 categorias
-- **Pós-resolução:** 10 novas INCs no mesmo (produto=Email, servidor=Email Locaweb)
-- **Δ chamados (palavra='Email'):** queda de X% (depende da rodada)
-- **Veredicto:** `REINCIDENCIA` (qtd ≥ 3)
-- **Ação:** alerta para Change Team revalidar o fix do post-mortem
-
----
-
-## 11. Termos heurísticos (lista completa)
+## 10. Termos heurísticos (lista completa)
 
 Listas de palavras-chave usadas pelas regras P1-P5. Match via **word boundary
 regex** (`\b...\b`) — termos só casam como **palavras completas**, evitando
@@ -883,7 +768,7 @@ ausência de campo booleano direto no banco).
 
 ---
 
-## 12. Como ajustar uma regra
+## 11. Como ajustar uma regra
 
 ### Cenário 1: ajustar um threshold
 

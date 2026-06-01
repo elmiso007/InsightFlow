@@ -59,18 +59,6 @@ class FonteIncidentes(ABC):
         """
         ...
 
-    @abstractmethod
-    def contar_incidentes_no_ci_periodo(
-        self, produto: str, servidor: str, desde: datetime, ate: datetime
-    ) -> Dict[str, int]:
-        """Volumetria do PRB: conta INCs no mesmo (produto, servidor) entre
-        [desde, ate]. Devolve dict com {qtd, clientes_unicos, categorias}.
-
-        Usado pelo Radar CT (V2) pra mostrar "tamanho do problema" que o PRB
-        cobriu antes do fix.
-        """
-        ...
-
 
 class FonteChamados(ABC):
     @abstractmethod
@@ -82,20 +70,6 @@ class FonteChamados(ABC):
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int
     ) -> List[InteracaoChamado]: ...
-
-    @abstractmethod
-    def contar_chamados_por_palavra(
-        self, palavra: str, desde: datetime, ate: datetime
-    ) -> int:
-        """Conta chamados (Locaweb + Kinghost) entre [desde, ate] cuja coluna
-        de produto/fila contenha `palavra` (ILIKE %palavra%).
-
-        Heurística: produto do PRB ("Locaweb - Email") não bate com taxonomia
-        de chamados ("N2 E-mails", "Abuse Bloqueio E-MAIL"). A palavra-chave
-        é extraída do produto do PRB e usada como filtro fuzzy. Usado pelo
-        Radar CT (V2) para medir delta pré/pós resolução.
-        """
-        ...
 
 
 # -----------------------------------------------------------------------------
@@ -172,33 +146,6 @@ def _detectar_contorno(*textos: Optional[str]) -> bool:
     """Heurística textual: presença de termos de contorno em qualquer um dos textos."""
     concat = " ".join(t for t in textos if t).lower()
     return any(termo in concat for termo in _TERMOS_INDICADORES_CONTORNO)
-
-
-def extrair_palavra_chave_produto(produto: Optional[str]) -> str:
-    """Extrai a palavra-chave principal do produto do PRB para match em chamados.
-
-    Regra: pega o ÚLTIMO segmento após " - " e remove ruído comum.
-    Exemplos:
-      "Locaweb - Email"                          → "Email"
-      "Locaweb - Hospedagem Compartilhada"       → "Hospedagem"
-      "Locaweb - Servidores Gerenciados - G2"    → "G2" (último segmento)
-      "Locaweb - Email Go"                       → "Email"
-      ""                                          → ""
-
-    Para produtos de múltiplas palavras, pega só a primeira (mais discriminativa).
-    Documentado no veredicto pra que o time saiba a heurística aplicada.
-    """
-    if not produto:
-        return ""
-    partes = [p.strip() for p in produto.split(" - ") if p.strip()]
-    if not partes:
-        return ""
-    # Pega o último segmento que não seja "Locaweb" / "Kinghost" (genéricos demais)
-    candidato = partes[-1]
-    if candidato.lower() in ("locaweb", "kinghost") and len(partes) > 1:
-        candidato = partes[-2]
-    # Primeira palavra do segmento (mais discriminativa em ILIKE)
-    return candidato.split()[0] if candidato else ""
 
 
 # -----------------------------------------------------------------------------
@@ -362,43 +309,6 @@ class ServiceNowExtractor(FonteIncidentes):
             (produto, servidor, time_utils.utc_para_string_banco(desde)),
         )
         return [self._row_para_incidente(r) for r in rows]
-
-    def contar_incidentes_no_ci_periodo(
-        self, produto: str, servidor: str, desde: datetime, ate: datetime
-    ) -> Dict[str, int]:
-        """Volumetria: conta INCs + clientes únicos + categorias distintas
-        no mesmo (produto, servidor) entre [desde, ate].
-
-        PG 9.2/9.3 compatível: usa CASE WHEN em vez de FILTER.
-        Sem CI (produto ou servidor vazios) → devolve zeros (sem rodar SQL).
-        """
-        if not produto or not servidor:
-            return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
-
-        sql = f"""
-            SELECT COUNT(*) AS qtd,
-                   COUNT(DISTINCT CASE WHEN COALESCE(login_cliente,'') <> ''
-                                       THEN login_cliente END) AS clientes_unicos,
-                   COUNT(DISTINCT categoria) AS categorias
-            FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
-            WHERE produto = %s
-              AND servidor = %s
-              AND data_abertura >= %s
-              AND data_abertura <= %s
-        """
-        rows = self._query(sql, (
-            produto, servidor,
-            time_utils.utc_para_string_banco(desde),
-            time_utils.utc_para_string_banco(ate),
-        ))
-        if not rows:
-            return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
-        r = rows[0]
-        return {
-            "qtd": int(r.get("qtd") or 0),
-            "clientes_unicos": int(r.get("clientes_unicos") or 0),
-            "categorias": int(r.get("categorias") or 0),
-        }
 
 
 def _montar_sql_chamados(spec: Dict[str, Any], where_clause: str) -> str:
@@ -581,58 +491,6 @@ class ChamadosExtractor(FonteChamados):
             except Exception as exc:
                 log.warning("Falha ao consultar %s para %s: %s", org, login_cliente, exc)
         return resultados
-
-    def contar_chamados_por_palavra(
-        self, palavra: str, desde: datetime, ate: datetime
-    ) -> int:
-        """Conta chamados em TODAS as organizações cuja coluna de produto
-        contenha `palavra` (ILIKE %palavra%) na janela [desde, ate].
-
-        Heurística do Radar CT: PRB.produto ("Locaweb - Email") não bate com
-        chamado.produto/fila ("N2 E-mails", "Abuse Bloqueio E-MAIL"). Match
-        por substring é o melhor que dá sem mapeamento curado.
-
-        Vazio (`palavra == ""`) → retorna 0 (não roda SQL).
-        """
-        if not palavra or not palavra.strip():
-            return 0
-
-        like_pattern = f"%{palavra.strip()}%"
-        desde_str = time_utils.utc_para_string_banco(desde)
-        ate_str = time_utils.utc_para_string_banco(ate)
-        total = 0
-
-        for organizacao, spec in config.TABELAS_CHAMADOS_POR_ORGANIZACAO.items():
-            col_data = spec["colunas"]["data"]
-            col_produto = spec["colunas"]["produto"]
-            where = (
-                f"{col_data} >= %s AND {col_data} <= %s "
-                f"AND {col_produto} ILIKE %s"
-            )
-            # Reusa o SQL builder: troca SELECT da lista de colunas por COUNT(*)
-            sql_select = _montar_sql_chamados(spec, where)
-            # _montar_sql_chamados monta SELECT col1 AS x, ... — troca por COUNT(*)
-            sql_count = re.sub(
-                r"^SELECT\s+.*?\s+FROM",
-                "SELECT COUNT(*) AS qtd FROM",
-                sql_select,
-                count=1,
-                flags=re.IGNORECASE | re.DOTALL,
-            )
-            try:
-                from db import conectar
-                with conectar() as conn:
-                    with conn.cursor() as cur:
-                        cur.execute(sql_count, (desde_str, ate_str, like_pattern))
-                        row = cur.fetchone()
-                        if row:
-                            total += int(row[0] or 0)
-            except Exception as exc:
-                log.warning(
-                    "Falha ao contar chamados %s para palavra=%r: %s",
-                    organizacao, palavra, exc,
-                )
-        return total
 
     def _descobrir_organizacao_via_inc(
         self, login_cliente: str
@@ -969,20 +827,6 @@ class ServiceNowExtractorMock(FonteIncidentes):
             ]
         return []
 
-    def contar_incidentes_no_ci_periodo(
-        self, produto: str, servidor: str, desde: datetime, ate: datetime
-    ) -> Dict[str, int]:
-        """Mock: devolve volumetria sintética coerente com os PRBs de mock.
-
-        DNS / dnsfirewallb0005: simula PRB de impacto médio (8 INCs, 5 clientes).
-        Outros: volumetria modesta (3 INCs, 2 clientes).
-        """
-        if produto == "DNS" and servidor == "dnsfirewallb0005":
-            return {"qtd": 8, "clientes_unicos": 5, "categorias": 2}
-        if produto and servidor:
-            return {"qtd": 3, "clientes_unicos": 2, "categorias": 1}
-        return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
-
     def listar_incidentes_cliente(
         self, login_cliente: str, meses: int
     ) -> List[Incidente]:
@@ -1058,21 +902,6 @@ class ChamadosExtractorMock(FonteChamados):
             ))
         todos = base + historicos
         return [i for i in todos if i.data >= corte]
-
-    def contar_chamados_por_palavra(
-        self, palavra: str, desde: datetime, ate: datetime
-    ) -> int:
-        """Mock: filtra os chamados sintéticos por substring no produto +
-        janela de data. Simula a heurística ILIKE do extractor real.
-        """
-        if not palavra:
-            return 0
-        palavra_lower = palavra.lower()
-        return sum(
-            1 for c in self._todos()
-            if palavra_lower in (c.produto or "").lower()
-            and desde <= c.data <= ate
-        )
 
 
 # -----------------------------------------------------------------------------

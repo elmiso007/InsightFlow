@@ -7,10 +7,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List
+from typing import List
 
 import config
-from extractor import extrair_palavra_chave_produto
 from models import Incidente, PRBExistente
 from validador_entrega import (
     VEREDICTO_REINCIDENCIA,
@@ -49,12 +48,6 @@ class _FakeFonte:
     ) -> List[Incidente]:
         return list(self.incs_por_chave.get((produto, servidor), []))
 
-    def contar_incidentes_no_ci_periodo(
-        self, produto: str, servidor: str, desde: datetime, ate: datetime
-    ) -> Dict[str, int]:
-        # Volumetria padrão zerada — testes que precisam injetam via subclasse.
-        return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
-
     def listar_incidentes_recentes(self, horas):
         raise NotImplementedError
 
@@ -62,30 +55,6 @@ class _FakeFonte:
         raise NotImplementedError
 
     def listar_incidentes_cliente(self, login_cliente, meses):
-        raise NotImplementedError
-
-
-class _FakeFonteChamados:
-    """Fonte de chamados mínima para testar delta pré/pós.
-
-    Cada chamada a `contar_chamados_por_palavra` devolve o próximo valor da
-    fila `respostas` — ordem importante: primeiro pré, depois pós.
-    """
-
-    def __init__(self, respostas: List[int] | None = None) -> None:
-        self.respostas = list(respostas or [])
-        self.chamadas = []
-
-    def contar_chamados_por_palavra(self, palavra, desde, ate) -> int:
-        self.chamadas.append((palavra, desde, ate))
-        if not self.respostas:
-            return 0
-        return self.respostas.pop(0)
-
-    def listar_chamados_periodo(self, horas, produtos=None):
-        raise NotImplementedError
-
-    def listar_chamados_cliente(self, login_cliente, meses):
         raise NotImplementedError
 
 
@@ -246,106 +215,3 @@ class TestGerarValidacoes:
         prb_ids = [v.prb_id for v in validacoes]
         assert "PRB_OK" in prb_ids
         assert "PRB_QUEBRA" not in prb_ids
-
-
-# -----------------------------------------------------------------------------
-# V2 (Radar CT): volumetria pré-resolução + delta de chamados pré/pós
-# -----------------------------------------------------------------------------
-class TestExtrairPalavraChave:
-    def test_produto_locaweb_email(self):
-        assert extrair_palavra_chave_produto("Locaweb - Email") == "Email"
-
-    def test_produto_multinivel_pega_ultimo_segmento(self):
-        # "Locaweb - Servidores Gerenciados - G2" → último segmento → "G2"
-        assert extrair_palavra_chave_produto(
-            "Locaweb - Servidores Gerenciados - G2"
-        ) == "G2"
-
-    def test_produto_composto_pega_primeira_palavra(self):
-        # "Hospedagem Compartilhada" → primeira palavra (mais discriminativa)
-        assert extrair_palavra_chave_produto(
-            "Locaweb - Hospedagem Compartilhada"
-        ) == "Hospedagem"
-
-    def test_vazio_retorna_vazio(self):
-        assert extrair_palavra_chave_produto("") == ""
-        assert extrair_palavra_chave_produto(None) == ""
-
-    def test_sem_separador_retorna_primeira_palavra(self):
-        assert extrair_palavra_chave_produto("Email Marketing") == "Email"
-
-
-class TestVolumetriaPre:
-    def test_volumetria_populada_quando_fonte_devolve(self):
-        class _FonteComVolumetria(_FakeFonte):
-            def contar_incidentes_no_ci_periodo(self, produto, servidor, desde, ate):
-                return {"qtd": 25, "clientes_unicos": 12, "categorias": 4}
-
-        prb = make_prb(
-            prb_id="PRB0900",
-            produto="Email",
-            servidor="email-host-01",
-            data_resolucao=_agora() - timedelta(days=10),
-        )
-        fonte = _FonteComVolumetria(prbs=[prb])
-        validacoes = gerar_validacoes_entrega(fonte)
-
-        assert len(validacoes) == 1
-        v = validacoes[0]
-        assert v.qtd_incs_pre_resolucao == 25
-        assert v.clientes_unicos_pre == 12
-        assert v.categorias_pre == 4
-
-
-class TestDeltaChamados:
-    def test_delta_calculado_corretamente(self):
-        # pré=20, pós=8 → -60% (redução significativa)
-        prb = make_prb(
-            prb_id="PRB0901",
-            produto="Locaweb - Email",
-            servidor="email-host-01",
-            data_resolucao=_agora() - timedelta(days=10),
-        )
-        fonte_inc = _FakeFonte(prbs=[prb])
-        fonte_chamados = _FakeFonteChamados(respostas=[20, 8])
-
-        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_chamados)
-
-        v = validacoes[0]
-        assert v.palavra_chave_chamados == "Email"
-        assert v.chamados_pre == 20
-        assert v.chamados_pos == 8
-        assert v.delta_chamados_pct == -0.6
-
-    def test_chamados_sem_base_pre_delta_zero(self):
-        # pré=0, pós=5 → não pode dividir por 0; reportar 0.0 e deixar contagens
-        prb = make_prb(
-            prb_id="PRB0902",
-            produto="Locaweb - DNS",
-            servidor="dns-01",
-            data_resolucao=_agora() - timedelta(days=10),
-        )
-        fonte_inc = _FakeFonte(prbs=[prb])
-        fonte_chamados = _FakeFonteChamados(respostas=[0, 5])
-
-        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_chamados)
-        v = validacoes[0]
-        assert v.chamados_pre == 0
-        assert v.chamados_pos == 5
-        assert v.delta_chamados_pct == 0.0  # protege contra division-by-zero
-
-    def test_sem_fonte_chamados_funciona_em_modo_legado(self):
-        # Compatibilidade: validador sem fonte de chamados não quebra
-        prb = make_prb(
-            prb_id="PRB0903",
-            produto="Locaweb - Email",
-            servidor="srv-01",
-            data_resolucao=_agora() - timedelta(days=10),
-        )
-        fonte = _FakeFonte(prbs=[prb])
-
-        validacoes = gerar_validacoes_entrega(fonte)  # sem fonte_chamados
-        v = validacoes[0]
-        assert v.chamados_pre == 0
-        assert v.chamados_pos == 0
-        assert v.palavra_chave_chamados == "Email"  # ainda extrai a palavra
