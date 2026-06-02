@@ -40,6 +40,9 @@ class Incidente:
     grupo_designado: str = ""            # grupo_designado
     status: str = ""                     # status
     fechamento: str = ""                 # texto do fechamento (quando houver)
+    tipo_usuario: str = ""               # "Nominal" (cliente real) | "Integração" (monitoração)
+                                         # Usado pelo customer_monitor para descartar INCs automáticas
+                                         # ao identificar candidatos a Saúde do Cliente.
 
     @property
     def texto_busca(self) -> str:

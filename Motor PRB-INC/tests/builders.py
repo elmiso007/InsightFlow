@@ -26,6 +26,7 @@ def make_incidente(
     abertura: Optional[datetime] = None,
     atualizacao: Optional[datetime] = None,
     tempo_contorno_min: int = 0,
+    tipo_usuario: str = "Nominal",
 ) -> Incidente:
     """Cria um Incidente com defaults sensatos. Overrides via kwargs."""
     if abertura is None:
@@ -45,6 +46,7 @@ def make_incidente(
         qtd_atualizacoes=qtd_updates,
         tem_solucao_contorno=tem_contorno,
         tempo_solucao_contorno_min=tempo_contorno_min,
+        tipo_usuario=tipo_usuario,
     )
 
 

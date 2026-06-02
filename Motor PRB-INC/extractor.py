@@ -59,6 +59,33 @@ class FonteIncidentes(ABC):
         """
         ...
 
+    @abstractmethod
+    def contar_clientes_com_inc_recente(
+        self, horas: int, tipos_usuario: Sequence[str] = ()
+    ) -> Dict[str, int]:
+        """Conta INCs por login_cliente nas últimas N horas, opcionalmente
+        filtrado por tipo_usuario. Retorna {login: qtd}.
+
+        SQL agregado (GROUP BY) — muito mais leve que hidratar Incidente
+        completo. Usado pelo customer_monitor para identificar candidatos a
+        Saúde do Cliente em janelas longas (30+ dias) sem estourar memória.
+        """
+        ...
+
+    @abstractmethod
+    def listar_incidentes_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[Incidente]]:
+        """Bulk + slim: 1 query única retornando INCs de TODOS os clientes
+        candidatos, agrupadas por login canônico. Substitui N chamadas a
+        listar_incidentes_cliente — paga 1 round-trip em vez de N.
+
+        Slim: SELECT só com colunas usadas pela Saúde do Cliente (sem
+        descrição longa, atualizações, fechamento). `tem_solucao_contorno`
+        é pré-computado via regex no SQL.
+        """
+        ...
+
 
 class FonteChamados(ABC):
     @abstractmethod
@@ -70,6 +97,93 @@ class FonteChamados(ABC):
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int
     ) -> List[InteracaoChamado]: ...
+
+    @abstractmethod
+    def listar_chamados_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[InteracaoChamado]]:
+        """Bulk: 1 SELECT por organização (Locaweb + KingHost) retornando
+        chamados de TODOS os candidatos, agrupados por login canônico.
+        Substitui N×2 chamadas a listar_chamados_cliente.
+        """
+        ...
+
+
+# -----------------------------------------------------------------------------
+# Normalização de login_cliente
+# -----------------------------------------------------------------------------
+def sql_normalizar_login_cliente(coluna: str = "login_cliente") -> str:
+    """Fragmento PostgreSQL que devolve um identificador canônico do cliente.
+
+    Port literal do projeto irmão locapredict (guardiao_saude_cliente). Unifica
+    formatos distintos que o ServiceNow/Dynamics/KingHost usam pra mesmo cliente:
+
+      1. URL com `ficha=NNN` (KingHost intranet) → NNN
+      2. `(Cód. NNN)` / `(Cod. NNN)` → NNN
+      3. Valor só com dígitos → mantém
+      4. Outra URL `http(s)://...=NNN` → NNN final
+      5. Texto qualquer → lowercase + remove tudo que não é alfanumérico
+
+    Usa substring(...FROM 'pat') (PG 7.x+) — compatível com PG 9.x do DW.
+    """
+    c = coluna
+    return f"""NULLIF(
+  TRIM(
+    COALESCE(
+      substring(TRIM({c}) FROM '(?i)ficha=(\\d+)'),
+      substring(TRIM({c}) FROM '(?i)\\(\\s*C[oó]d\\.?\\s*(\\d+)\\s*\\)'),
+      CASE WHEN TRIM({c}) ~ '^\\d+$' THEN TRIM({c}) END,
+      CASE
+        WHEN TRIM({c}) ~* '^https?://'
+        THEN substring(TRIM({c}) FROM '.*=(\\d+)\\s*$')
+      END,
+      CASE
+        WHEN TRIM({c}) !~* '^https?://'
+        THEN NULLIF(lower(regexp_replace(TRIM({c}), '[^a-zA-Z0-9]', '', 'g')), '')
+      END
+    )
+  ),
+  ''
+)"""
+
+
+# Expressões pré-calculadas para uso direto em f-strings de SQL.
+# _LOGIN_NORM_SNI: lwsa.service_now_incidentes (coluna `login_cliente` sem alias).
+_LOGIN_NORM_SNI = sql_normalizar_login_cliente("login_cliente")
+
+
+# Regexes pré-compilados — equivalente Python da expressão SQL acima.
+_RX_FICHA = re.compile(r"ficha=(\d+)", re.IGNORECASE)
+_RX_COD = re.compile(r"\(\s*C[oó]d\.?\s*(\d+)\s*\)", re.IGNORECASE)
+_RX_DIGITOS = re.compile(r"^\d+$")
+_RX_URL_PREFIXO = re.compile(r"^https?://", re.IGNORECASE)
+_RX_URL_DIGITOS_FIM = re.compile(r".*=(\d+)\s*$")
+_RX_NAO_ALFANUM = re.compile(r"[^a-zA-Z0-9]")
+
+
+def normalizar_login_cliente(valor: str) -> str:
+    """Versão Python da `sql_normalizar_login_cliente` — mesma ordem de precedência.
+
+    Usado no mock e em customer_monitor para que a contagem em Python case
+    com o GROUP BY do banco. Retorna "" se entrada inválida/vazia.
+    """
+    if not valor:
+        return ""
+    s = valor.strip()
+    if not s:
+        return ""
+    m = _RX_FICHA.search(s)
+    if m:
+        return m.group(1)
+    m = _RX_COD.search(s)
+    if m:
+        return m.group(1)
+    if _RX_DIGITOS.match(s):
+        return s
+    if _RX_URL_PREFIXO.match(s):
+        m = _RX_URL_DIGITOS_FIM.match(s)
+        return m.group(1) if m else ""
+    return _RX_NAO_ALFANUM.sub("", s).lower()
 
 
 # -----------------------------------------------------------------------------
@@ -185,6 +299,7 @@ class ServiceNowExtractor(FonteIncidentes):
             grupo_designado=row.get("grupo_designado") or "",
             status=row.get("status") or "",
             fechamento=row.get("fechamento") or "",
+            tipo_usuario=row.get("tipo_usuario") or "",
         )
 
     def _row_para_prb(self, row: Dict[str, Any]) -> PRBExistente:
@@ -222,8 +337,10 @@ class ServiceNowExtractor(FonteIncidentes):
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
-                   grupo_designado, status, login_cliente, categoria, subcategoria,
-                   atualizacoes, servidor
+                   grupo_designado, status,
+                   {_LOGIN_NORM_SNI} AS login_cliente,
+                   categoria, subcategoria,
+                   atualizacoes, servidor, tipo_usuario
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
             WHERE data_abertura >= %s
         """
@@ -233,15 +350,23 @@ class ServiceNowExtractor(FonteIncidentes):
     def listar_incidentes_cliente(
         self, login_cliente: str, meses: int
     ) -> List[Incidente]:
-        """Histórico de INCs de um cliente nos últimos N meses (Saúde do Cliente)."""
+        """Histórico de INCs de um cliente nos últimos N meses (Saúde do Cliente).
+
+        O `login_cliente` recebido aqui é o canônico (normalizado upstream em
+        contar_clientes_com_inc_recente). Compara contra a expressão normalizada
+        da coluna para casar todos os formatos: 'username', 'username (Cód. N)',
+        'ficha=N', '12345', etc.
+        """
         corte = time_utils.agora_utc() - timedelta(days=30 * meses)
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
-                   grupo_designado, status, login_cliente, categoria, subcategoria,
-                   atualizacoes, servidor
+                   grupo_designado, status,
+                   {_LOGIN_NORM_SNI} AS login_cliente,
+                   categoria, subcategoria,
+                   atualizacoes, servidor, tipo_usuario
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
-            WHERE login_cliente = %s
+            WHERE {_LOGIN_NORM_SNI} = %s
               AND data_abertura >= %s
         """
         rows = self._query(sql, (login_cliente, time_utils.utc_para_string_banco(corte)))
@@ -297,8 +422,10 @@ class ServiceNowExtractor(FonteIncidentes):
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
-                   grupo_designado, status, login_cliente, categoria, subcategoria,
-                   atualizacoes, servidor
+                   grupo_designado, status,
+                   {_LOGIN_NORM_SNI} AS login_cliente,
+                   categoria, subcategoria,
+                   atualizacoes, servidor, tipo_usuario
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
             WHERE produto = %s
               AND servidor = %s
@@ -309,6 +436,97 @@ class ServiceNowExtractor(FonteIncidentes):
             (produto, servidor, time_utils.utc_para_string_banco(desde)),
         )
         return [self._row_para_incidente(r) for r in rows]
+
+    def contar_clientes_com_inc_recente(
+        self, horas: int, tipos_usuario: Sequence[str] = ()
+    ) -> Dict[str, int]:
+        """SQL agregado normalizado: SELECT login_canonico, COUNT(*) GROUP BY login_canonico.
+
+        Normaliza login_cliente direto no SQL (ver sql_normalizar_login_cliente)
+        — unifica formatos diferentes do mesmo cliente em uma única chave.
+        Sem essa normalização, "govonifelipe" e "govonifelipe (Cód. NNN)"
+        viram 2 candidatos quando são o mesmo cliente.
+        """
+        corte = time_utils.agora_utc() - timedelta(hours=horas)
+        params: List[Any] = [time_utils.utc_para_string_banco(corte)]
+        where_tipo = ""
+        if tipos_usuario:
+            placeholders = ",".join(["%s"] * len(tipos_usuario))
+            where_tipo = f"AND tipo_usuario IN ({placeholders})"
+            params.extend(tipos_usuario)
+        sql = f"""
+            WITH normalizado AS (
+                SELECT {_LOGIN_NORM_SNI} AS login_canonico
+                FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
+                WHERE data_abertura >= %s
+                  AND login_cliente IS NOT NULL
+                  AND TRIM(login_cliente) <> ''
+                  {where_tipo}
+            )
+            SELECT login_canonico, COUNT(*) AS qtd
+            FROM normalizado
+            WHERE login_canonico IS NOT NULL AND login_canonico <> ''
+            GROUP BY login_canonico
+        """
+        rows = self._query(sql, tuple(params))
+        return {r["login_canonico"]: int(r["qtd"]) for r in rows}
+
+    def listar_incidentes_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[Incidente]]:
+        """Bulk + slim para Saúde do Cliente.
+
+        Uma única query traz histórico de TODOS os logins canônicos. Colunas
+        reduzidas — só o que customer_monitor usa pra montar a linha do tempo
+        e calcular severidade. `tem_solucao_contorno` é pré-computado no SQL
+        com a mesma lista de termos da função Python _detectar_contorno().
+        """
+        if not logins_canonicos:
+            return {}
+
+        corte = time_utils.agora_utc() - timedelta(days=30 * meses)
+        placeholders = ",".join(["%s"] * len(logins_canonicos))
+        # Regex equivalente a `_TERMOS_INDICADORES_CONTORNO` em Python. ~* é
+        # POSIX case-insensitive — cobre acento e variações comuns.
+        regex_contorno = r"contorno|workaround|solu[cç][aã]o alternativa|paliativo|tempor[aá]ri[oa]|tempor[aá]riamente"
+        sql = f"""
+            SELECT
+                numero,
+                descricao_curta,
+                prioridade,
+                produto,
+                data_abertura,
+                servidor,
+                {_LOGIN_NORM_SNI} AS login_cliente,
+                (COALESCE(descricao, '') || ' ' || COALESCE(fechamento, ''))
+                    ~* '{regex_contorno}' AS tem_contorno
+            FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
+            WHERE {_LOGIN_NORM_SNI} IN ({placeholders})
+              AND data_abertura >= %s
+        """
+        params = tuple(logins_canonicos) + (time_utils.utc_para_string_banco(corte),)
+        rows = self._query(sql, params)
+
+        agrupado: Dict[str, List[Incidente]] = {login: [] for login in logins_canonicos}
+        for r in rows:
+            login = r.get("login_cliente") or ""
+            if login not in agrupado:
+                continue
+            abertura = _parse_datetime(r.get("data_abertura")) or time_utils.agora_utc()
+            agrupado[login].append(Incidente(
+                inc_id=r.get("numero") or "",
+                descricao_curta=r.get("descricao_curta") or "",
+                descricao="",
+                servidor=r.get("servidor") or "",
+                produto=r.get("produto") or "",
+                login_cliente=login,
+                prioridade_atual=_parse_prioridade(r.get("prioridade")),
+                abertura=abertura,
+                atualizacao=abertura,  # slim: não puxa data_resolvido/encerrado
+                qtd_atualizacoes=0,
+                tem_solucao_contorno=bool(r.get("tem_contorno")),
+            ))
+        return agrupado
 
 
 def _montar_sql_chamados(spec: Dict[str, Any], where_clause: str) -> str:
@@ -483,7 +701,10 @@ class ChamadosExtractor(FonteChamados):
                 continue
             col_data = spec["colunas"]["data"]
             col_login = spec["colunas"]["login_cliente"]
-            where = f"{col_login} = %s AND {col_data} >= %s"
+            # Compara contra a forma normalizada — o `login_cliente` que chega
+            # aqui é o canônico (vindo de contar_clientes_com_inc_recente).
+            login_norm = sql_normalizar_login_cliente(col_login)
+            where = f"{login_norm} = %s AND {col_data} >= %s"
             try:
                 resultados.extend(self._consultar_organizacao(
                     org, where, (login_cliente, corte_str)
@@ -491,6 +712,46 @@ class ChamadosExtractor(FonteChamados):
             except Exception as exc:
                 log.warning("Falha ao consultar %s para %s: %s", org, login_cliente, exc)
         return resultados
+
+    def listar_chamados_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[InteracaoChamado]]:
+        """Bulk: 1 SELECT por organização para TODOS os logins canônicos.
+
+        Substitui N×2 chamadas individuais (uma por cliente, por org) por
+        2 queries totais (Locaweb + KingHost). Cada org devolve só os clientes
+        que realmente têm chamado lá — não precisa descobrir organização antes.
+        """
+        if not logins_canonicos:
+            return {}
+
+        corte = time_utils.agora_utc() - timedelta(days=30 * meses)
+        corte_str = time_utils.utc_para_string_banco(corte)
+        placeholders = ",".join(["%s"] * len(logins_canonicos))
+
+        agrupado: Dict[str, List[InteracaoChamado]] = {
+            login: [] for login in logins_canonicos
+        }
+        for organizacao, spec in config.TABELAS_CHAMADOS_POR_ORGANIZACAO.items():
+            col_data = spec["colunas"]["data"]
+            col_login = spec["colunas"]["login_cliente"]
+            login_norm = sql_normalizar_login_cliente(col_login)
+            where = f"{login_norm} IN ({placeholders}) AND {col_data} >= %s"
+            try:
+                chamados = self._consultar_organizacao(
+                    organizacao, where, tuple(logins_canonicos) + (corte_str,)
+                )
+            except Exception as exc:
+                log.warning(
+                    "Falha ao consultar bulk %s: %s — clientes dessa org sem chamados.",
+                    organizacao, exc,
+                )
+                continue
+            for chamado in chamados:
+                login = normalizar_login_cliente(chamado.cliente_login)
+                if login in agrupado:
+                    agrupado[login].append(chamado)
+        return agrupado
 
     def _descobrir_organizacao_via_inc(
         self, login_cliente: str
@@ -503,7 +764,7 @@ class ChamadosExtractor(FonteChamados):
         sql = f"""
             SELECT organizacao
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
-            WHERE login_cliente = %s
+            WHERE {_LOGIN_NORM_SNI} = %s
             ORDER BY data_abertura DESC
             LIMIT 1
         """
@@ -648,6 +909,7 @@ class _GeradorMock:
                     subcategoria=cenario["subcategoria"],
                     grupo_designado=cenario["grupo"],
                     status=self.rng.choice(["Novo", "Em Análise", "Resolvido"]),
+                    tipo_usuario="Nominal",
                 ))
         self.rng.shuffle(incidentes)
         return incidentes
@@ -822,10 +1084,37 @@ class ServiceNowExtractorMock(FonteIncidentes):
                     qtd_atualizacoes=1,
                     tem_solucao_contorno=False,
                     organizacao="Locaweb",
+                    tipo_usuario="Integração",
                 )
                 for i in range(qtd)
             ]
         return []
+
+    def contar_clientes_com_inc_recente(
+        self, horas: int, tipos_usuario: Sequence[str] = ()
+    ) -> Dict[str, int]:
+        from collections import Counter
+        corte = time_utils.agora_utc() - timedelta(hours=horas)
+        tipos_set = set(tipos_usuario)
+        counter: Counter[str] = Counter()
+        for inc in self._todos_incidentes():
+            if inc.abertura < corte:
+                continue
+            login_norm = normalizar_login_cliente(inc.login_cliente)
+            if not login_norm:
+                continue
+            if tipos_set and inc.tipo_usuario not in tipos_set:
+                continue
+            counter[login_norm] += 1
+        return dict(counter)
+
+    def listar_incidentes_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[Incidente]]:
+        agrupado: Dict[str, List[Incidente]] = {l: [] for l in logins_canonicos}
+        for login in logins_canonicos:
+            agrupado[login] = self.listar_incidentes_cliente(login, meses)
+        return agrupado
 
     def listar_incidentes_cliente(
         self, login_cliente: str, meses: int
@@ -833,7 +1122,7 @@ class ServiceNowExtractorMock(FonteIncidentes):
         corte = time_utils.agora_utc() - timedelta(days=30 * meses)
         recentes = [
             i for i in self._todos_incidentes()
-            if i.login_cliente == login_cliente
+            if normalizar_login_cliente(i.login_cliente) == login_cliente
         ]
         historicos: List[Incidente] = []
         for idx, inc in enumerate(recentes):
@@ -855,6 +1144,7 @@ class ServiceNowExtractorMock(FonteIncidentes):
                 subcategoria=inc.subcategoria,
                 grupo_designado=inc.grupo_designado,
                 status=inc.status,
+                tipo_usuario=inc.tipo_usuario,
             )
             if inc_copia.abertura >= corte:
                 historicos.append(inc_copia)
@@ -882,11 +1172,22 @@ class ChamadosExtractorMock(FonteChamados):
             resultado = [i for i in resultado if i.produto in produtos]
         return resultado
 
+    def listar_chamados_para_saude(
+        self, logins_canonicos: Sequence[str], meses: int
+    ) -> Dict[str, List[InteracaoChamado]]:
+        agrupado: Dict[str, List[InteracaoChamado]] = {l: [] for l in logins_canonicos}
+        for login in logins_canonicos:
+            agrupado[login] = self.listar_chamados_cliente(login, meses)
+        return agrupado
+
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int
     ) -> List[InteracaoChamado]:
         corte = time_utils.agora_utc() - timedelta(days=30 * meses)
-        base = [i for i in self._todos() if i.cliente_login == login_cliente]
+        base = [
+            i for i in self._todos()
+            if normalizar_login_cliente(i.cliente_login) == login_cliente
+        ]
         historicos: List[InteracaoChamado] = []
         for idx, inter in enumerate(base):
             historicos.append(InteracaoChamado(

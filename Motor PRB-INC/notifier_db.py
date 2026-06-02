@@ -86,8 +86,13 @@ def purgar_execucoes_antigas(dias: int | None = None) -> int:
 # -----------------------------------------------------------------------------
 # Inserts individuais (uma função por tabela, para legibilidade)
 # -----------------------------------------------------------------------------
-def _insert_execucao(cur, execucao: ExecucaoMotor) -> int:
-    """Insere a cabeça e retorna o id gerado (FK para outras tabelas)."""
+def _insert_execucao(cur, execucao: ExecucaoMotor, total_clusters: int) -> int:
+    """Insere a cabeça e retorna o id gerado (FK para outras tabelas).
+
+    `total_clusters` é passado explicitamente porque pode divergir de
+    `len(execucao.clusters)` quando singletons são omitidos da persistência
+    (mantém consistência com o que efetivamente entra em motor_cluster).
+    """
     sql = """
         INSERT INTO lwsa.motor_execucao (
             timestamp_utc, total_incs_lidas, total_chamados,
@@ -102,7 +107,7 @@ def _insert_execucao(cur, execucao: ExecucaoMotor) -> int:
         execucao.timestamp,
         execucao.total_incs_lidas,
         execucao.total_chamados,
-        len(execucao.clusters),
+        total_clusters,
         len(execucao.prescricoes),
         len(execucao.saude_clientes),
         len(execucao.validacoes_entrega),
@@ -260,21 +265,29 @@ def persistir_execucao(execucao: ExecucaoMotor) -> int | None:
     if config.CLEANUP_TTL_HABILITADO:
         purgar_execucoes_antigas()
 
+    # Singletons (qtd_incs == 1) são omitidos do banco — só agrupamentos
+    # significativos entram em motor_cluster. Singletons continuam vivos em
+    # memória e no JSON do dashboard (consumidos por customer_monitor e UI).
+    clusters_persistir = [c for c in execucao.clusters if c.qtd_incs >= 2]
+    singletons_omitidos = len(execucao.clusters) - len(clusters_persistir)
+
     try:
         from db import conectar
         with conectar() as conn:
             with conn.cursor() as cur:
                 # Transação única — tudo ou nada.
-                execucao_id = _insert_execucao(cur, execucao)
-                _insert_clusters(cur, execucao_id, execucao.clusters)
+                execucao_id = _insert_execucao(cur, execucao, len(clusters_persistir))
+                _insert_clusters(cur, execucao_id, clusters_persistir)
                 _insert_prescricoes(cur, execucao_id, execucao.prescricoes)
                 _insert_saude_clientes(cur, execucao_id, execucao.saude_clientes)
                 _insert_validacoes_entrega(cur, execucao_id, execucao.validacoes_entrega)
                 conn.commit()
         log.info(
-            "Persistência Postgres OK: execucao_id=%d (%d clusters, %d prescrições, %d saúde, %d validações).",
+            "Persistência Postgres OK: execucao_id=%d (%d clusters, %d singletons omitidos, "
+            "%d prescrições, %d saúde, %d validações).",
             execucao_id,
-            len(execucao.clusters),
+            len(clusters_persistir),
+            singletons_omitidos,
             len(execucao.prescricoes),
             len(execucao.saude_clientes),
             len(execucao.validacoes_entrega),

@@ -27,9 +27,18 @@ log = logging.getLogger(__name__)
 def _clientes_com_volume(
     incidentes: Sequence[Incidente], limiar: int = config.LIMIAR_INCS_SAUDE_CLIENTE
 ) -> List[str]:
-    """Retorna logins com >= `limiar` INCs nas INCs já carregadas (janela atual)."""
+    """Retorna logins com >= `limiar` INCs nas INCs já carregadas (janela atual).
+
+    Filtra por tipo_usuario quando config.TIPOS_USUARIO_SAUDE_CLIENTE estiver
+    populado. INCs de monitoração (tipo_usuario = "Integração") são abertas
+    por sistema e não têm cliente associado — não fazem sentido para Saúde
+    do Cliente. Se a tupla estiver vazia, todas as INCs são consideradas.
+    """
+    tipos_aceitos = config.TIPOS_USUARIO_SAUDE_CLIENTE
     contagem: Counter[str] = Counter(
-        i.login_cliente for i in incidentes if i.login_cliente
+        i.login_cliente for i in incidentes
+        if i.login_cliente
+        and (not tipos_aceitos or i.tipo_usuario in tipos_aceitos)
     )
     return [login for login, n in contagem.items() if n >= limiar]
 
@@ -114,44 +123,77 @@ def gerar_saude_clientes(
     fonte_incidentes: FonteIncidentes,
     fonte_chamados: FonteChamados,
 ) -> List[SaudeCliente]:
-    """Para cada cliente com volume >= limiar na janela atual de 24h, busca o
+    """Para cada cliente com volume >= limiar na janela de candidatos, busca o
     histórico completo de 6 meses (ServiceNow + chamados Locaweb/Kinghost) e
     devolve uma avaliação de Saúde do Cliente.
 
-    Otimização MVP: só consulta histórico longo para clientes que JÁ apareceram
-    na janela de 24h. Em produção, considerar listar TOP-N clientes do mês via
-    visão agregada no ServiceNow para detectar quem está reincidindo silenciosamente.
+    Janela de candidatos: se JANELA_CANDIDATOS_SAUDE_DIAS resulta em mais horas
+    que JANELA_INC_HORAS, abre uma 2ª query ao extractor para olhar período
+    maior — cliente real raramente acumula 3 INCs em 24h. Caso contrário,
+    reusa `incidentes_janela` (sem custo extra).
     """
-    candidatos = _clientes_com_volume(
-        incidentes_janela, limiar=config.LIMIAR_INCS_SAUDE_CLIENTE
-    )
+    horas_candidatos = config.JANELA_CANDIDATOS_SAUDE_DIAS * 24
+    if horas_candidatos > config.JANELA_INC_HORAS:
+        # Janela longa: usa query agregada (GROUP BY login) — leve, não estoura
+        # memória mesmo com 30+ dias de histórico.
+        try:
+            contagem = fonte_incidentes.contar_clientes_com_inc_recente(
+                horas_candidatos, config.TIPOS_USUARIO_SAUDE_CLIENTE
+            )
+            candidatos = [
+                login for login, n in contagem.items()
+                if n >= config.LIMIAR_INCS_SAUDE_CLIENTE
+            ]
+            log.info(
+                "Saúde do Cliente: janela ampliada para %d dias (%d clientes Nominais, %d com >= %d INCs).",
+                config.JANELA_CANDIDATOS_SAUDE_DIAS,
+                len(contagem),
+                len(candidatos),
+                config.LIMIAR_INCS_SAUDE_CLIENTE,
+            )
+        except Exception as exc:
+            log.warning(
+                "Falha ao ampliar janela — caindo para janela padrão (%dh): %s",
+                config.JANELA_INC_HORAS, exc,
+            )
+            candidatos = _clientes_com_volume(
+                list(incidentes_janela), limiar=config.LIMIAR_INCS_SAUDE_CLIENTE
+            )
+    else:
+        candidatos = _clientes_com_volume(
+            list(incidentes_janela), limiar=config.LIMIAR_INCS_SAUDE_CLIENTE
+        )
+
     log.info(
-        "Clientes candidatos a avaliacao de saude (>=%d INCs na janela): %d -> %s",
+        "Clientes candidatos a avaliacao de saude (>=%d INCs): %d -> %s",
         config.LIMIAR_INCS_SAUDE_CLIENTE, len(candidatos), candidatos,
     )
 
+    # Bulk: 1 query SQL traz histórico de TODOS os candidatos (vs N×2 antes).
+    # Reduz round-trips de ~36 para ~3 — vitória grande contra latência de VPN/rede.
+    try:
+        incs_por_cliente = fonte_incidentes.listar_incidentes_para_saude(
+            candidatos, meses=config.JANELA_SAUDE_CLIENTE_MESES
+        )
+    except Exception as exc:
+        log.warning("Bulk INCs indisponível — saúde será baseada só na janela atual: %s", exc)
+        incs_por_cliente = {
+            login: [i for i in incidentes_janela if i.login_cliente == login]
+            for login in candidatos
+        }
+
+    try:
+        chamados_por_cliente = fonte_chamados.listar_chamados_para_saude(
+            candidatos, meses=config.JANELA_SAUDE_CLIENTE_MESES
+        )
+    except Exception as exc:
+        log.warning("Bulk chamados indisponível — saúde sem chamados: %s", exc)
+        chamados_por_cliente = {login: [] for login in candidatos}
+
     saude_clientes: List[SaudeCliente] = []
     for login in candidatos:
-        try:
-            incs_historicas = fonte_incidentes.listar_incidentes_cliente(
-                login, meses=config.JANELA_SAUDE_CLIENTE_MESES
-            )
-        except NotImplementedError:
-            # Em produção: garantir cliente HTTP plugado. No mock, isso não
-            # acontece. Aqui caímos para apenas as INCs já carregadas.
-            log.warning(
-                "Histórico longo ServiceNow indisponível para %s — usando janela atual.",
-                login,
-            )
-            incs_historicas = [i for i in incidentes_janela if i.login_cliente == login]
-
-        try:
-            chamados = fonte_chamados.listar_chamados_cliente(
-                login, meses=config.JANELA_SAUDE_CLIENTE_MESES
-            )
-        except NotImplementedError:
-            log.warning("Histórico de chamados indisponível para %s.", login)
-            chamados = []
+        incs_historicas = incs_por_cliente.get(login, [])
+        chamados = chamados_por_cliente.get(login, [])
 
         qtd_incs = len(incs_historicas)
         qtd_chamados = len(chamados)

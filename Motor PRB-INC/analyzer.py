@@ -120,6 +120,58 @@ def _clusterizar(textos: List[str]) -> List[int]:
 
 
 # -----------------------------------------------------------------------------
+# Pós-processamento: fusão de singletons por (produto, servidor)
+# -----------------------------------------------------------------------------
+def _fundir_singletons_por_ci(
+    incidentes: Sequence[Incidente], labels: List[int]
+) -> List[int]:
+    """Funde singletons (label == -1) que compartilham (produto, servidor).
+
+    Por que: o TF-IDF agrupa por similaridade textual, mas duas INCs do mesmo
+    servidor + produto com descrições muito diferentes (ex.: "kernel panic" e
+    "disco cheio" no mesmo `vps-prod-01`) são operacionalmente o mesmo "caso"
+    para o coordenador. Esse fallback captura recorrência por CI que o texto
+    sozinho não vê.
+
+    Critério estrito: só funde quando produto E servidor são truthy E iguais.
+    Singletons sem CI completo permanecem como singleton (evita falso match
+    via campos vazios).
+    """
+    if not labels:
+        return labels
+
+    proximo_label = max(labels) + 1 if any(l >= 0 for l in labels) else 0
+    indices_por_chave: Dict[Tuple[str, str], List[int]] = defaultdict(list)
+    for idx, label in enumerate(labels):
+        if label != -1:
+            continue
+        inc = incidentes[idx]
+        produto = (inc.produto or "").strip()
+        servidor = (inc.servidor or "").strip()
+        if not produto or not servidor:
+            continue
+        indices_por_chave[(produto, servidor)].append(idx)
+
+    novos_labels = list(labels)
+    fundidos = 0
+    for chave, indices in indices_por_chave.items():
+        if len(indices) < 2:
+            continue
+        for idx in indices:
+            novos_labels[idx] = proximo_label
+        fundidos += len(indices)
+        proximo_label += 1
+
+    if fundidos:
+        log.info(
+            "Fusão por (produto, servidor): %d singletons agrupados em %d novos clusters.",
+            fundidos,
+            proximo_label - (max(labels) + 1 if any(l >= 0 for l in labels) else 0),
+        )
+    return novos_labels
+
+
+# -----------------------------------------------------------------------------
 # Métricas do cluster
 # -----------------------------------------------------------------------------
 def _termos_dominantes(incs: Sequence[Incidente], top_n: int = 5) -> List[str]:
@@ -277,6 +329,7 @@ def analisar(
 
     textos = _preparar_textos(incidentes)
     labels = _clusterizar(textos)
+    labels = _fundir_singletons_por_ci(incidentes, labels)
 
     # Agrupar incidentes por label (-1 = singleton: cada um vira seu próprio cluster)
     grupos: Dict[str, List[Incidente]] = defaultdict(list)

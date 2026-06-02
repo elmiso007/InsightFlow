@@ -46,6 +46,23 @@ LIMIAR_PRB_PROATIVO_INCS_P3 = 5
 LIMIAR_INCS_SAUDE_CLIENTE = 3         # >= 3 INCs em 6 meses → recorrência alta
 JANELA_RECENCIA_ALERTA_DIAS = 7       # cliente precisa ter INC recente para alertar (evita alert fatigue)
 
+# Janela usada SÓ pra identificar candidatos a Saúde do Cliente. Maior que
+# JANELA_INC_HORAS porque cliente real raramente abre 3 INCs em 24h — precisa
+# de mais dias pra atingir o limiar. NÃO afeta clusterização nem prescrições
+# (essas continuam usando JANELA_INC_HORAS=24).
+#
+# Quando esse valor (em horas) for > JANELA_INC_HORAS, o customer_monitor faz
+# uma 2ª query ao extractor com a janela ampliada. Caso seja menor/igual, usa
+# a lista de INCs que o scheduler já carregou (sem custo extra).
+JANELA_CANDIDATOS_SAUDE_DIAS = 30
+
+# Filtro de tipo_usuario na Saúde do Cliente.
+# Por design do ServiceNow, INCs com tipo_usuario = "Integração" são abertas
+# por monitoração (Zabbix/Nagios) e NÃO têm cliente associado — login_cliente
+# vem vazio. "Saúde do Cliente" só faz sentido sobre INCs realmente abertas em
+# nome de cliente (tipo_usuario = "Nominal"). Lista vazia desativa o filtro.
+TIPOS_USUARIO_SAUDE_CLIENTE: tuple = ("Nominal",)
+
 # Mapeamento de prioridade → peso numérico para score de severidade média.
 # Range 0.0 (menos grave) a 1.0 (mais grave), linear inverso.
 # Usado em customer_monitor.SaudeCliente.severidade_media para distinguir

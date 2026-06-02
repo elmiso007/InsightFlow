@@ -14,6 +14,7 @@ from extractor import (
     _parse_prioridade,
     _contar_atualizacoes,
     _detectar_contorno,
+    normalizar_login_cliente,
 )
 
 
@@ -123,3 +124,51 @@ class TestDetectarContorno:
     def test_nulos_ignorados(self):
         assert _detectar_contorno(None, "tem workaround") is True
         assert _detectar_contorno(None, None) is False
+
+
+# -----------------------------------------------------------------------------
+# normalizar_login_cliente — espelho Python da expressão SQL do locapredict
+# -----------------------------------------------------------------------------
+class TestNormalizarLoginCliente:
+    def test_vazio_retorna_vazio(self):
+        assert normalizar_login_cliente("") == ""
+        assert normalizar_login_cliente("   ") == ""
+
+    def test_ficha_url_kinghost(self):
+        # URL intranet KingHost com `ficha=NNN`
+        url = "https://intranet.kinghost.com.br:56001/kinghost.cgi?ficha=424593"
+        assert normalizar_login_cliente(url) == "424593"
+
+    def test_cod_com_acento(self):
+        assert normalizar_login_cliente("govonifelipe (Cód. 1100035861)") == "1100035861"
+
+    def test_cod_sem_acento(self):
+        assert normalizar_login_cliente("empotech (Cod. 1101046630)") == "1101046630"
+
+    def test_apenas_digitos(self):
+        assert normalizar_login_cliente("123456") == "123456"
+        assert normalizar_login_cliente("  789  ") == "789"
+
+    def test_url_generica_com_digitos_no_fim(self):
+        assert normalizar_login_cliente("https://exemplo.com/path?id=42") == "42"
+
+    def test_url_sem_match_retorna_vazio(self):
+        # URL que não tem ficha= nem termina em =NNN
+        assert normalizar_login_cliente("https://exemplo.com/sem-id") == ""
+
+    def test_texto_simples_lowercase_alfanumerico(self):
+        assert normalizar_login_cliente("AcmeCorp") == "acmecorp"
+        assert normalizar_login_cliente("MZ-Viagens.Br") == "mzviagensbr"
+
+    def test_dois_formatos_mesmo_cliente_normalizam_igual(self):
+        # Cenário central: 'govonifelipe' aparece em 2 formatos no DW.
+        # A normalização precisa unificar para evitar duplicata na Saúde do Cliente.
+        a = normalizar_login_cliente("govonifelipe (Cód. 1100035861)")
+        b = normalizar_login_cliente("1100035861")
+        assert a == b == "1100035861"
+
+    def test_login_texto_puro_vira_canonico(self):
+        # `govonifelipe` sem Código — fica como `govonifelipe` (lowercase alfanum).
+        # NÃO casa com `1100035861` — são identificadores diferentes do mesmo cliente,
+        # mas o motor já reconhece a primeira forma como agrupador estável.
+        assert normalizar_login_cliente("govonifelipe") == "govonifelipe"
