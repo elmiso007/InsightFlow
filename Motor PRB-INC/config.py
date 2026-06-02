@@ -321,8 +321,9 @@ class SlackConfig:
 # Modo de operação
 # -----------------------------------------------------------------------------
 # Quando True, os extractors devolvem dados sintéticos para validação local.
-# Em produção, definir USAR_MOCKS=false no ambiente.
-USAR_MOCKS: bool = os.environ.get("USAR_MOCKS", "true").lower() == "true"
+# Default = false: o motor sempre vai ao banco real. Pra ativar o mock localmente,
+# seta env USAR_MOCKS=true (ou troca o segundo argumento aqui).
+USAR_MOCKS: bool = os.environ.get("USAR_MOCKS", "false").lower() == "true"
 
 # Persistir estado do motor em Postgres (lwsa.motor_*) a cada ciclo.
 # Funciona em paralelo ao JSON do dashboard (notifier.gravar_payload_dashboard).

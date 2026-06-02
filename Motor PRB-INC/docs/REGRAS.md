@@ -28,6 +28,7 @@ Jéssica, Victor e Bruno.
 9. [Saúde do Cliente](#9-saúde-do-cliente)
 10. [Termos heurísticos (lista completa)](#10-termos-heurísticos-lista-completa)
 11. [Como ajustar uma regra](#11-como-ajustar-uma-regra)
+12. [Clusterização — regras de agrupamento](#12-clusterização--regras-de-agrupamento)
 
 ---
 
@@ -558,14 +559,35 @@ Quando NÃO há PRB correspondente:
 
 ### Critério de avaliação
 
-**Fase 1 — Identificação de candidatos:**
-- Clientes que abriram `>= LIMIAR_INCS_SAUDE_CLIENTE` (default **3**) INCs **nas
-  últimas 24h** entram na avaliação.
+**Fase 1 — Identificação de candidatos** (`customer_monitor.gerar_saude_clientes`):
 
-**Fase 2 — Avaliação:**
-Para cada candidato, buscar histórico de 6 meses:
-- INCs do ServiceNow (`lwsa.service_now_incidentes`).
-- Chamados Locaweb/Kinghost (roteamento por organização).
+A identificação tem 3 filtros aplicados via **SQL agregado** (`GROUP BY login_canonico`):
+
+1. **Janela de 30 dias** (`JANELA_CANDIDATOS_SAUDE_DIAS`) — cliente real raramente
+   acumula 3 INCs em 24h; ampliamos para capturar recorrência natural. Janela
+   afeta APENAS a Saúde do Cliente — clusterização/prescrição continuam em 24h.
+2. **Tipo de usuário Nominal** (`TIPOS_USUARIO_SAUDE_CLIENTE = ("Nominal",)`) —
+   só INCs abertas por analista em nome de cliente real entram. INCs
+   `tipo_usuario = 'Integração'` (~92% do volume, geradas por Zabbix/Nagios)
+   têm `login_cliente` vazio por design e não fazem sentido aqui.
+3. **Login canônico** — `login_cliente` é normalizado via
+   `sql_normalizar_login_cliente` antes do GROUP BY, unificando formatos:
+   `username (Cód. NNN)`, `ficha=NNN`, dígitos puros, texto puro.
+4. **Limiar de volume** — `>= LIMIAR_INCS_SAUDE_CLIENTE` (default **3**)
+   INCs por cliente canônico na janela.
+
+**Fase 2 — Avaliação (bulk + slim):**
+
+Uma única query `SELECT ... WHERE login_canonico IN (...) AND data_abertura >=
+NOW() - 6mo` traz histórico de TODOS os candidatos. O mesmo padrão se aplica a
+chamados (1 query Locaweb + 1 KingHost). Reduziu de ~36 round-trips por ciclo
+para 3 (~5min → ~30s na fase). Métodos: `listar_incidentes_para_saude` e
+`listar_chamados_para_saude`.
+
+Colunas trazidas no SELECT slim: `numero, descricao_curta, prioridade, produto,
+data_abertura, servidor, login_canonico, tem_contorno` — esta última
+pré-computada via regex SQL com a mesma lista de termos da função Python
+`_detectar_contorno`.
 
 ### Veredicto: `alerta_recorrencia_alta`
 
@@ -865,6 +887,73 @@ em Reclame Aqui."
 
 ---
 
+## 12. Clusterização — regras de agrupamento
+
+Como duas INCs viram (ou não) o mesmo cluster.
+
+### Caminho principal: TF-IDF + DBSCAN
+
+INCs com **texto semanticamente similar** (descrição curta + descrição) entram
+no mesmo cluster. Configurado em `config.py`:
+
+- `DBSCAN_EPS = 0.55` — raio de vizinhança (cosseno). Menor = clusters mais coesos.
+- `DBSCAN_MIN_SAMPLES = 2` — mínimo de INCs para formar cluster.
+- `TFIDF_NGRAM_RANGE = (1, 2)` — unigrams + bigrams (capta termos técnicos).
+
+INCs que o DBSCAN não consegue agrupar viram **singletons** (label `-1`).
+
+### Fusão por (produto, servidor) — fallback de CI
+
+Depois do DBSCAN, o motor varre os singletons e funde os que compartilham
+**mesmo `produto` E mesmo `servidor`** (ambos truthy). Implementado em
+`analyzer._fundir_singletons_por_ci`.
+
+**Por que isso é regra de negócio:**
+> "Duas INCs no mesmo servidor para o mesmo produto são, operacionalmente, o
+> mesmo problema — mesmo que o analista tenha descrito diferente."
+
+**Critério estrito:**
+- `produto` truthy E não-vazio
+- `servidor` truthy E não-vazio
+- Singletons com CI incompleto **permanecem singletons** (evita falso match
+  via campo vazio).
+
+**Exemplo:** INC com `"kernel panic"` e INC com `"disco cheio"`, ambas em
+`servidor='vps-prod-01'` e `produto='VPS'`, viram **um cluster fundido**.
+
+### Filtragem de singletons na persistência
+
+Clusters de tamanho 1 (`qtd_incs == 1`) **não são gravados** em
+`lwsa.motor_cluster`. Implementado em `notifier_db.persistir_execucao`.
+
+**Por quê:**
+- A tabela ficava com ~70% de ruído (singletons sem agrupamento real).
+- Singletons não geram prescrição PRB (volume insuficiente).
+- Eles continuam **em memória** alimentando a Saúde do Cliente (que precisa
+  de INCs individuais por cliente).
+
+**Onde aparecem mesmo assim:**
+- `output/dashboard_state.json` (UI pode mostrar se quiser).
+- Saúde do Cliente — agrupados por `login_cliente`, não por CI.
+
+### Normalização de `login_cliente`
+
+Antes de qualquer GROUP BY ou WHERE por cliente, o login passa por
+`sql_normalizar_login_cliente` (expressão PostgreSQL, port do projeto irmão
+locapredict). Resolve 5 formatos diferentes para a mesma chave:
+
+| Formato no banco | Normalizado |
+|---|---|
+| `govonifelipe` | `govonifelipe` |
+| `govonifelipe (Cód. 1100035861)` | `1100035861` |
+| `https://intranet.kinghost.com.br/.../ficha=424593` | `424593` |
+| `1100035861` (dígitos puros) | `1100035861` |
+| `MZ-Viagens.Br` | `mzviagensbr` |
+
+Aplicada em todas as queries do customer_monitor + chamados.
+
+---
+
 ## Referências cruzadas
 
 - **[ARQUITETURA.md](ARQUITETURA.md):** como o motor implementa essas regras.
@@ -877,4 +966,4 @@ em Reclame Aqui."
 ---
 
 _Documento mantido sob responsabilidade do PO + contribuidores do motor.
-Reflete a matriz oficial vigente. Última atualização: 2026-05-27._
+Reflete a matriz oficial vigente. Última atualização: 2026-06-02._

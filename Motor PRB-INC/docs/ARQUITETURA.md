@@ -189,27 +189,34 @@ Trajeto completo dos dados em um ciclo de 15 min, com volumes reais do mock.
   5 objetos PrescricaoPRB (com justificativas auditáveis em texto livre)
 
 ┌──────────────────────────────────────────────────────────────────────┐
-│  FASE 4: SAÚDE DO CLIENTE                                             │
+│  FASE 4: SAÚDE DO CLIENTE  (bulk + slim — 3 queries totais)           │
 └──────────────────────────────────────────────────────────────────────┘
 
-  91 Incidentes (da janela atual)
+  fonte_incidentes.contar_clientes_com_inc_recente(30 dias, ("Nominal",))
+        ↓ SQL agregado (GROUP BY login_canonico)
+  ~1.400 clientes Nominais (Integração filtrada no banco)
+        ↓ filtro qtd >= 3
+  ~13 candidatos canônicos (após sql_normalizar_login_cliente)
+
+  ┌─ BULK 1: listar_incidentes_para_saude(candidatos, 6m)
+  │     SQL único: WHERE login_canonico IN (...) AND data_abertura >= ...
+  │     Colunas slim: numero, descricao_curta, prioridade, produto,
+  │     data_abertura, servidor, tem_contorno (pré-computado via regex SQL)
+  │     → Dict[login → List[Incidente]]
+  │
+  └─ BULK 2+3: listar_chamados_para_saude(candidatos, 6m)
+        ├─ 1 query Dynamics (Locaweb)  com login_canonico IN (...)
+        └─ 1 query KingHost            com login_canonico IN (...)
+        → Dict[login → List[InteracaoChamado]]
         ↓
-  _clientes_com_volume [filtro >= 3 INCs em 24h]
-        ↓
-  13 candidatos (logins)
-        ↓
-  Para cada candidato:
-    ├─ fonte_incidentes.listar_incidentes_cliente(login, 6m) [SQL]
-    │     → ~10-30 INCs históricas
-    ├─ fonte_chamados.listar_chamados_cliente(login, 6m)
-    │     ├─ _descobrir_organizacao_via_inc(login)
-    │     ├─ Locaweb → dynamics.chamados | Kinghost → kinghost.chamados
-    │     └─ → ~5-20 chamados
+  Para cada candidato (em memória, sem mais SQL):
     ├─ _calcular_severidade_media [P1=1.0 ... P5=0.0]
     ├─ _tem_inc_recente(7 dias) [anti alert-fatigue]
     └─ _montar_linha_do_tempo [INCs + chamados ordenados cronologicamente]
         ↓
   13 objetos SaudeCliente (ordenados por volume DESC)
+
+  Performance medida: ~30s (vs ~80min antes do bulk+slim+índices).
 
 ┌──────────────────────────────────────────────────────────────────────┐
 │  AGREGAÇÃO                                                            │
@@ -334,22 +341,32 @@ com o projeto irmão locapredict.
 **Papel:** trazer dados de fora para Python.
 
 **ABCs (contratos):**
-- `FonteIncidentes` — `listar_incidentes_recentes/cliente`, `listar_prbs_abertos`.
-- `FonteChamados` — `listar_chamados_periodo/cliente`.
+- `FonteIncidentes` — `listar_incidentes_recentes/cliente/por_produto_servidor`,
+  `listar_prbs_abertos/para_validacao`, `contar_clientes_com_inc_recente`
+  (agregado, para a Saúde do Cliente), `listar_incidentes_para_saude` (bulk + slim).
+- `FonteChamados` — `listar_chamados_periodo/cliente`, `listar_chamados_para_saude`
+  (bulk Locaweb + KingHost).
 
 **Implementações concretas:**
 - `ServiceNowExtractor` — SQL real em `lwsa.service_now_*`.
 - `ChamadosExtractor` — SQL real iterando registry declarativo.
 - `ServiceNowExtractorMock`, `ChamadosExtractorMock` — dados sintéticos.
 
-**Parsers defensivos** (em `extractor.py:57-104`):
+**Helpers de normalização** (no topo do módulo):
+- `sql_normalizar_login_cliente(coluna)` — expressão PostgreSQL canônica para
+  unificar formatos de `login_cliente` (port do locapredict). Usado em todos
+  os WHEREs e GROUP BYs da Saúde do Cliente.
+- `normalizar_login_cliente(s)` — equivalente Python (regex), usado no mock
+  para coerência em testes.
+
+**Parsers defensivos:**
 - `_parse_datetime` — text → UTC tz-aware (fallback None se inválido).
 - `_parse_prioridade` — "3" → "P3" (default "P4" se inválido).
 - `_contar_atualizacoes` — regex de timestamps no texto livre + fallback.
 - `_detectar_contorno` — heurística textual.
 
 **Factory pattern:** `criar_fonte_incidentes()` / `criar_fonte_chamados()`
-decidem mock vs. real via `USAR_MOCKS`.
+decidem mock vs. real via `USAR_MOCKS` (default `false` — DB real).
 
 **Registry declarativo:** `_montar_sql_chamados(spec, where)` constrói SQL
 dinamicamente para qualquer organização, lendo de
@@ -372,8 +389,12 @@ normalizado).
 - `TfidfVectorizer(max_features=5000, ngram_range=(1,2))` — TF-IDF com unigrams
   e bigrams.
 - `DBSCAN(eps=0.55, min_samples=2, metric='cosine')` — descobre número de
-  clusters automaticamente, identifica outliers.
+  clusters automaticamente, identifica outliers (label `-1`).
 - **Fallback Jaccard** se sklearn não disponível.
+- **Fusão por (produto, servidor)** (`_fundir_singletons_por_ci`):
+  pós-processamento que agrupa singletons que compartilham mesmo `produto`
+  E mesmo `servidor` truthy. Compensa casos onde TF-IDF não detecta
+  similaridade textual mas operacionalmente é o mesmo caso no mesmo CI.
 
 **Scores:**
 - **Criticidade** (0-1): combinação ponderada de volume (0.35) + indisponibilidade
@@ -416,17 +437,30 @@ entre `ABRIR_PRB`, `REPRIORIZAR_PRB`, `MONITORAR`, `NENHUMA`.
 **Defesa em camadas:** `prescrever_lote` envolve `prescrever` com try/except
 por cluster. Falha em 1 cluster não derruba os outros.
 
-#### `customer_monitor.py` (~155 linhas, "Saúde do Cliente")
+#### `customer_monitor.py` (~190 linhas, "Saúde do Cliente")
 
 **Papel:** avaliar clientes recorrentes (requisito Emerson/Bruno).
 
-**Estratégia em 2 fases:**
-1. **`_clientes_com_volume`** — filtra candidatos (≥3 INCs na janela atual de
-   24h). Reduz queries downstream em ~400x.
-2. **Para cada candidato:** query histórica de 6 meses (ServiceNow + chamados
-   via roteamento por organização).
+**Estratégia em 2 fases (bulk):**
 
-**Cálculos:**
+1. **Identificar candidatos** — `fonte_incidentes.contar_clientes_com_inc_recente`
+   roda **SQL agregado** (`GROUP BY login_canonico`) em janela de 30 dias com:
+   - Filtro `tipo_usuario IN ('Nominal',)` — INCs de monitoração ficam de fora.
+   - Normalização do `login_cliente` via `sql_normalizar_login_cliente` (port
+     do projeto locapredict) — unifica formatos como `username (Cód. NNN)`,
+     `ficha=NNN`, dígitos puros.
+   - Filtro `qtd >= LIMIAR_INCS_SAUDE_CLIENTE` (3).
+   Resultado: lista de ~10-15 login_canonico (de ~1.400 Nominais).
+
+2. **Hidratar histórico (BULK)** — 2 chamadas que substituem N×2 queries seriais:
+   - `listar_incidentes_para_saude(candidatos, 6m)` — 1 SELECT com
+     `WHERE login_canonico IN (...)`, colunas slim, `tem_contorno`
+     pré-computado via regex SQL.
+   - `listar_chamados_para_saude(candidatos, 6m)` — 1 query Locaweb + 1 KingHost
+     (sem `_descobrir_organizacao_via_inc`; cada org devolve só clientes que
+     têm registro lá).
+
+**Cálculos por candidato (em memória, sem mais SQL):**
 - `_calcular_severidade_media` — média ponderada de prioridades (P1=1.0,
   P5=0.0).
 - `_tem_inc_recente` — INC nas últimas 7 dias (anti alert-fatigue).
@@ -434,6 +468,11 @@ por cluster. Falha em 1 cluster não derruba os outros.
   decrescente.
 
 **Veredicto:** `alerta_recorrencia_alta = (qtd_incs >= 3) AND _tem_inc_recente(7)`.
+
+**Por que bulk:** reduziu de ~36 round-trips/ciclo (~80 min) para 3 (~30s).
+Com os índices `idx_sni_data_abertura`, `idx_dyn_chamados_datacriacao`,
+`idx_kh_chamados_datacriacao`, `idx_sni_data_tipo` no DBA, o ciclo total cai
+para ~30-45s.
 
 #### `validador_entrega.py` (~145 linhas) — prisma retrospectivo
 
@@ -483,6 +522,9 @@ consumidores Python (Streamlit, Jupyter).
 **Papel:** persistência Postgres em `lwsa.motor_*` (histórico com TTL 30 dias).
 
 - `persistir_execucao(execucao)` — transação atômica que INSERT em 5 tabelas.
+  **Filtra singletons** (`qtd_incs < 2`) antes de gravar `motor_cluster` — só
+  agrupamentos significativos entram. `total_clusters` em `motor_execucao`
+  reflete o filtrado.
 - `purgar_execucoes_antigas(dias=30)` — DELETE de execuções antigas.
 - Helpers privados: `_insert_execucao`, `_insert_clusters`,
   `_insert_prescricoes`, `_insert_saude_clientes`, `_insert_validacoes_entrega`.

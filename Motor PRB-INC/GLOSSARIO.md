@@ -85,9 +85,39 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
 - **Saúde do Cliente** — Módulo que avalia clientes recorrentes (≥3 INCs em
   6 meses) e emite veredicto operacional via `alerta_recorrencia_alta`.
   Consolida histórico ServiceNow + chamados em linha do tempo cronológica.
+  Identifica candidatos numa janela ampliada de **30 dias**
+  (`JANELA_CANDIDATOS_SAUDE_DIAS`) — em 24h dificilmente um cliente real acumula
+  ≥3 INCs. Olha apenas INCs com `tipo_usuario = 'Nominal'`
+  (`TIPOS_USUARIO_SAUDE_CLIENTE`) — INCs de monitoração ("Integração") são
+  abertas por sistema, não por cliente, e não fazem sentido aqui.
   Inspirado em "customer health score" de plataformas CSM (Gainsight,
   HubSpot). Implementado em `customer_monitor.py` via classe `SaudeCliente`
   e função `gerar_saude_clientes`. Requisito Emerson/Bruno.
+
+- **Login canônico** — Identificador unificado do cliente após normalização
+  via `sql_normalizar_login_cliente`. Resolve as 5 formas que o `login_cliente`
+  pode aparecer no banco (ex.: `govonifelipe`, `govonifelipe (Cód. 1100035861)`,
+  URL com `ficha=NNN`, dígitos puros) numa única chave. Port literal da função
+  do projeto irmão `locapredict/guardiao_saude_cliente.py`. Usado em todos os
+  WHEREs e GROUP BYs da Saúde do Cliente.
+
+- **Tipo Usuário (`tipo_usuario`)** — Campo da `service_now_incidentes` que
+  classifica a INC entre `Nominal` (aberta por analista em nome de cliente
+  real, ~8% do volume) e `Integração` (aberta por monitoração automatizada
+  como Zabbix/Nagios, ~92%). INCs Integração têm `login_cliente` vazio por
+  design. Filtro essencial para o motor de Saúde do Cliente.
+
+- **Fusão por (produto, servidor)** — Pós-processamento do DBSCAN que agrupa
+  singletons (`label = -1`) que compartilham mesmo `produto` E `servidor`
+  truthy. Compensa casos onde TF-IDF não detecta similaridade textual mas o
+  operador entende que são o mesmo "caso" no mesmo CI. Aplicado em
+  `analyzer._fundir_singletons_por_ci`.
+
+- **Bulk + slim queries** — Padrão usado na fase Saúde do Cliente para evitar
+  N×2 round-trips ao banco. Uma única query traz histórico de TODOS os clientes
+  candidatos via `WHERE login_canonico IN (...)`. Slim = só colunas usadas
+  (descrição curta, prioridade, produto, servidor, data, contorno pré-computado
+  via regex SQL). Reduziu o tempo da fase de ~80min para ~30s.
 
 - **Gatilho Proativo** — Regra do motor: ≥5 INCs P3 idênticas no mesmo cluster
   → promove para P2 e sugere abertura de PRB **antes** que escale.
@@ -101,7 +131,8 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   ("janeiro de 2026").
 
 - **Mock mode** — Quando `USAR_MOCKS=true`, os extractors devolvem dados
-  sintéticos coerentes em vez de tocar o banco. Default em desenvolvimento.
+  sintéticos coerentes em vez de tocar o banco. Default é **`false`** (banco
+  real). Pra ativar localmente: `$env:USAR_MOCKS = "true"` antes de rodar.
 
 - **Registry declarativo** — `TABELAS_CHAMADOS_POR_ORGANIZACAO` no `config.py`.
   Cada organização declara schema/tabela/colunas; o extractor itera o dict.
@@ -117,7 +148,10 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
 
 - **Singleton (em clusterização)** — Cluster de tamanho 1. INC isolada que o
   DBSCAN marcou como `label=-1`. Convertida em cluster próprio com chave
-  `singleton-INCxxxx` para não perder o sinal.
+  `singleton-INCxxxx`. **Omitido da persistência** em `motor_cluster`
+  (notifier_db filtra `qtd_incs >= 2`) para não poluir o dashboard — só
+  agrupamentos significativos entram. Permanece em memória pra alimentar a
+  Saúde do Cliente. Antes da omissão, singletons inflavam a tabela em ~50%.
 
 - **ValidadorEntrega (prisma retrospectivo)** — Módulo que olha PRBs já
   encerrados pelo Change Team e verifica se o problema realmente foi

@@ -139,18 +139,23 @@ Cliente liga no plantão noturno. Analista precisa:
 Coordenador abre dashboard. Card do cliente já mostra:
 
 ```
-🌡️ cliente005 — RECORRÊNCIA ALTA
-22 INCs em 6 meses · 18 chamados · Severidade 0.48
+🌡️ govonifelipe — RECORRÊNCIA ALTA
+N INCs em 6 meses · M chamados · Severidade X.XX
 
-🟢 INC1000050  ServiceNow   2h atrás · P3
+🟢 INC8846057  ServiceNow   2h atrás · P3
 💬 CAS-500023  Locaweb      3h atrás
-🟢 INC1000047  ServiceNow   8h atrás · P3
+🟢 INC8846033  ServiceNow   8h atrás · P3
 💬 CAS-500012  Kinghost     2 dias atrás
 🟢 INC0900150  ServiceNow   1 mês atrás · P2
                                             [...]
 ```
 
-**Tempo: 5 segundos.**
+**Tempo: ~30 segundos para os 11-13 clientes recorrentes do dia.**
+
+*O login mostrado é o **canônico** após normalização — `govonifelipe`,
+`govonifelipe (Cód. 1100035861)` e até a URL do KingHost
+`https://intranet.kinghost.com.br/.../ficha=NNN` viram a mesma chave,
+evitando duplicatas no painel.*
 
 ---
 
@@ -190,22 +195,36 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 
 ---
 
-## Resultados do MVP (mock de validação)
+## Resultados em produção (DB real, 2026-06-02)
 
-**Dataset sintético com 91 INCs simuladas:**
+**Dataset real do DW Locaweb (~350-400 INCs / 500-700 chamados por ciclo):**
 
-| Métrica | Valor |
+| Métrica | Valor (Exec 5/6 com dado real) |
 |---|---|
-| INCs processadas | 91 em 4,5 segundos |
-| Clusters identificados | 5 (todos com tema coerente) |
-| Prescrições geradas | 5 (1 crítica, 2 altas, 1 média) |
-| Clientes em recorrência alta | 13 |
-| CIs recorrentes detectados | 4 servidores |
+| INCs processadas (24h) | 350-400 |
+| Chamados (24h) | 500-700 |
+| Clusters identificados | 70-95 (36-44 persistidos, demais singletons omitidos) |
+| Fusão por (produto, servidor) | 9-12 INCs agrupadas em 3-5 clusters novos |
+| Prescrições geradas | 70-95 (1-2 críticas/ciclo) |
+| **Clientes Nominais únicos (30 dias)** | **~1.400** |
+| **Recorrência alta (≥3 INCs em 30d)** | **11-13 clientes** |
+| Alertas Slack | 7-8 por ciclo |
+| **Tempo total do ciclo** | **22-46 segundos** ⚡ |
 | Erros | 0 |
+
+**Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 30-45s:**
+
+1. **Filtro `tipo_usuario = Nominal`** — descarta ~92% de INCs de monitoração
+   (Zabbix/Nagios) que não têm cliente associado.
+2. **Janela ampliada de 30 dias** pra identificar candidatos (24h era curto demais).
+3. **Normalização de `login_cliente`** — unifica `username (Cód. NNN)`,
+   `ficha=NNN`, dígitos puros como mesma chave.
+4. **Bulk + slim queries** — substituiu N×2 queries seriais por 3 totais.
+5. **Índices no DW** — `data_abertura`, `datacriacao`, `(data_abertura, tipo_usuario)`.
 
 **Validação técnica:**
 
-- ✅ **54 testes automatizados** passando (cobertura de regras, scores, parsers).
+- ✅ **95 testes automatizados** passando.
 - ✅ **Bug de regressão protegido** (caso "ra" / "fora" não pode voltar).
 - ✅ **Persistência funcional** em Postgres + JSON paralelo.
 
@@ -245,9 +264,11 @@ Pendências **não-técnicas** (apenas configuração):
 
 ### Curto prazo (0–4 semanas)
 
-1. **Deploy em staging:** apontar para banco real, validar dados reais por 1 semana.
-2. **Calibrar `DBSCAN_EPS`** se clusters não fizerem sentido com volume real.
-3. **Habilitar Slack** após validação no dashboard.
+1. ~~**Deploy em staging:**~~ ✅ feito — motor roda contra DW real desde 2026-06-02.
+2. ~~**Calibrar `DBSCAN_EPS`**~~ → calibração aplicada via fusão por (produto, servidor)
+   e filtragem de singletons da persistência.
+3. ~~**Habilitar Slack**~~ ✅ rodando — 7-8 mensagens por ciclo.
+4. Monitorar tempo de ciclo em produção (alvo: ≤2 min) — baseline atual ~30-45s.
 
 ### Médio prazo (1–3 meses)
 

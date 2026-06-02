@@ -83,8 +83,8 @@ pwd = <senha>
 **Importante:** se já está usando o locapredict, o `config.ini` provavelmente
 já existe — basta confirmar.
 
-Sem o `config.ini`, o motor funciona em modo mock (`USAR_MOCKS=true`) mas não
-acessa banco real.
+Sem o `config.ini`, o motor falha em modo real. Pra rodar sem banco use
+`USAR_MOCKS=true` antes do comando (mock activate gera dados sintéticos).
 
 ### 1.4 Executar a DDL no banco (1x)
 
@@ -196,12 +196,15 @@ python main.py --interval 60   # a cada 1 hora
 
 | Modo | Quando usar | Como ativar |
 |---|---|---|
-| **Mock** | Desenvolvimento, testes, demo, validação local | `USAR_MOCKS=true` (default) |
-| **Produção** | Banco real, alertas reais | `USAR_MOCKS=false` |
+| **Produção (default)** | Banco real, alertas reais | Sem env var — apenas `python main.py --once` |
+| **Mock** | Desenvolvimento, testes, demo, validação local | `$env:USAR_MOCKS = "true"` (PowerShell) ou `USAR_MOCKS=true` (bash) |
+
+**Default mudou em 2026-06-02:** antes era mock por padrão. Hoje é produção
+(`USAR_MOCKS=false`). O `Motor-PRB.bat` também força produção explicitamente.
 
 **Em modo mock:** o motor gera dados sintéticos coerentes (91 INCs, 80 chamados,
-2 PRBs). Não toca o banco real. Útil para validar lógica sem ter banco
-disponível.
+2 PRBs, clientes `cliente001..019`). Não toca o banco real. Útil para validar
+lógica sem ter banco disponível.
 
 **Em modo produção:** lê dos schemas `lwsa.*`, `dynamics.*`, `kinghost.*` reais.
 
@@ -331,7 +334,7 @@ Todas configuráveis via env. Defaults em `config.py`.
 
 | Variável | Default | Descrição |
 |---|---|---|
-| `USAR_MOCKS` | `true` | `true` para dados sintéticos. `false` para banco real. |
+| `USAR_MOCKS` | `false` | `true` para dados sintéticos. `false` para banco real (default). |
 | `PERSISTIR_NO_BANCO` | `true` | Liga/desliga gravação em `lwsa.motor_*`. |
 | `CLEANUP_TTL_HABILITADO` | `false` | `true` se conta do motor tem permissão DELETE. |
 | `JANELA_TTL_BANCO_DIAS` | `30` | Quantos dias manter no histórico (só se cleanup habilitado). |
@@ -1044,7 +1047,10 @@ INFO | notifier | Alertas Slack enviados: 0.
 grep "Slack" logs/motor-prb-$(date +%F).log | head -20
 ```
 
-### Sintoma 6: Ciclo lento (>30s)
+### Sintoma 6: Ciclo lento (>2min)
+
+**Baseline esperada após calibração (2026-06-02):** 30-60s com índices criados.
+Se passar de 2min, algo está errado.
 
 **Diagnosticar via SQL:**
 ```sql
@@ -1055,9 +1061,34 @@ LIMIT 10;
 ```
 
 **Causas possíveis:**
-- Banco lento (rede, carga). Reproduzir com `EXPLAIN ANALYZE` nas queries.
-- Volume alto de INCs (>500 na janela). Considerar particionar análise.
-- Muitos candidatos à Saúde do Cliente (>30). Cada um faz 2 queries.
+- **Índices ausentes no banco** (mais comum). Validar com:
+  ```sql
+  EXPLAIN (ANALYZE) SELECT idchamado FROM dynamics.chamados
+   WHERE datacriacao >= NOW() - INTERVAL '24 hours';
+  ```
+  Espera ver `Index Scan using idx_dyn_chamados_datacriacao`. Se vir `Seq Scan`,
+  pedir DBA criar os 4 índices (ver Apêndice de índices em ARQUITETURA.md ou no
+  commit b0ff9c4..HEAD).
+- Banco lento (rede, carga). Validar carga do DW com DBA.
+- Volume alto de INCs (>800 na janela). Improvável — DW costuma ser estável.
+
+### Sintoma 9: Python do venv "trava" sem produzir output
+
+**Sintoma:** `python main.py` ou qualquer `python -c "..."` fica parado
+indefinidamente sem retorno.
+
+**Causa observada:** o arquivo
+`.venv/Lib/site-packages/pip_system_certs.pth` executa `bootstrap()` em todo
+startup do interpretador e em algumas máquinas Windows fica esperando o
+Certificate Store responder.
+
+**Workaround:**
+```powershell
+Move-Item .venv/Lib/site-packages/pip_system_certs.pth `
+          .venv/Lib/site-packages/pip_system_certs.pth.disabled
+```
+Roda o motor (`python main.py --once`). Depois pode restaurar movendo de volta —
+o problema é transiente.
 
 ### Sintoma 7: Cluster com classificação inesperada
 
@@ -1103,6 +1134,17 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
       `CLEANUP_TTL_HABILITADO=true`.
 - [ ] Webhook Slack configurado em `SLACK_WEBHOOK_URL`.
 - [ ] Canal Slack existe e webhook tem permissão.
+- [ ] **DBA criou os 4 índices de performance** (sem eles, ciclo demora >1h):
+      ```sql
+      CREATE INDEX IF NOT EXISTS idx_sni_data_abertura
+        ON lwsa.service_now_incidentes (data_abertura);
+      CREATE INDEX IF NOT EXISTS idx_dyn_chamados_datacriacao
+        ON dynamics.chamados (datacriacao);
+      CREATE INDEX IF NOT EXISTS idx_kh_chamados_datacriacao
+        ON kinghost.chamados (datacriacao);
+      CREATE INDEX IF NOT EXISTS idx_sni_data_tipo
+        ON lwsa.service_now_incidentes (data_abertura, tipo_usuario);
+      ```
 
 ### Validação antes do loop
 
