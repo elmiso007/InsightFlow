@@ -111,7 +111,8 @@ class _FakeFonteInc(FonteIncidentes):
         return []
 
     def listar_incidentes_por_produto_servidor(
-        self, produto: str, servidor: str, desde: datetime
+        self, produto: str, servidor: str, desde: datetime,
+        ate=None,
     ) -> List[Incidente]:
         return []
 
@@ -144,6 +145,11 @@ class _FakeFonteInc(FonteIncidentes):
     ) -> Dict[str, int]:
         return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
 
+    def listar_prbs_novos_no_ci_periodo(
+        self, produto, servidor, desde, ignorar_prb_id=""
+    ) -> List[str]:
+        return []
+
 
 class _FakeFonteChamados(FonteChamados):
     def listar_chamados_periodo(self, horas, produtos=None) -> List[InteracaoChamado]:
@@ -158,6 +164,11 @@ class _FakeFonteChamados(FonteChamados):
         return {login: [] for login in logins_canonicos}
 
     def contar_chamados_por_produto(self, produto, desde, ate) -> int:
+        return 0
+
+    def contar_chamados_vinculados(
+        self, prb_id, incs_ids, desde, ate
+    ) -> int:
         return 0
 
 

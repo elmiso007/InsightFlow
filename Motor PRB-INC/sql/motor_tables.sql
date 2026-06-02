@@ -277,10 +277,31 @@ BEGIN
         ALTER TABLE lwsa.motor_validacao_entrega
             ADD COLUMN delta_chamados_pct numeric(8,3) NOT NULL DEFAULT 0.0;
     END IF;
+
+    -- Rastreamento de PRBs novos pós-resolução (requisito de coordenação 2026-06-02).
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='qtd_prbs_novos_pos_resolucao'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN qtd_prbs_novos_pos_resolucao int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='prbs_novos'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN prbs_novos json NOT NULL DEFAULT '[]'::json;
+    END IF;
 END $$;
 
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_incs_pre_resolucao IS 'INCs no mesmo (produto, servidor) nos JANELA_VOLUMETRIA_PRE_DIAS antes de data_resolucao.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.delta_chamados_pct IS '(chamados_pos - chamados_pre) / chamados_pre. Match exato por chamados.produto = prb.produto.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_prbs_novos_pos_resolucao IS 'PRBs NOVOS abertos no mesmo (produto, servidor) após data_resolucao. Sinal de problema que voltou em outra forma.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.prbs_novos IS 'Array JSON com os numeros dos PRBs novos (ex.: ["PRB0012345"]).';
 
 
 -- ----------------------------------------------------------------------------

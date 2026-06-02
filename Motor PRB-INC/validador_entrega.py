@@ -108,18 +108,30 @@ def _avaliar_prb(
         log.warning("Falha ao calcular volumetria pré de %s: %s", prb.prb_id, exc)
         vol_pre = {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
 
-    # --- Delta de chamados pré vs pós (match exato por produto) ----------
+    # --- Delta de chamados pré vs pós (V3: match por prb/inc vinculados) ---
+    # Substitui o match por produto (V2) — usa as colunas dynamics.chamados.prb
+    # e dynamics.chamados.inc pra contar APENAS chamados realmente vinculados.
     chamados_pre = chamados_pos = 0
     if fonte_chamados is not None:
         janela = timedelta(days=config.JANELA_CHAMADOS_DELTA_DIAS)
         try:
-            chamados_pre = fonte_chamados.contar_chamados_por_produto(
-                produto=prb.produto,
+            # Levantar INCs do CI em cada janela (lista de inc_ids).
+            incs_pre = fonte_inc.listar_incidentes_por_produto_servidor(
+                produto=prb.produto, servidor=prb.servidor,
+                desde=data_ref - janela, ate=data_ref,
+            )
+            incs_ids_pre = [i.inc_id for i in incs_pre if i.inc_id]
+            incs_ids_pos = [i.inc_id for i in incs_pos if i.inc_id]
+
+            chamados_pre = fonte_chamados.contar_chamados_vinculados(
+                prb_id=prb.prb_id,
+                incs_ids=incs_ids_pre,
                 desde=data_ref - janela,
                 ate=data_ref,
             )
-            chamados_pos = fonte_chamados.contar_chamados_por_produto(
-                produto=prb.produto,
+            chamados_pos = fonte_chamados.contar_chamados_vinculados(
+                prb_id=prb.prb_id,
+                incs_ids=incs_ids_pos,
                 desde=data_ref,
                 ate=data_ref + janela,
             )
@@ -131,6 +143,20 @@ def _avaliar_prb(
     # Delta percentual relativo ao pré. Sem pré (0), reporta 0.0 (não pode
     # dividir por 0 — sem base, percentual não tem significado).
     delta_pct = (chamados_pos - chamados_pre) / chamados_pre if chamados_pre > 0 else 0.0
+
+    # --- PRBs novos abertos no CI após a resolução ------------------------
+    # Complementa a contagem de INCs reincidentes: se o mesmo (produto, servidor)
+    # gerou um PRB NOVO depois do fechamento, indica retorno do problema.
+    try:
+        prbs_novos = fonte_inc.listar_prbs_novos_no_ci_periodo(
+            produto=prb.produto,
+            servidor=prb.servidor,
+            desde=data_ref,
+            ignorar_prb_id=prb.prb_id,
+        )
+    except Exception as exc:
+        log.warning("Falha ao listar PRBs novos pós-resolução de %s: %s", prb.prb_id, exc)
+        prbs_novos = []
 
     return ValidacaoEntrega(
         prb_id=prb.prb_id,
@@ -151,6 +177,8 @@ def _avaliar_prb(
         chamados_pre=chamados_pre,
         chamados_pos=chamados_pos,
         delta_chamados_pct=round(delta_pct, 3),
+        qtd_prbs_novos_pos_resolucao=len(prbs_novos),
+        prbs_novos=prbs_novos,
     )
 
 

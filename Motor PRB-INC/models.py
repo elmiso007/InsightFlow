@@ -196,6 +196,14 @@ class ValidacaoEntrega:
     chamados_pos: int = 0
     delta_chamados_pct: float = 0.0       # (pos - pre) / max(pre, 1); -1.0 a +inf
 
+    # --- PRBs novos abertos no mesmo CI após a resolução ---------------------
+    # Sinal complementar à reincidência por INCs: se um PRB NOVO foi aberto
+    # no mesmo (produto, servidor) depois do `data_encerrado`, indica que o
+    # problema retornou em outra forma — possivelmente o fix tratou um sintoma
+    # e não a causa raiz. Requisito da coordenação (2026-06-02).
+    qtd_prbs_novos_pos_resolucao: int = 0
+    prbs_novos: List[str] = field(default_factory=list)
+
 
 @dataclass
 class ExecucaoMotor:

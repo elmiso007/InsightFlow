@@ -52,10 +52,15 @@ class FonteIncidentes(ABC):
 
     @abstractmethod
     def listar_incidentes_por_produto_servidor(
-        self, produto: str, servidor: str, desde: datetime
+        self, produto: str, servidor: str, desde: datetime,
+        ate: Optional[datetime] = None,
     ) -> List[Incidente]:
-        """INCs abertas após `desde` filtrando por (produto, servidor).
-        Usado pelo ValidadorEntrega para detectar reincidência pós-resolução.
+        """INCs com data_abertura ∈ [desde, ate) no mesmo (produto, servidor).
+
+        `ate` opcional — quando None, sem limite superior (default mantém
+        compatibilidade com o uso original do ValidadorEntrega pra reincidência
+        pós-resolução). Quando passado, restringe a janela bilateral — usado
+        para levantar INCs PRÉ-resolução pra o cálculo de Δ chamados V3.
         """
         ...
 
@@ -103,6 +108,20 @@ class FonteIncidentes(ABC):
         """
         ...
 
+    @abstractmethod
+    def listar_prbs_novos_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ignorar_prb_id: str = ""
+    ) -> List[str]:
+        """PRBs novos abertos no mesmo (produto, servidor) a partir de `desde`.
+
+        Usado pelo ValidadorEntrega para detectar se um problema voltou em
+        outra forma após o fix (PRB original resolvido, mas novo PRB criado).
+        `ignorar_prb_id` exclui o PRB sendo validado (defensivo).
+
+        Retorna lista de `numero` (ex.: ["PRB0012345", "PRB0012346"]).
+        """
+        ...
+
 
 class FonteChamados(ABC):
     @abstractmethod
@@ -129,14 +148,29 @@ class FonteChamados(ABC):
     def contar_chamados_por_produto(
         self, produto: str, desde: datetime, ate: datetime
     ) -> int:
-        """Delta de chamados pré/pós-resolução do ValidadorEntrega.
+        """[DEPRECATED — substituído por contar_chamados_vinculados.]
 
-        Conta chamados (Locaweb + KingHost) com match EXATO por `produto`
-        dentro do período [desde, ate). Soma os totais das duas organizações.
+        Delta de chamados pré/pós-resolução do ValidadorEntrega (V2).
+        Match exato por `chamados.produto = prb.produto` — sinal fraco porque
+        a taxonomia da `lw_octadesk.classificacoes.produto` raramente bate
+        com `service_now_problems.produto`.
+        """
+        ...
 
-        Match exato: o `produto` do PRB precisa bater literal com o `produto`
-        do chamado (vindo de lw_octadesk.classificacoes em Locaweb, ou `fila`
-        em KingHost). Quando taxonomias divergem, retorna 0.
+    @abstractmethod
+    def contar_chamados_vinculados(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> int:
+        """Delta de chamados pré/pós com vínculo direto (V3).
+
+        Conta chamados na janela `[desde, ate)` cujo `prb = prb_id` OU
+        `inc IN incs_ids`. Resposta o pedido do coordenador (2026-06-02):
+        usar as colunas que ligam o chamado ao PRB/INC em vez de match
+        genérico por produto.
+
+        Quando `incs_ids` é vazio, só filtra por `prb = prb_id`. Quando
+        `prb_id` é vazio, só filtra por `inc IN (...)`. Ambos vazios = 0.
         """
         ...
 
@@ -524,15 +558,46 @@ class ServiceNowExtractor(FonteIncidentes):
         rows = self._query(sql, params)
         return [self._row_para_prb(r) for r in rows]
 
+    def listar_prbs_novos_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ignorar_prb_id: str = ""
+    ) -> List[str]:
+        """PRBs com data_abertura >= `desde` no mesmo (produto, servidor)."""
+        filtro_org, params_org = _filtro_orgs_sni()
+        sql = f"""
+            SELECT numero
+            FROM {config.SCHEMA_BANCO}.{config.TABELA_PROBLEMAS}
+            WHERE produto = %s
+              AND servidor = %s
+              AND data_abertura >= %s
+              AND numero <> %s
+              {filtro_org}
+            ORDER BY data_abertura DESC
+        """
+        params = (
+            produto, servidor,
+            time_utils.utc_para_string_banco(desde),
+            ignorar_prb_id or "",
+        ) + params_org
+        rows = self._query(sql, params)
+        return [r["numero"] for r in rows if r.get("numero")]
+
     def listar_incidentes_por_produto_servidor(
-        self, produto: str, servidor: str, desde: datetime
+        self, produto: str, servidor: str, desde: datetime,
+        ate: Optional[datetime] = None,
     ) -> List[Incidente]:
-        """INCs abertas após `desde` no mesmo (produto, servidor).
+        """INCs com data_abertura ∈ [desde, ate) no mesmo (produto, servidor).
 
         Match exato (não fuzzy) — mesma estratégia que rules_engine usa pra
-        casar cluster com PRB existente.
+        casar cluster com PRB existente. `ate=None` mantém compat (sem limite
+        superior). `ate` é exclusivo (`<`) para evitar overlap pré/pós no
+        instante exato de `data_encerrado`.
         """
         filtro_org, params_org = _filtro_orgs_sni()
+        clausula_ate = ""
+        params_ate: tuple = ()
+        if ate is not None:
+            clausula_ate = "AND data_abertura < %s"
+            params_ate = (time_utils.utc_para_string_banco(ate),)
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
@@ -544,9 +609,14 @@ class ServiceNowExtractor(FonteIncidentes):
             WHERE produto = %s
               AND servidor = %s
               AND data_abertura >= %s
+              {clausula_ate}
               {filtro_org}
         """
-        params = (produto, servidor, time_utils.utc_para_string_banco(desde)) + params_org
+        params = (
+            (produto, servidor, time_utils.utc_para_string_banco(desde))
+            + params_ate
+            + params_org
+        )
         rows = self._query(sql, params)
         return [self._row_para_incidente(r) for r in rows]
 
@@ -938,10 +1008,68 @@ class ChamadosExtractor(FonteChamados):
                     agrupado[login].append(chamado)
         return agrupado
 
+    def contar_chamados_vinculados(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> int:
+        """Conta chamados em dynamics.chamados onde `prb = prb_id` OR
+        `inc IN incs_ids`, na janela [desde, ate).
+
+        Query consulta APENAS `dynamics.chamados` (Locaweb) — `kinghost.chamados`
+        não tem mapeamento `inc`/`prb` no registry hoje. Se KingHost ativar
+        no futuro, esta função precisará ser estendida.
+
+        Edge cases:
+          - `prb_id` vazio e `incs_ids` vazio → retorna 0 sem hit no banco.
+          - `incs_ids` vazio → só filtra por prb.
+          - `prb_id` vazio → só filtra por inc IN (...).
+        """
+        prb_id = (prb_id or "").strip()
+        incs = [i for i in incs_ids if i and i.strip()]
+        if not prb_id and not incs:
+            return 0
+
+        clausulas = []
+        params: List[Any] = [
+            time_utils.utc_para_string_banco(desde),
+            time_utils.utc_para_string_banco(ate),
+        ]
+        if prb_id:
+            clausulas.append("prb = %s")
+            params.append(prb_id)
+        if incs:
+            placeholders = ",".join(["%s"] * len(incs))
+            clausulas.append(
+                f"(inc IS NOT NULL AND TRIM(inc) <> '' AND inc IN ({placeholders}))"
+            )
+            params.extend(incs)
+        clausula_or = " OR ".join(clausulas)
+
+        sql = f"""
+            SELECT COUNT(*) FROM dynamics.chamados
+            WHERE datacriacao >= %s
+              AND datacriacao <  %s
+              AND ({clausula_or})
+        """
+        try:
+            from db import conectar
+            with conectar() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, tuple(params))
+                    row = cur.fetchone()
+                    return int(row[0]) if row and row[0] else 0
+        except Exception as exc:
+            log.warning(
+                "Falha em contar_chamados_vinculados(prb=%s, %d incs): %s",
+                prb_id, len(incs), exc,
+            )
+            return 0
+
     def contar_chamados_por_produto(
         self, produto: str, desde: datetime, ate: datetime
     ) -> int:
-        """Conta chamados (Locaweb + KingHost) com match EXATO por produto.
+        """[DEPRECATED — ver contar_chamados_vinculados.] Conta chamados
+        (Locaweb + KingHost) com match EXATO por produto.
 
         Itera as organizações do registry, executa COUNT(*) por org com
         `WHERE {col_produto} = %s AND {col_data} >= %s AND {col_data} < %s`,
@@ -1296,7 +1424,8 @@ class ServiceNowExtractorMock(FonteIncidentes):
         ]
 
     def listar_incidentes_por_produto_servidor(
-        self, produto: str, servidor: str, desde: datetime
+        self, produto: str, servidor: str, desde: datetime,
+        ate: Optional[datetime] = None,
     ) -> List[Incidente]:
         """Mock: injeta INCs sintéticas só quando produto+servidor batem com
         o PRB de reincidência (PRB0000790 / DNS / dnsfirewallb0005). Para os
@@ -1363,6 +1492,20 @@ class ServiceNowExtractorMock(FonteIncidentes):
             "clientes_unicos": len({i.login_cliente for i in casados if i.login_cliente}),
             "categorias": len({i.categoria for i in casados if i.categoria}),
         }
+
+    def listar_prbs_novos_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ignorar_prb_id: str = ""
+    ) -> List[str]:
+        # Mock: derivar dos PRBs abertos sintéticos quando match (produto+servidor).
+        novos = []
+        for prb in self._gerador.gerar_prbs():
+            if (
+                prb.produto == produto and prb.servidor == servidor
+                and prb.prb_id != ignorar_prb_id
+                and prb.aberto_em and prb.aberto_em >= desde
+            ):
+                novos.append(prb.prb_id)
+        return novos
 
     def listar_incidentes_cliente(
         self, login_cliente: str, meses: int
@@ -1435,6 +1578,14 @@ class ChamadosExtractorMock(FonteChamados):
             1 for c in self._todos()
             if c.produto == produto and desde <= c.data < ate
         )
+
+    def contar_chamados_vinculados(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> int:
+        # Mock: o dataset sintético não tem colunas inc/prb nos chamados —
+        # retorna 0. Testes injetam comportamento via _FakeFonteChamados.
+        return 0
 
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int

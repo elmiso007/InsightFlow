@@ -318,7 +318,10 @@ class SlackConfig:
     channels: list[str] = None  # type: ignore[assignment]
     webhook_url: str = os.environ.get("SLACK_WEBHOOK_URL", "")
     canal_criticos: str = os.environ.get("SLACK_CANAL_CRITICOS", "#prb-alertas")
-    habilitado: bool = os.environ.get("SLACK_HABILITADO", "true").lower() == "true"
+    # Default = false (Slack desligado até o time confirmar canal/rate-limit).
+    # Pra religar localmente: $env:SLACK_HABILITADO = "true". Pra religar
+    # permanente: trocar o segundo argumento de "false" pra "true".
+    habilitado: bool = os.environ.get("SLACK_HABILITADO", "false").lower() == "true"
 
     def __post_init__(self) -> None:
         # Resolve dinamicamente do config.ini se ainda vazio (permite

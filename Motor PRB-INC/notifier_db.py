@@ -217,10 +217,12 @@ def _insert_validacoes_entrega(
             veredicto, incs_reincidentes,
             grupo_designado, data_abertura_prb,
             qtd_incs_pre_resolucao, clientes_unicos_pre, categorias_pre,
-            chamados_pre, chamados_pos, delta_chamados_pct
+            chamados_pre, chamados_pos, delta_chamados_pct,
+            qtd_prbs_novos_pos_resolucao, prbs_novos
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::json,
-                %s, %s, %s, %s, %s, %s, %s, %s)
+                %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s::json)
     """
     rows = [
         (
@@ -250,6 +252,8 @@ def _insert_validacoes_entrega(
             v.chamados_pre,
             v.chamados_pos,
             v.delta_chamados_pct,
+            v.qtd_prbs_novos_pos_resolucao,
+            _jsonb(v.prbs_novos),
         )
         for v in validacoes
     ]

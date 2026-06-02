@@ -144,7 +144,7 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
         elif v.delta_chamados_pct >= 0.5:
             seta = " :arrow_up:"  # aumento significativo
         linha_delta = (
-            f"*Δ Chamados ({config.JANELA_CHAMADOS_DELTA_DIAS}d):* "
+            f"*Δ Chamados vinculados ({config.JANELA_CHAMADOS_DELTA_DIAS}d):* "
             f"{v.chamados_pre} → {v.chamados_pos} "
             f"({v.delta_chamados_pct * 100:+.1f}%){seta}\n"
         )
@@ -152,6 +152,18 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
     linha_grupo = (
         f"*Grupo designado:* {v.grupo_designado}\n" if v.grupo_designado else ""
     )
+
+    # PRBs novos abertos no mesmo CI após a resolução — sinal de problema que
+    # voltou em outra forma. Só inclui se houver pelo menos 1.
+    linha_prbs_novos = ""
+    if v.qtd_prbs_novos_pos_resolucao > 0:
+        prbs_resumo = ", ".join(v.prbs_novos[:3])
+        if len(v.prbs_novos) > 3:
+            prbs_resumo += f" (+{len(v.prbs_novos) - 3})"
+        linha_prbs_novos = (
+            f"*PRBs novos no CI:* {v.qtd_prbs_novos_pos_resolucao} "
+            f"({prbs_resumo})\n"
+        )
 
     return (
         f":warning::arrows_counterclockwise: *PRB {v.prb_id} — REINCIDÊNCIA DETECTADA*\n"
@@ -164,6 +176,7 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
         f"{linha_pre}"
         f"*Pós-resolução:* {v.qtd_incs_pos_resolucao} novas INCs no mesmo (produto, servidor)\n"
         f"{linha_delta}"
+        f"{linha_prbs_novos}"
         f"*INCs:* {incs_resumo}\n"
         f"_Change Team: validar se o fix entregue cobre os novos casos._"
     )
@@ -391,6 +404,8 @@ def _validacao_entrega_para_dict(v: ValidacaoEntrega) -> Dict[str, Any]:
         "chamados_pre": v.chamados_pre,
         "chamados_pos": v.chamados_pos,
         "delta_chamados_pct": v.delta_chamados_pct,
+        "qtd_prbs_novos_pos_resolucao": v.qtd_prbs_novos_pos_resolucao,
+        "prbs_novos": v.prbs_novos,
     }
 
 

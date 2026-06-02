@@ -37,16 +37,19 @@ class _FakeFonte:
         prbs: List[PRBExistente],
         incs_por_chave: dict[tuple[str, str], List[Incidente]] | None = None,
         vol_pre_por_chave: dict[tuple[str, str], dict[str, int]] | None = None,
+        prbs_novos_por_chave: dict[tuple[str, str], List[str]] | None = None,
     ) -> None:
         self.prbs = prbs
         self.incs_por_chave = incs_por_chave or {}
         self.vol_pre_por_chave = vol_pre_por_chave or {}
+        self.prbs_novos_por_chave = prbs_novos_por_chave or {}
 
     def listar_prbs_para_validacao(self, dias: int) -> List[PRBExistente]:
         return list(self.prbs)
 
     def listar_incidentes_por_produto_servidor(
-        self, produto: str, servidor: str, desde: datetime
+        self, produto: str, servidor: str, desde: datetime,
+        ate: datetime | None = None,
     ) -> List[Incidente]:
         return list(self.incs_por_chave.get((produto, servidor), []))
 
@@ -57,6 +60,12 @@ class _FakeFonte:
             (produto, servidor),
             {"qtd": 0, "clientes_unicos": 0, "categorias": 0},
         )
+
+    def listar_prbs_novos_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ignorar_prb_id: str = ""
+    ) -> List[str]:
+        novos = self.prbs_novos_por_chave.get((produto, servidor), [])
+        return [p for p in novos if p != ignorar_prb_id]
 
     def listar_incidentes_recentes(self, horas):
         raise NotImplementedError
@@ -205,10 +214,10 @@ class TestGerarValidacoes:
     def test_erro_em_um_prb_nao_derruba_outros(self):
         # PRB problemático: produto/servidor que cause exceção na fonte (simula bug)
         class _FontePicada(_FakeFonte):
-            def listar_incidentes_por_produto_servidor(self, produto, servidor, desde):
+            def listar_incidentes_por_produto_servidor(self, produto, servidor, desde, ate=None):
                 if produto == "QUEBRA":
                     raise RuntimeError("simulação de bug")
-                return super().listar_incidentes_por_produto_servidor(produto, servidor, desde)
+                return super().listar_incidentes_por_produto_servidor(produto, servidor, desde, ate)
 
         prb_ok = make_prb(
             prb_id="PRB_OK", produto="VPS", servidor="vps-ok",
@@ -227,33 +236,35 @@ class TestGerarValidacoes:
         assert "PRB_QUEBRA" not in prb_ids
 
 # -----------------------------------------------------------------------------
-# Fake fonte de chamados — só implementa o que o validador V2 usa
+# Fake fonte de chamados — V3 usa match por prb_id/inc_ids
 # -----------------------------------------------------------------------------
 class _FakeFonteChamados:
-    """Devolve contagens fixas por produto sob comando.
+    """Devolve contagens fixas pré/pós por prb_id.
 
-    Estrutura: contagens_por_produto = {produto: {"pre": N, "pos": M}}
-    O validador pede pre/pos via desde<ate; aqui sabemos se é a primeira
-    chamada (pre) ou a segunda (pos) por proximidade da data_ref.
+    Estrutura: contagens_por_prb = {prb_id: {"pre": N, "pos": M}}
+    O validador chama contar_chamados_vinculados 2x por PRB; alternamos
+    pre/pos com base no histórico.
     """
 
     def __init__(
         self,
-        contagens_por_produto: dict[str, dict[str, int]] | None = None,
+        contagens_por_prb: dict[str, dict[str, int]] | None = None,
     ) -> None:
-        self.contagens_por_produto = contagens_por_produto or {}
-        # Histórico de chamadas: lista de (produto, desde, ate)
+        self.contagens_por_prb = contagens_por_prb or {}
+        # Histórico de chamadas: lista de (prb_id, incs_ids, desde, ate)
         self.chamadas: List[tuple] = []
 
-    def contar_chamados_por_produto(self, produto, desde, ate):
-        self.chamadas.append((produto, desde, ate))
-        cfg = self.contagens_por_produto.get(produto)
+    def contar_chamados_vinculados(self, prb_id, incs_ids, desde, ate):
+        self.chamadas.append((prb_id, tuple(incs_ids), desde, ate))
+        cfg = self.contagens_por_prb.get(prb_id)
         if not cfg:
             return 0
-        # A 1ª chamada para um produto é "pre" (desde < ate <= data_ref),
-        # a 2ª é "pos". Para simplificar, alternamos com base no histórico.
-        nth = sum(1 for c in self.chamadas if c[0] == produto)
+        nth = sum(1 for c in self.chamadas if c[0] == prb_id)
         return cfg.get("pre" if nth == 1 else "pos", 0)
+
+    def contar_chamados_por_produto(self, produto, desde, ate):
+        # Mantido só pra compat com a abstract — não é mais usado pelo validador.
+        return 0
 
     def listar_chamados_periodo(self, horas, produtos=None):
         return []
@@ -305,7 +316,7 @@ class TestDeltaChamados:
         )
         fonte_inc = _FakeFonte(prbs=[prb])
         fonte_ch = _FakeFonteChamados(
-            contagens_por_produto={"VPS": {"pre": 20, "pos": 5}},
+            contagens_por_prb={"PRB_X": {"pre": 20, "pos": 5}},
         )
         validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
         v = validacoes[0]
@@ -321,7 +332,7 @@ class TestDeltaChamados:
         )
         fonte_inc = _FakeFonte(prbs=[prb])
         fonte_ch = _FakeFonteChamados(
-            contagens_por_produto={"VPS": {"pre": 0, "pos": 0}},
+            contagens_por_prb={"PRB_X": {"pre": 0, "pos": 0}},
         )
         validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
         v = validacoes[0]
@@ -351,8 +362,59 @@ class TestDeltaChamados:
         )
         fonte_inc = _FakeFonte(prbs=[prb])
         fonte_ch = _FakeFonteChamados(
-            contagens_por_produto={"VPS": {"pre": 4, "pos": 10}},
+            contagens_por_prb={"PRB_X": {"pre": 4, "pos": 10}},
         )
         validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
         v = validacoes[0]
         assert v.delta_chamados_pct == 1.5
+
+
+# -----------------------------------------------------------------------------
+# PRBs novos abertos no mesmo CI pós-resolução (requisito de coordenação)
+# -----------------------------------------------------------------------------
+class TestPrbsNovosPosResolucao:
+    def test_propaga_prbs_novos_para_validacao(self):
+        prb = make_prb(
+            prb_id="PRB_OK", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte = _FakeFonte(
+            prbs=[prb],
+            prbs_novos_por_chave={
+                ("VPS", "vps-01"): ["PRB_NEW_A", "PRB_NEW_B"],
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte)
+        v = validacoes[0]
+        assert v.qtd_prbs_novos_pos_resolucao == 2
+        assert v.prbs_novos == ["PRB_NEW_A", "PRB_NEW_B"]
+
+    def test_zero_quando_nao_ha_prb_novo(self):
+        prb = make_prb(
+            prb_id="PRB_OK", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte = _FakeFonte(prbs=[prb])
+        validacoes = gerar_validacoes_entrega(fonte)
+        v = validacoes[0]
+        assert v.qtd_prbs_novos_pos_resolucao == 0
+        assert v.prbs_novos == []
+
+    def test_proprio_prb_nao_se_auto_referencia(self):
+        # Se a fonte (defensivamente) listar o proprio prb_id, o validador
+        # passa ignorar_prb_id que ja exclui ele.
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte = _FakeFonte(
+            prbs=[prb],
+            prbs_novos_por_chave={
+                ("VPS", "vps-01"): ["PRB_X", "PRB_OUTRO"],  # PRB_X = o proprio
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte)
+        v = validacoes[0]
+        # Fake aplica o filtro ignorar_prb_id — devolve so PRB_OUTRO.
+        assert v.qtd_prbs_novos_pos_resolucao == 1
+        assert v.prbs_novos == ["PRB_OUTRO"]
