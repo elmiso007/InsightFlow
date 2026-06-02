@@ -29,6 +29,8 @@ Jéssica, Victor e Bruno.
 10. [Termos heurísticos (lista completa)](#10-termos-heurísticos-lista-completa)
 11. [Como ajustar uma regra](#11-como-ajustar-uma-regra)
 12. [Clusterização — regras de agrupamento](#12-clusterização--regras-de-agrupamento)
+13. [Filtros de organização e login](#13-filtros-de-organização-e-login)
+14. [ValidadorEntrega — prisma retrospectivo](#14-validadorentrega--prisma-retrospectivo)
 
 ---
 
@@ -952,6 +954,120 @@ locapredict). Resolve 5 formatos diferentes para a mesma chave:
 
 Aplicada em todas as queries do customer_monitor + chamados.
 
+### Enriquecimento via `dynamics.chamados` — login efetivo
+
+Quando uma INC do SNow tem chamado correspondente em `dynamics.chamados.inc`,
+o motor **prefere** o `logincliente` da Dynamics em vez do `login_cliente`
+do SNow. Funciona via JOIN com CTE `chamados_por_inc` (DISTINCT ON, limitada
+por `datacriacao` recente).
+
+```
+login_efetivo = COALESCE(
+    NULLIF(TRIM(dynamics.chamados.logincliente), ''),
+    service_now_incidentes.login_cliente
+)
+```
+
+**Por que isso é regra de negócio:** o `logincliente` da Dynamics vem **limpo**
+(`trieste1`, `dougdonda`, `webcolors3`), enquanto o `login_cliente` do SNow
+pode estar vazio, com URL, ou com formato `(Cód. NNN)`. Cobertura observada:
+~5-10% das INCs em 24h cruzam, mais em janelas longas.
+
+**Efeito mensurado**: passou de **9 → 12 candidatos** a Saúde do Cliente, com
+5 clientes novos com login real (`novon`, `doverroll`, `webcolors3`,
+`diegopdias`, `dmsolucoestec`) que antes ficavam invisíveis. Recomenda-se
+índice `CREATE INDEX ON dynamics.chamados (inc) WHERE inc IS NOT NULL`.
+
+---
+
+## 13. Filtros de organização e login
+
+Configurações em `config.py` que delimitam o escopo de dados que o motor
+processa. Hoje o motor está **focado em Locaweb**.
+
+### `ORGANIZACOES_ATIVAS`
+
+```python
+ORGANIZACOES_ATIVAS: tuple = ("Locaweb",)
+```
+
+Restringe **INCs**, **PRBs** e **tabelas de chamados** às orgs listadas:
+
+| Camada | Como |
+|---|---|
+| INCs (`service_now_incidentes`) | `AND organizacao IN ('Locaweb')` |
+| PRBs (`service_now_problems`) | `AND organizacao IN ('Locaweb')` |
+| Chamados | Itera só as orgs do registry presentes na tupla |
+
+Tupla vazia `()` = sem filtro (todas as orgs do DW). Pra incluir KingHost:
+`("Locaweb", "KingHost")`.
+
+### `LOGIN_CLIENTE_PADROES_EXCLUIDOS`
+
+```python
+LOGIN_CLIENTE_PADROES_EXCLUIDOS: tuple = ("kinghost",)
+```
+
+Complementa o filtro por organização para o caso de INCs classificadas como
+`organizacao = 'Locaweb'` no DW mas com `login_cliente` que indica outra
+origem — ex.: URL `intranet.kinghost.com.br/.../ficha=NNN`. Aplicado via
+`NOT ILIKE '%padrão%'` no `login_cliente` (substring case-insensitive).
+
+Aplicado **apenas** em `contar_clientes_com_inc_recente` (a identificação de
+candidatos a Saúde do Cliente). Outras queries não são afetadas.
+
+---
+
+## 14. ValidadorEntrega — prisma retrospectivo
+
+Complemento ao prisma preventivo (Rules Engine): olha PRBs **já entregues**
+pelo Change Team e verifica se o problema realmente foi resolvido. Entry-point
+separado (`validar_entregas.py`, cadência default 6h).
+
+### Os 3 veredictos (matriz inalterada)
+
+| Veredicto | Condição | Slack? |
+|---|---|---|
+| `REINCIDENCIA` | ≥ `LIMIAR_INCS_REINCIDENCIA` (**3**) INCs novas em `(produto, servidor)` após `data_encerrado` | ✅ |
+| `ENTREGA_VALIDADA` | **0** INCs pós-resolução E ≥ `MIN_DIAS_PARA_VALIDAR` (**7** dias) decorridos | ❌ |
+| `INCONCLUSIVO` | Casos intermediários (janela curta, INCs sub-limiar) | ❌ |
+
+Reincidência tem **precedência** sobre tempo: 3+ INCs no 2º dia ainda é
+reincidência.
+
+### Contexto enriquecedor (V2, 2026-06-02)
+
+Cada `ValidacaoEntrega` carrega, além do veredicto, 2 sinais adicionais:
+
+**Volumetria pré-resolução** (`JANELA_VOLUMETRIA_PRE_DIAS = 60` dias antes
+da entrega):
+
+- `qtd_incs_pre_resolucao` — quantas INCs o PRB cobriu antes do fix
+- `clientes_unicos_pre` — clientes distintos impactados
+- `categorias_pre` — diversidade de categorização
+
+Diferencia PRB "que apagou 50 INCs em 60d" de PRB "que apagou 2".
+
+**Δ chamados pré/pós-resolução** (`JANELA_CHAMADOS_DELTA_DIAS = 14` dias
+em cada lado):
+
+- `chamados_pre` — chamados no produto antes de `data_encerrado`
+- `chamados_pos` — chamados no produto depois de `data_encerrado`
+- `delta_chamados_pct` — `(pos - pre) / pre`
+
+Match **exato** por `chamados.produto = prb.produto` (não usa palavra-chave).
+Quando `delta_chamados_pct ≤ LIMIAR_REDUCAO_CHAMADOS_PCT` (−0.5 = queda ≥ 50%),
+o alerta Slack mostra ↓ indicando que o fix funcionou.
+
+### Como interpretar (operacional)
+
+| Cenário | Volumetria pré | Δ chamados | Veredicto | Leitura |
+|---|---|---|---|---|
+| PRB resolveu um problema gigante | Alta (50+ INCs) | ↓ (>50%) | ENTREGA_VALIDADA | **Fix excelente.** |
+| PRB pequeno, sem reincidência | Baixa (2-5 INCs) | ~0 | ENTREGA_VALIDADA | OK, mas pouco impacto. |
+| Problema voltou | Qualquer | ↑ | REINCIDENCIA | **Re-investigar.** |
+| Janela curta, sem dado novo | — | — | INCONCLUSIVO | Aguardar próximo ciclo. |
+
 ---
 
 ## Referências cruzadas
@@ -966,4 +1082,4 @@ Aplicada em todas as queries do customer_monitor + chamados.
 ---
 
 _Documento mantido sob responsabilidade do PO + contribuidores do motor.
-Reflete a matriz oficial vigente. Última atualização: 2026-06-02._
+Reflete a matriz oficial vigente. Última atualização: 2026-06-02 (ValidadorEntrega V2 + filtros Locaweb)._

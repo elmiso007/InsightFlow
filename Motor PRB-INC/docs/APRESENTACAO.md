@@ -197,22 +197,23 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 
 ## Resultados em produção (DB real, 2026-06-02)
 
-**Dataset real do DW Locaweb (~350-400 INCs / 500-700 chamados por ciclo):**
+**Dataset real do DW Locaweb (~280-400 INCs / 500-700 chamados por ciclo):**
 
-| Métrica | Valor (Exec 5/6 com dado real) |
+| Métrica | Valor após calibração completa |
 |---|---|
-| INCs processadas (24h) | 350-400 |
+| INCs processadas (24h) | 280-400 |
 | Chamados (24h) | 500-700 |
-| Clusters identificados | 70-95 (36-44 persistidos, demais singletons omitidos) |
-| Fusão por (produto, servidor) | 9-12 INCs agrupadas em 3-5 clusters novos |
+| Clusters identificados | 70-95 (27-44 persistidos, demais singletons omitidos) |
+| Fusão por (produto, servidor) | 8-12 INCs agrupadas em 4-5 clusters novos |
 | Prescrições geradas | 70-95 (1-2 críticas/ciclo) |
-| **Clientes Nominais únicos (30 dias)** | **~1.400** |
-| **Recorrência alta (≥3 INCs em 30d)** | **11-13 clientes** |
+| **Clientes Nominais únicos (30 dias, Locaweb)** | **~1.270** |
+| **Recorrência alta (≥3 INCs em 30d)** | **9-12 clientes** com logins canônicos limpos |
+| Validações de entrega (6h) | 10 PRBs (~3 reincidências, ~5 validadas, ~2 inconclusivos) |
 | Alertas Slack | 7-8 por ciclo |
-| **Tempo total do ciclo** | **22-46 segundos** ⚡ |
+| **Tempo total do ciclo** | **22-30 segundos** ⚡ |
 | Erros | 0 |
 
-**Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 30-45s:**
+**Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 22-30s:**
 
 1. **Filtro `tipo_usuario = Nominal`** — descarta ~92% de INCs de monitoração
    (Zabbix/Nagios) que não têm cliente associado.
@@ -220,11 +221,22 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 3. **Normalização de `login_cliente`** — unifica `username (Cód. NNN)`,
    `ficha=NNN`, dígitos puros como mesma chave.
 4. **Bulk + slim queries** — substituiu N×2 queries seriais por 3 totais.
-5. **Índices no DW** — `data_abertura`, `datacriacao`, `(data_abertura, tipo_usuario)`.
+5. **Índices no DW** — `data_abertura`, `datacriacao`, `(data_abertura, tipo_usuario)`,
+   e o novo `dynamics.chamados(inc)`.
+6. **Filtro `ORGANIZACOES_ATIVAS = ("Locaweb",)`** — motor focado no escopo
+   atual; KingHost fica de fora até segunda ordem.
+7. **Filtro `LOGIN_CLIENTE_PADROES_EXCLUIDOS = ("kinghost",)`** — captura
+   URLs `intranet.kinghost.com.br/.../ficha=NNN` mal classificadas como Locaweb.
+8. **Enriquecimento via `dynamics.chamados`** — quando uma INC tem chamado
+   correspondente, o motor usa o `logincliente` da Dynamics (login limpo)
+   em vez do `login_cliente` do SNow (que pode vir vazio ou com URL).
+   Identificou 5 clientes a mais com login real.
+9. **ValidadorEntrega V2** — além do veredicto, mede volumetria pré-resolução
+   (`60d`) e Δ de chamados pré/pós (`14d` simétrico) por produto.
 
 **Validação técnica:**
 
-- ✅ **95 testes automatizados** passando.
+- ✅ **101 testes automatizados** passando.
 - ✅ **Bug de regressão protegido** (caso "ra" / "fora" não pode voltar).
 - ✅ **Persistência funcional** em Postgres + JSON paralelo.
 

@@ -343,21 +343,32 @@ com o projeto irmão locapredict.
 **ABCs (contratos):**
 - `FonteIncidentes` — `listar_incidentes_recentes/cliente/por_produto_servidor`,
   `listar_prbs_abertos/para_validacao`, `contar_clientes_com_inc_recente`
-  (agregado, para a Saúde do Cliente), `listar_incidentes_para_saude` (bulk + slim).
+  (agregado, para a Saúde do Cliente), `listar_incidentes_para_saude` (bulk + slim),
+  `contar_incidentes_no_ci_periodo` (volumetria pré do ValidadorEntrega).
 - `FonteChamados` — `listar_chamados_periodo/cliente`, `listar_chamados_para_saude`
-  (bulk Locaweb + KingHost).
+  (bulk Locaweb + KingHost), `contar_chamados_por_produto` (delta pré/pós do
+  ValidadorEntrega, match exato por produto).
 
 **Implementações concretas:**
 - `ServiceNowExtractor` — SQL real em `lwsa.service_now_*`.
 - `ChamadosExtractor` — SQL real iterando registry declarativo.
 - `ServiceNowExtractorMock`, `ChamadosExtractorMock` — dados sintéticos.
 
-**Helpers de normalização** (no topo do módulo):
+**Helpers de normalização e filtros** (no topo do módulo):
 - `sql_normalizar_login_cliente(coluna)` — expressão PostgreSQL canônica para
   unificar formatos de `login_cliente` (port do locapredict). Usado em todos
   os WHEREs e GROUP BYs da Saúde do Cliente.
 - `normalizar_login_cliente(s)` — equivalente Python (regex), usado no mock
   para coerência em testes.
+- `_filtro_orgs_sni()` — cláusula `AND organizacao IN (...)` a partir de
+  `config.ORGANIZACOES_ATIVAS`. Aplicada em todos os SELECTs de INCs/PRBs.
+- `_registry_chamados_ativo()` — devolve `TABELAS_CHAMADOS_POR_ORGANIZACAO`
+  filtrado por orgs ativas (KingHost pulada quando inativa).
+- `_filtro_padroes_login_excluidos(coluna)` — cláusula `AND col NOT ILIKE '%pat%'`
+  a partir de `config.LOGIN_CLIENTE_PADROES_EXCLUIDOS`. Aplicada em
+  `contar_clientes_com_inc_recente`.
+- `_sql_cte_chamados_por_inc(janela_dias)` — CTE PostgreSQL com `DISTINCT ON (inc)`
+  pra enriquecer INCs com `dynamics.chamados.logincliente` (login efetivo).
 
 **Parsers defensivos:**
 - `_parse_datetime` — text → UTC tz-aware (fallback None se inválido).
@@ -474,24 +485,35 @@ Com os índices `idx_sni_data_abertura`, `idx_dyn_chamados_datacriacao`,
 `idx_kh_chamados_datacriacao`, `idx_sni_data_tipo` no DBA, o ciclo total cai
 para ~30-45s.
 
-#### `validador_entrega.py` (~145 linhas) — prisma retrospectivo
+#### `validador_entrega.py` (~190 linhas) — prisma retrospectivo
 
 **Papel:** complemento ao `rules_engine` (preventivo) — olha PRBs **já
 entregues** pelo Change Team e verifica se o problema realmente foi resolvido.
 Fecha o loop de qualidade do fix.
 
-**Estratégia por PRB:** `fonte_inc.listar_incidentes_por_produto_servidor`
-busca INCs no mesmo CI após `data_encerrado`. Veredicto via `_classificar`:
-- `REINCIDENCIA` se `qtd ≥ LIMIAR_INCS_REINCIDENCIA` (3).
-- `ENTREGA_VALIDADA` se `qtd == 0` E `dias_pos ≥ MIN_DIAS_PARA_VALIDAR` (7).
-- `INCONCLUSIVO` no resto.
+**Estratégia por PRB:** `_avaliar_prb(prb, fonte_inc, fonte_chamados)` coleta
+3 sinais:
+
+1. **Veredicto** via `fonte_inc.listar_incidentes_por_produto_servidor` +
+   `_classificar(qtd_pos, dias_pos)`:
+   - `REINCIDENCIA` se `qtd ≥ LIMIAR_INCS_REINCIDENCIA` (3).
+   - `ENTREGA_VALIDADA` se `qtd == 0` E `dias_pos ≥ MIN_DIAS_PARA_VALIDAR` (7).
+   - `INCONCLUSIVO` no resto.
+2. **Volumetria pré-resolução** via `fonte_inc.contar_incidentes_no_ci_periodo`
+   (janela `JANELA_VOLUMETRIA_PRE_DIAS = 60` dias antes de `data_encerrado`).
+   Retorna `{qtd, clientes_unicos, categorias}`.
+3. **Δ chamados pré/pós** via `fonte_chamados.contar_chamados_por_produto`
+   em duas chamadas (janela `JANELA_CHAMADOS_DELTA_DIAS = 14` dias em cada lado).
+   Match exato `chamados.produto = prb.produto`.
 
 **Defesa em camadas:** falha em um PRB não derruba o ciclo — registra warning
-e segue com os demais.
+e segue com os demais. `fonte_chamados` é opcional: sem ela, validador ainda
+emite veredicto + volumetria, mas Δ chamados fica em 0.
 
 **Entry-point separado:** `validar_entregas.py` — análogo ao `main.py` mas com
 cadência default 6h (validações não mudam de minuto em minuto). Compartilha
-persistência Postgres (mesma `motor_execucao`).
+persistência Postgres (mesma `motor_execucao`). Passa `fonte_chamados` pro
+validador desde a V2 (2026-06-02).
 
 #### `notifier.py` (~290 linhas)
 
@@ -534,7 +556,10 @@ consumidores Python (Streamlit, Jupyter).
 - `motor_cluster` (1 linha por cluster)
 - `motor_prescricao` (1 linha por prescrição)
 - `motor_saude_cliente` (1 linha por avaliação de cliente)
-- `motor_validacao_entrega` (1 linha por PRB validado pelo prisma retrospectivo)
+- `motor_validacao_entrega` (1 linha por PRB validado — 19 colunas, sendo
+  11 base + 8 V2: `grupo_designado`, `data_abertura_prb`,
+  `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre`,
+  `chamados_pre`, `chamados_pos`, `delta_chamados_pct`)
 
 **Defesa:** se Postgres falhar, motor continua (JSON e Slack tentam).
 

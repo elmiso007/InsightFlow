@@ -119,6 +119,29 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   (descrição curta, prioridade, produto, servidor, data, contorno pré-computado
   via regex SQL). Reduziu o tempo da fase de ~80min para ~30s.
 
+- **Login efetivo** — `COALESCE(dynamics.chamados.logincliente, sni.login_cliente)`.
+  Quando uma INC do ServiceNow tem chamado correspondente em
+  `dynamics.chamados.inc`, o motor usa o `logincliente` de lá (limpo, sem URL,
+  sem `(Cód.)`). Cai pro `login_cliente` do SNow quando não há cruzamento.
+  Resultado: identifica ~5 clientes a mais com login real legível. Cobertura
+  parcial (~5-10% das INCs em 24h cruzam — mais em janelas maiores).
+  Aplicado em `contar_clientes_com_inc_recente` e `listar_incidentes_para_saude`
+  via CTE `chamados_por_inc` (DISTINCT ON, limitada por `datacriacao` recente
+  pra performance).
+
+- **Organizações ativas** (`ORGANIZACOES_ATIVAS`) — Tupla em `config.py` que
+  restringe INCs, PRBs e tabelas de chamados às orgs listadas. Hoje
+  `("Locaweb",)` — motor está focado em Locaweb. Pra incluir KingHost:
+  `("Locaweb", "KingHost")`. Tupla vazia = sem filtro. Aplicado via
+  `WHERE organizacao IN (...)` nos SELECTs do SNow e via filtro do registry
+  `TABELAS_CHAMADOS_POR_ORGANIZACAO`.
+
+- **Padrões de login excluídos** (`LOGIN_CLIENTE_PADROES_EXCLUIDOS`) — Tupla de
+  substrings (case-insensitive) que descartam INCs cujo `login_cliente` casa
+  o padrão. Complementa `ORGANIZACOES_ATIVAS` para o caso de INCs classificadas
+  como `Locaweb` no DW mas com URL `intranet.kinghost.com.br/.../ficha=NNN`
+  no campo login. Default: `("kinghost",)`. Aplicado via `NOT ILIKE %padrão%`.
+
 - **Gatilho Proativo** — Regra do motor: ≥5 INCs P3 idênticas no mesmo cluster
   → promove para P2 e sugere abertura de PRB **antes** que escale.
 
@@ -166,6 +189,21 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
     `MIN_DIAS_PARA_VALIDAR` (7 dias) decorridos. Confirma que o fix segurou.
   - `INCONCLUSIVO` — caso intermediário (janela curta, INCs sub-limiar). Continua
     sob observação até próxima rodada.
+
+- **Volumetria pré-resolução** — Contagem de INCs no mesmo `(produto, servidor)`
+  nos `JANELA_VOLUMETRIA_PRE_DIAS` (60) dias **antes** de `data_encerrado` do
+  PRB. Mede o **tamanho do problema** que o Change Team resolveu: PRB que
+  apagou 50 INCs em 60d ≠ PRB que apagou 2. Devolve trio (qtd, clientes_unicos,
+  categorias). Aplicada em `validador_entrega._avaliar_prb` via
+  `fonte_inc.contar_incidentes_no_ci_periodo`.
+
+- **Δ de chamados (pré/pós)** — Variação percentual de chamados no produto do
+  PRB em janela simétrica de `JANELA_CHAMADOS_DELTA_DIAS` (14) dias antes vs
+  depois de `data_encerrado`. KPI "o suporte respirou?" pro Change Team. Match
+  **exato** por `chamados.produto = prb.produto` (taxonomia precisa bater).
+  Quando `delta_chamados_pct ≤ -0.5` (queda ≥ 50%), o alerta Slack mostra ↓
+  indicando fix funcionou. Sem palavra-chave heurística (V2 original) — sinal
+  fraco demais, foi descartado.
 
 ---
 

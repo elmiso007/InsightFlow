@@ -378,6 +378,21 @@ placeholders para evolução futura caso a integração direta seja necessária:
 |---|---|---|
 | `DASHBOARD_OUTPUT_PATH` | `./output/dashboard_state.json` | Caminho do JSON gerado a cada ciclo. |
 
+### 3.7 Filtros de escopo (em `config.py`, não env)
+
+Essas configs **não são env vars** — vivem em `config.py` porque mudam pouco e
+afetam todas as consultas. Editar arquivo + reiniciar motor.
+
+| Constante | Default | Descrição |
+|---|---|---|
+| `ORGANIZACOES_ATIVAS` | `("Locaweb",)` | Restringe INCs/PRBs/chamados às orgs listadas. Tupla vazia = sem filtro. |
+| `LOGIN_CLIENTE_PADROES_EXCLUIDOS` | `("kinghost",)` | Substrings que descartam INCs cujo `login_cliente` casa (case-insensitive). |
+| `TIPOS_USUARIO_SAUDE_CLIENTE` | `("Nominal",)` | Tipos aceitos pra Saúde do Cliente (INCs de monitoração ficam fora). |
+| `JANELA_CANDIDATOS_SAUDE_DIAS` | `30` | Janela para identificar candidatos a Saúde. |
+| `JANELA_VOLUMETRIA_PRE_DIAS` | `60` | Janela do volumetria pré do ValidadorEntrega. |
+| `JANELA_CHAMADOS_DELTA_DIAS` | `14` | Janela do Δ de chamados (simétrica). |
+| `LIMIAR_REDUCAO_CHAMADOS_PCT` | `-0.5` | Δ ≤ esse valor mostra ↓ no Slack. |
+
 ### 3.7 Exemplo `.env` (não commitar!)
 
 ```bash
@@ -1134,7 +1149,7 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
       `CLEANUP_TTL_HABILITADO=true`.
 - [ ] Webhook Slack configurado em `SLACK_WEBHOOK_URL`.
 - [ ] Canal Slack existe e webhook tem permissão.
-- [ ] **DBA criou os 4 índices de performance** (sem eles, ciclo demora >1h):
+- [ ] **DBA criou os 5 índices de performance** (sem eles, ciclo demora >1h):
       ```sql
       CREATE INDEX IF NOT EXISTS idx_sni_data_abertura
         ON lwsa.service_now_incidentes (data_abertura);
@@ -1144,7 +1159,15 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
         ON kinghost.chamados (datacriacao);
       CREATE INDEX IF NOT EXISTS idx_sni_data_tipo
         ON lwsa.service_now_incidentes (data_abertura, tipo_usuario);
+      -- V2 do ValidadorEntrega + enriquecimento via dynamics
+      CREATE INDEX IF NOT EXISTS idx_dyn_chamados_inc
+        ON dynamics.chamados (inc) WHERE inc IS NOT NULL;
       ```
+- [ ] **DDL do ValidadorEntrega V2 executada** — adiciona 8 colunas em
+      `lwsa.motor_validacao_entrega` via DO block idempotente
+      (`sql/motor_tables.sql`, seção "ALTER condicional"). Sem isso, a
+      persistência do `validar_entregas.py` falha com `column "grupo_designado"
+      does not exist`.
 
 ### Validação antes do loop
 
