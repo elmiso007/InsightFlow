@@ -86,6 +86,23 @@ class FonteIncidentes(ABC):
         """
         ...
 
+    @abstractmethod
+    def contar_incidentes_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ate: datetime
+    ) -> Dict[str, int]:
+        """Volumetria pré-resolução do ValidadorEntrega.
+
+        Conta INCs no mesmo (produto, servidor) dentro do período
+        [desde, ate). Retorna agregado:
+          - qtd            — total de INCs
+          - clientes_unicos — COUNT DISTINCT login_cliente
+          - categorias     — COUNT DISTINCT categoria
+
+        Query agregada — não hidrata Incidentes (a Saúde do Cliente faz isso
+        em outro lugar; aqui só precisamos das contagens).
+        """
+        ...
+
 
 class FonteChamados(ABC):
     @abstractmethod
@@ -105,6 +122,21 @@ class FonteChamados(ABC):
         """Bulk: 1 SELECT por organização (Locaweb + KingHost) retornando
         chamados de TODOS os candidatos, agrupados por login canônico.
         Substitui N×2 chamadas a listar_chamados_cliente.
+        """
+        ...
+
+    @abstractmethod
+    def contar_chamados_por_produto(
+        self, produto: str, desde: datetime, ate: datetime
+    ) -> int:
+        """Delta de chamados pré/pós-resolução do ValidadorEntrega.
+
+        Conta chamados (Locaweb + KingHost) com match EXATO por `produto`
+        dentro do período [desde, ate). Soma os totais das duas organizações.
+
+        Match exato: o `produto` do PRB precisa bater literal com o `produto`
+        do chamado (vindo de lw_octadesk.classificacoes em Locaweb, ou `fila`
+        em KingHost). Quando taxonomias divergem, retorna 0.
         """
         ...
 
@@ -150,6 +182,77 @@ def sql_normalizar_login_cliente(coluna: str = "login_cliente") -> str:
 # Expressões pré-calculadas para uso direto em f-strings de SQL.
 # _LOGIN_NORM_SNI: lwsa.service_now_incidentes (coluna `login_cliente` sem alias).
 _LOGIN_NORM_SNI = sql_normalizar_login_cliente("login_cliente")
+
+
+def _filtro_orgs_sni() -> tuple:
+    """Cláusula AND + params para restringir INCs/PRBs do ServiceNow às orgs
+    ativas (config.ORGANIZACOES_ATIVAS). Tupla vazia = sem filtro.
+
+    Retorna (clausula_sql, params). A cláusula já inclui o "AND" inicial e
+    placeholders %s — pronta pra ser concatenada num WHERE existente.
+    """
+    orgs = config.ORGANIZACOES_ATIVAS
+    if not orgs:
+        return "", ()
+    placeholders = ",".join(["%s"] * len(orgs))
+    return f"AND organizacao IN ({placeholders})", tuple(orgs)
+
+
+def _registry_chamados_ativo() -> Dict[str, Any]:
+    """Devolve `TABELAS_CHAMADOS_POR_ORGANIZACAO` filtrado por
+    config.ORGANIZACOES_ATIVAS. Tupla vazia = retorna o registry inteiro.
+
+    Usado por todos os métodos do ChamadosExtractor que iteram organizações.
+    """
+    orgs = config.ORGANIZACOES_ATIVAS
+    if not orgs:
+        return dict(config.TABELAS_CHAMADOS_POR_ORGANIZACAO)
+    return {
+        nome: spec
+        for nome, spec in config.TABELAS_CHAMADOS_POR_ORGANIZACAO.items()
+        if nome in orgs
+    }
+
+
+def _sql_cte_chamados_por_inc(janela_dias: int = 180) -> str:
+    """CTE PostgreSQL que retorna {inc → logincliente} a partir de
+    dynamics.chamados. Quando uma INC tem múltiplos chamados, escolhe o mais
+    recente (DISTINCT ON com ORDER BY datacriacao DESC).
+
+    Permite enriquecer INCs do SNow com login limpo do cliente real — vital
+    quando service_now_incidentes.login_cliente vem vazio, com URL, ou com
+    formato "(Cód. NNN)".
+
+    `janela_dias` restringe a CTE a chamados criados nos últimos N dias.
+    Sem o filtro a CTE varre a tabela inteira (~20k+ linhas) — com 180 dias
+    cobre o histórico de 6 meses da Saúde do Cliente. Recomenda-se também
+    criar índice `CREATE INDEX ON dynamics.chamados (inc) WHERE inc IS NOT NULL`
+    via DBA pra eliminar de vez o gargalo.
+    """
+    return f"""chamados_por_inc AS (
+        SELECT DISTINCT ON (inc) inc, logincliente
+        FROM dynamics.chamados
+        WHERE inc IS NOT NULL AND TRIM(inc) <> ''
+          AND TRIM(COALESCE(logincliente, '')) <> ''
+          AND datacriacao >= NOW() - INTERVAL '{int(janela_dias)} days'
+        ORDER BY inc, datacriacao DESC
+    )"""
+
+
+def _filtro_padroes_login_excluidos(coluna: str = "login_cliente") -> tuple:
+    """Cláusula AND + params para descartar rows cujo `login_cliente` contém
+    padrões blacklist (case-insensitive). Tupla vazia = sem filtro.
+
+    Complementa o filtro por organização: cobre o caso de INCs do DW
+    classificadas como Locaweb mas com login que indica outra origem
+    (ex.: URLs `intranet.kinghost.com.br/.../ficha=NNN`).
+    """
+    padroes = config.LOGIN_CLIENTE_PADROES_EXCLUIDOS
+    if not padroes:
+        return "", ()
+    clausulas = " ".join([f"AND {coluna} NOT ILIKE %s" for _ in padroes])
+    params = tuple(f"%{p}%" for p in padroes)
+    return clausulas, params
 
 
 # Regexes pré-compilados — equivalente Python da expressão SQL acima.
@@ -334,6 +437,7 @@ class ServiceNowExtractor(FonteIncidentes):
     def listar_incidentes_recentes(self, horas: int) -> List[Incidente]:
         """INCs abertas nas últimas N horas (sem filtro de status — fluxo, não estado)."""
         corte = time_utils.agora_utc() - timedelta(hours=horas)
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
@@ -343,8 +447,10 @@ class ServiceNowExtractor(FonteIncidentes):
                    atualizacoes, servidor, tipo_usuario
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
             WHERE data_abertura >= %s
+              {filtro_org}
         """
-        rows = self._query(sql, (time_utils.utc_para_string_banco(corte),))
+        params = (time_utils.utc_para_string_banco(corte),) + params_org
+        rows = self._query(sql, params)
         return [self._row_para_incidente(r) for r in rows]
 
     def listar_incidentes_cliente(
@@ -358,6 +464,7 @@ class ServiceNowExtractor(FonteIncidentes):
         'ficha=N', '12345', etc.
         """
         corte = time_utils.agora_utc() - timedelta(days=30 * meses)
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
@@ -368,22 +475,26 @@ class ServiceNowExtractor(FonteIncidentes):
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
             WHERE {_LOGIN_NORM_SNI} = %s
               AND data_abertura >= %s
+              {filtro_org}
         """
-        rows = self._query(sql, (login_cliente, time_utils.utc_para_string_banco(corte)))
+        params = (login_cliente, time_utils.utc_para_string_banco(corte)) + params_org
+        rows = self._query(sql, params)
         return [self._row_para_incidente(r) for r in rows]
 
     # --- PRBs ---------------------------------------------------------------
     def listar_prbs_abertos(self) -> List[PRBExistente]:
         """PRBs com status ativo (config.STATUS_PRB_ATIVOS)."""
         placeholders = ",".join(["%s"] * len(config.STATUS_PRB_ATIVOS))
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT numero, descricao_curta, descricao, produto, servidor,
                    prioridade, status, solucao_alternativa, categoria, subcategoria,
                    grupo_designado, atualizacoes, data_abertura, data_encerrado
             FROM {config.SCHEMA_BANCO}.{config.TABELA_PROBLEMAS}
             WHERE status IN ({placeholders})
+              {filtro_org}
         """
-        rows = self._query(sql, tuple(config.STATUS_PRB_ATIVOS))
+        rows = self._query(sql, tuple(config.STATUS_PRB_ATIVOS) + params_org)
         return [self._row_para_prb(r) for r in rows]
 
     def listar_prbs_para_validacao(self, dias: int) -> List[PRBExistente]:
@@ -396,6 +507,7 @@ class ServiceNowExtractor(FonteIncidentes):
         """
         corte = time_utils.agora_utc() - timedelta(days=dias)
         placeholders = ",".join(["%s"] * len(config.STATUS_PRB_ENCERRADOS))
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT numero, descricao_curta, descricao, produto, servidor,
                    prioridade, status, solucao_alternativa, categoria, subcategoria,
@@ -404,10 +516,11 @@ class ServiceNowExtractor(FonteIncidentes):
             WHERE status IN ({placeholders})
               AND data_encerrado IS NOT NULL
               AND data_encerrado >= %s
+              {filtro_org}
         """
         params = tuple(config.STATUS_PRB_ENCERRADOS) + (
             time_utils.utc_para_string_banco(corte),
-        )
+        ) + params_org
         rows = self._query(sql, params)
         return [self._row_para_prb(r) for r in rows]
 
@@ -419,6 +532,7 @@ class ServiceNowExtractor(FonteIncidentes):
         Match exato (não fuzzy) — mesma estratégia que rules_engine usa pra
         casar cluster com PRB existente.
         """
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT numero, organizacao, descricao_curta, descricao, fechamento,
                    prioridade, produto, data_abertura, data_resolvido, data_encerrado,
@@ -430,11 +544,10 @@ class ServiceNowExtractor(FonteIncidentes):
             WHERE produto = %s
               AND servidor = %s
               AND data_abertura >= %s
+              {filtro_org}
         """
-        rows = self._query(
-            sql,
-            (produto, servidor, time_utils.utc_para_string_banco(desde)),
-        )
+        params = (produto, servidor, time_utils.utc_para_string_banco(desde)) + params_org
+        rows = self._query(sql, params)
         return [self._row_para_incidente(r) for r in rows]
 
     def contar_clientes_com_inc_recente(
@@ -442,34 +555,92 @@ class ServiceNowExtractor(FonteIncidentes):
     ) -> Dict[str, int]:
         """SQL agregado normalizado: SELECT login_canonico, COUNT(*) GROUP BY login_canonico.
 
-        Normaliza login_cliente direto no SQL (ver sql_normalizar_login_cliente)
-        — unifica formatos diferentes do mesmo cliente em uma única chave.
-        Sem essa normalização, "govonifelipe" e "govonifelipe (Cód. NNN)"
-        viram 2 candidatos quando são o mesmo cliente.
+        Login efetivo = COALESCE(dynamics.chamados.logincliente, sni.login_cliente).
+        Quando a INC tem chamado correspondente em dynamics.chamados.inc, usa o
+        logincliente de lá (limpo, sem URL/Cód./vazio). Cai pro SNow quando não
+        houver cruzamento. Depois aplica `sql_normalizar_login_cliente` pra
+        canonizar.
         """
         corte = time_utils.agora_utc() - timedelta(hours=horas)
         params: List[Any] = [time_utils.utc_para_string_banco(corte)]
         where_tipo = ""
         if tipos_usuario:
             placeholders = ",".join(["%s"] * len(tipos_usuario))
-            where_tipo = f"AND tipo_usuario IN ({placeholders})"
+            where_tipo = f"AND sni.tipo_usuario IN ({placeholders})"
             params.extend(tipos_usuario)
+        # Filtros org/login operam sobre as colunas do SNow (raw) — antes do COALESCE.
+        # KingHost na URL do login_cliente continua sendo excluído.
+        filtro_org_raw, params_org = _filtro_orgs_sni()
+        params.extend(params_org)
+        filtro_org = filtro_org_raw.replace("organizacao", "sni.organizacao")
+        filtro_login_raw, params_login = _filtro_padroes_login_excluidos("sni.login_cliente")
+        params.extend(params_login)
+        # E também o login efetivo (caso dynamics traga um login KingHost — paranóia).
+        filtro_login_efetivo, params_login_efetivo = _filtro_padroes_login_excluidos("login_efetivo")
+        params.extend(params_login_efetivo)
+        login_norm_efetivo = sql_normalizar_login_cliente("login_efetivo")
+        # CTE cobre a mesma janela que estamos buscando (com folga de 7 dias
+        # pra capturar chamados criados um pouco antes da abertura da INC).
+        janela_cte_dias = max(int(horas / 24) + 7, 14)
         sql = f"""
-            WITH normalizado AS (
-                SELECT {_LOGIN_NORM_SNI} AS login_canonico
-                FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
-                WHERE data_abertura >= %s
-                  AND login_cliente IS NOT NULL
-                  AND TRIM(login_cliente) <> ''
+            WITH {_sql_cte_chamados_por_inc(janela_cte_dias)},
+            enriquecido AS (
+                SELECT
+                    COALESCE(
+                        NULLIF(TRIM(c.logincliente), ''),
+                        sni.login_cliente
+                    ) AS login_efetivo
+                FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES} sni
+                LEFT JOIN chamados_por_inc c ON c.inc = sni.numero
+                WHERE sni.data_abertura >= %s
+                  AND sni.login_cliente IS NOT NULL
+                  AND TRIM(sni.login_cliente) <> ''
                   {where_tipo}
+                  {filtro_org}
+                  {filtro_login_raw}
             )
-            SELECT login_canonico, COUNT(*) AS qtd
-            FROM normalizado
-            WHERE login_canonico IS NOT NULL AND login_canonico <> ''
-            GROUP BY login_canonico
+            SELECT {login_norm_efetivo} AS login_canonico, COUNT(*) AS qtd
+            FROM enriquecido
+            WHERE login_efetivo IS NOT NULL
+              AND TRIM(login_efetivo) <> ''
+              {filtro_login_efetivo}
+            GROUP BY {login_norm_efetivo}
+            HAVING {login_norm_efetivo} IS NOT NULL AND {login_norm_efetivo} <> ''
         """
         rows = self._query(sql, tuple(params))
         return {r["login_canonico"]: int(r["qtd"]) for r in rows}
+
+    def contar_incidentes_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ate: datetime
+    ) -> Dict[str, int]:
+        """SQL agregado: 3 contagens distintas numa única query."""
+        filtro_org, params_org = _filtro_orgs_sni()
+        sql = f"""
+            SELECT
+                COUNT(*) AS qtd,
+                COUNT(DISTINCT NULLIF(TRIM(COALESCE(login_cliente, '')), '')) AS clientes_unicos,
+                COUNT(DISTINCT NULLIF(TRIM(COALESCE(categoria, '')), '')) AS categorias
+            FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
+            WHERE produto = %s
+              AND servidor = %s
+              AND data_abertura >= %s
+              AND data_abertura < %s
+              {filtro_org}
+        """
+        params = (
+            produto, servidor,
+            time_utils.utc_para_string_banco(desde),
+            time_utils.utc_para_string_banco(ate),
+        ) + params_org
+        rows = self._query(sql, params)
+        if not rows:
+            return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
+        r = rows[0]
+        return {
+            "qtd": int(r.get("qtd") or 0),
+            "clientes_unicos": int(r.get("clientes_unicos") or 0),
+            "categorias": int(r.get("categorias") or 0),
+        }
 
     def listar_incidentes_para_saude(
         self, logins_canonicos: Sequence[str], meses: int
@@ -489,22 +660,35 @@ class ServiceNowExtractor(FonteIncidentes):
         # Regex equivalente a `_TERMOS_INDICADORES_CONTORNO` em Python. ~* é
         # POSIX case-insensitive — cobre acento e variações comuns.
         regex_contorno = r"contorno|workaround|solu[cç][aã]o alternativa|paliativo|tempor[aá]ri[oa]|tempor[aá]riamente"
+        filtro_org_raw, params_org = _filtro_orgs_sni()
+        filtro_org = filtro_org_raw.replace("organizacao", "sni.organizacao")
+        # Mesmo login efetivo da contagem de candidatos — sem isso o WHERE
+        # comparando login_canonico contra IN (...) não casaria as INCs cujo
+        # login canônico veio de dynamics.chamados.logincliente.
+        login_norm_efetivo = sql_normalizar_login_cliente(
+            "COALESCE(NULLIF(TRIM(c.logincliente), ''), sni.login_cliente)"
+        )
+        # CTE cobre a janela de histórico + folga de 7d.
+        janela_cte_dias = 30 * meses + 7
         sql = f"""
+            WITH {_sql_cte_chamados_por_inc(janela_cte_dias)}
             SELECT
-                numero,
-                descricao_curta,
-                prioridade,
-                produto,
-                data_abertura,
-                servidor,
-                {_LOGIN_NORM_SNI} AS login_cliente,
-                (COALESCE(descricao, '') || ' ' || COALESCE(fechamento, ''))
+                sni.numero,
+                sni.descricao_curta,
+                sni.prioridade,
+                sni.produto,
+                sni.data_abertura,
+                sni.servidor,
+                {login_norm_efetivo} AS login_cliente,
+                (COALESCE(sni.descricao, '') || ' ' || COALESCE(sni.fechamento, ''))
                     ~* '{regex_contorno}' AS tem_contorno
-            FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
-            WHERE {_LOGIN_NORM_SNI} IN ({placeholders})
-              AND data_abertura >= %s
+            FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES} sni
+            LEFT JOIN chamados_por_inc c ON c.inc = sni.numero
+            WHERE {login_norm_efetivo} IN ({placeholders})
+              AND sni.data_abertura >= %s
+              {filtro_org}
         """
-        params = tuple(logins_canonicos) + (time_utils.utc_para_string_banco(corte),)
+        params = tuple(logins_canonicos) + (time_utils.utc_para_string_banco(corte),) + params_org
         rows = self._query(sql, params)
 
         agrupado: Dict[str, List[Incidente]] = {login: [] for login in logins_canonicos}
@@ -656,7 +840,7 @@ class ChamadosExtractor(FonteChamados):
         # Coluna `data` é o alias canônico vindo do _montar_sql. O WHERE precisa
         # casar com a tabela real — usamos o nome lógico via spec.
         resultados: List[InteracaoChamado] = []
-        for organizacao, spec in config.TABELAS_CHAMADOS_POR_ORGANIZACAO.items():
+        for organizacao, spec in _registry_chamados_ativo().items():
             alias = spec.get("alias")
             col_data = spec["colunas"]["data"]  # já vem com alias correto
             where = f"{col_data} >= %s"
@@ -687,15 +871,16 @@ class ChamadosExtractor(FonteChamados):
 
         # Tenta descobrir organização do cliente (otimização).
         organizacao = self._descobrir_organizacao_via_inc(login_cliente)
+        registry_ativo = _registry_chamados_ativo()
 
         orgs_para_consultar = (
-            [organizacao] if organizacao
-            else list(config.TABELAS_CHAMADOS_POR_ORGANIZACAO.keys())
+            [organizacao] if organizacao and organizacao in registry_ativo
+            else list(registry_ativo.keys())
         )
 
         resultados: List[InteracaoChamado] = []
         for org in orgs_para_consultar:
-            spec = config.TABELAS_CHAMADOS_POR_ORGANIZACAO.get(org)
+            spec = registry_ativo.get(org)
             if not spec:
                 log.warning("Organização '%s' não está no registry. Pulando.", org)
                 continue
@@ -732,7 +917,7 @@ class ChamadosExtractor(FonteChamados):
         agrupado: Dict[str, List[InteracaoChamado]] = {
             login: [] for login in logins_canonicos
         }
-        for organizacao, spec in config.TABELAS_CHAMADOS_POR_ORGANIZACAO.items():
+        for organizacao, spec in _registry_chamados_ativo().items():
             col_data = spec["colunas"]["data"]
             col_login = spec["colunas"]["login_cliente"]
             login_norm = sql_normalizar_login_cliente(col_login)
@@ -753,6 +938,53 @@ class ChamadosExtractor(FonteChamados):
                     agrupado[login].append(chamado)
         return agrupado
 
+    def contar_chamados_por_produto(
+        self, produto: str, desde: datetime, ate: datetime
+    ) -> int:
+        """Conta chamados (Locaweb + KingHost) com match EXATO por produto.
+
+        Itera as organizações do registry, executa COUNT(*) por org com
+        `WHERE {col_produto} = %s AND {col_data} >= %s AND {col_data} < %s`,
+        e soma os totais. Falha numa org não derruba as outras.
+        """
+        from db import conectar
+        desde_str = time_utils.utc_para_string_banco(desde)
+        ate_str = time_utils.utc_para_string_banco(ate)
+        total = 0
+        for organizacao, spec in _registry_chamados_ativo().items():
+            col_data = spec["colunas"]["data"]
+            col_produto = spec["colunas"]["produto"]
+            alias = spec.get("alias")
+            schema = spec["schema"]
+            tabela = spec["tabela"]
+            from_sql = f"{schema}.{tabela}" + (f" {alias}" if alias else "")
+            join_sql = ""
+            join = spec.get("join")
+            if join:
+                conds = " AND ".join(
+                    f"{alias}.{k} = {join['alias']}.{k}" for k in join["chaves"]
+                )
+                join_sql = (
+                    f"\nLEFT JOIN {join['schema']}.{join['tabela']} {join['alias']}\n"
+                    f"    ON {conds}"
+                )
+            sql = (
+                f"SELECT COUNT(*) FROM {from_sql}{join_sql}\n"
+                f"WHERE {col_produto} = %s AND {col_data} >= %s AND {col_data} < %s"
+            )
+            try:
+                with conectar() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute(sql, (produto, desde_str, ate_str))
+                        row = cur.fetchone()
+                        total += int(row[0]) if row and row[0] else 0
+            except Exception as exc:
+                log.warning(
+                    "Falha ao contar chamados em %s para produto=%r: %s",
+                    organizacao, produto, exc,
+                )
+        return total
+
     def _descobrir_organizacao_via_inc(
         self, login_cliente: str
     ) -> Optional[str]:
@@ -761,10 +993,12 @@ class ChamadosExtractor(FonteChamados):
         Usado para rotear consultas de Saúde do Cliente para a tabela de chamados certa
         (evita consultar dynamics+kinghost desnecessariamente).
         """
+        filtro_org, params_org = _filtro_orgs_sni()
         sql = f"""
             SELECT organizacao
             FROM {config.SCHEMA_BANCO}.{config.TABELA_INCIDENTES}
             WHERE {_LOGIN_NORM_SNI} = %s
+              {filtro_org}
             ORDER BY data_abertura DESC
             LIMIT 1
         """
@@ -1116,6 +1350,20 @@ class ServiceNowExtractorMock(FonteIncidentes):
             agrupado[login] = self.listar_incidentes_cliente(login, meses)
         return agrupado
 
+    def contar_incidentes_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ate: datetime
+    ) -> Dict[str, int]:
+        casados = [
+            i for i in self._todos_incidentes()
+            if i.produto == produto and i.servidor == servidor
+            and desde <= i.abertura < ate
+        ]
+        return {
+            "qtd": len(casados),
+            "clientes_unicos": len({i.login_cliente for i in casados if i.login_cliente}),
+            "categorias": len({i.categoria for i in casados if i.categoria}),
+        }
+
     def listar_incidentes_cliente(
         self, login_cliente: str, meses: int
     ) -> List[Incidente]:
@@ -1179,6 +1427,14 @@ class ChamadosExtractorMock(FonteChamados):
         for login in logins_canonicos:
             agrupado[login] = self.listar_chamados_cliente(login, meses)
         return agrupado
+
+    def contar_chamados_por_produto(
+        self, produto: str, desde: datetime, ate: datetime
+    ) -> int:
+        return sum(
+            1 for c in self._todos()
+            if c.produto == produto and desde <= c.data < ate
+        )
 
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int

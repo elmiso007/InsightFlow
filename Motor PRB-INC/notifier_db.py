@@ -214,9 +214,13 @@ def _insert_validacoes_entrega(
         INSERT INTO lwsa.motor_validacao_entrega (
             execucao_id, prb_id, descricao_curta, produto, servidor, status_prb,
             data_resolucao, dias_pos_resolucao, qtd_incs_pos_resolucao,
-            veredicto, incs_reincidentes
+            veredicto, incs_reincidentes,
+            grupo_designado, data_abertura_prb,
+            qtd_incs_pre_resolucao, clientes_unicos_pre, categorias_pre,
+            chamados_pre, chamados_pos, delta_chamados_pct
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::json)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::json,
+                %s, %s, %s, %s, %s, %s, %s, %s)
     """
     rows = [
         (
@@ -238,6 +242,14 @@ def _insert_validacoes_entrega(
                 }
                 for i in v.incs_reincidentes
             ]),
+            v.grupo_designado or None,
+            v.data_abertura_prb,
+            v.qtd_incs_pre_resolucao,
+            v.clientes_unicos_pre,
+            v.categorias_pre,
+            v.chamados_pre,
+            v.chamados_pos,
+            v.delta_chamados_pct,
         )
         for v in validacoes
     ]

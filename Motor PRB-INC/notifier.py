@@ -114,20 +114,56 @@ def formatar_alerta_saude_cliente(saude: SaudeCliente) -> str:
 
 
 def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
-    """Slack textual para Change Team quando reincidência é detectada."""
+    """Slack textual para Change Team quando reincidência é detectada.
+
+    Inclui contexto enriquecido: tamanho do problema pré-resolução (INCs +
+    clientes + categorias) e delta de chamados pré vs pós. Setas indicam
+    queda ou subida significativa (limiares em config).
+    """
     incs_resumo = ", ".join(
         f"{i.inc_id} ({i.prioridade_atual})" for i in v.incs_reincidentes[:5]
     )
     if len(v.incs_reincidentes) > 5:
         incs_resumo += f" (+{len(v.incs_reincidentes) - 5})"
+
+    # Volumetria pré-resolução (só inclui se houver dado).
+    linha_pre = ""
+    if v.qtd_incs_pre_resolucao > 0:
+        linha_pre = (
+            f"*Pré-resolução ({config.JANELA_VOLUMETRIA_PRE_DIAS}d):* "
+            f"{v.qtd_incs_pre_resolucao} INCs · "
+            f"{v.clientes_unicos_pre} clientes · {v.categorias_pre} categorias\n"
+        )
+
+    # Delta de chamados (só inclui se houver dado pré ou pós).
+    linha_delta = ""
+    if v.chamados_pre > 0 or v.chamados_pos > 0:
+        seta = ""
+        if v.delta_chamados_pct <= config.LIMIAR_REDUCAO_CHAMADOS_PCT:
+            seta = " :arrow_down:"  # queda significativa
+        elif v.delta_chamados_pct >= 0.5:
+            seta = " :arrow_up:"  # aumento significativo
+        linha_delta = (
+            f"*Δ Chamados ({config.JANELA_CHAMADOS_DELTA_DIAS}d):* "
+            f"{v.chamados_pre} → {v.chamados_pos} "
+            f"({v.delta_chamados_pct * 100:+.1f}%){seta}\n"
+        )
+
+    linha_grupo = (
+        f"*Grupo designado:* {v.grupo_designado}\n" if v.grupo_designado else ""
+    )
+
     return (
         f":warning::arrows_counterclockwise: *PRB {v.prb_id} — REINCIDÊNCIA DETECTADA*\n"
         f"*Descrição:* {v.descricao_curta}\n"
         f"*Produto:* {v.produto or 'n/d'}\n"
         f"*Servidor/CI:* {v.servidor or 'n/d'}\n"
+        f"{linha_grupo}"
         f"*Resolvido em:* {v.data_resolucao.strftime('%Y-%m-%d')} "
         f"({v.dias_pos_resolucao}d atrás)\n"
+        f"{linha_pre}"
         f"*Pós-resolução:* {v.qtd_incs_pos_resolucao} novas INCs no mesmo (produto, servidor)\n"
+        f"{linha_delta}"
         f"*INCs:* {incs_resumo}\n"
         f"_Change Team: validar se o fix entregue cobre os novos casos._"
     )
@@ -345,6 +381,16 @@ def _validacao_entrega_para_dict(v: ValidacaoEntrega) -> Dict[str, Any]:
             }
             for i in v.incs_reincidentes
         ],
+        "grupo_designado": v.grupo_designado,
+        "data_abertura_prb": (
+            v.data_abertura_prb.isoformat() if v.data_abertura_prb else None
+        ),
+        "qtd_incs_pre_resolucao": v.qtd_incs_pre_resolucao,
+        "clientes_unicos_pre": v.clientes_unicos_pre,
+        "categorias_pre": v.categorias_pre,
+        "chamados_pre": v.chamados_pre,
+        "chamados_pos": v.chamados_pos,
+        "delta_chamados_pct": v.delta_chamados_pct,
     }
 
 

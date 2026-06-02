@@ -36,9 +36,11 @@ class _FakeFonte:
         self,
         prbs: List[PRBExistente],
         incs_por_chave: dict[tuple[str, str], List[Incidente]] | None = None,
+        vol_pre_por_chave: dict[tuple[str, str], dict[str, int]] | None = None,
     ) -> None:
         self.prbs = prbs
         self.incs_por_chave = incs_por_chave or {}
+        self.vol_pre_por_chave = vol_pre_por_chave or {}
 
     def listar_prbs_para_validacao(self, dias: int) -> List[PRBExistente]:
         return list(self.prbs)
@@ -47,6 +49,14 @@ class _FakeFonte:
         self, produto: str, servidor: str, desde: datetime
     ) -> List[Incidente]:
         return list(self.incs_por_chave.get((produto, servidor), []))
+
+    def contar_incidentes_no_ci_periodo(
+        self, produto: str, servidor: str, desde: datetime, ate: datetime
+    ) -> dict:
+        return self.vol_pre_por_chave.get(
+            (produto, servidor),
+            {"qtd": 0, "clientes_unicos": 0, "categorias": 0},
+        )
 
     def listar_incidentes_recentes(self, horas):
         raise NotImplementedError
@@ -215,3 +225,134 @@ class TestGerarValidacoes:
         prb_ids = [v.prb_id for v in validacoes]
         assert "PRB_OK" in prb_ids
         assert "PRB_QUEBRA" not in prb_ids
+
+# -----------------------------------------------------------------------------
+# Fake fonte de chamados — só implementa o que o validador V2 usa
+# -----------------------------------------------------------------------------
+class _FakeFonteChamados:
+    """Devolve contagens fixas por produto sob comando.
+
+    Estrutura: contagens_por_produto = {produto: {"pre": N, "pos": M}}
+    O validador pede pre/pos via desde<ate; aqui sabemos se é a primeira
+    chamada (pre) ou a segunda (pos) por proximidade da data_ref.
+    """
+
+    def __init__(
+        self,
+        contagens_por_produto: dict[str, dict[str, int]] | None = None,
+    ) -> None:
+        self.contagens_por_produto = contagens_por_produto or {}
+        # Histórico de chamadas: lista de (produto, desde, ate)
+        self.chamadas: List[tuple] = []
+
+    def contar_chamados_por_produto(self, produto, desde, ate):
+        self.chamadas.append((produto, desde, ate))
+        cfg = self.contagens_por_produto.get(produto)
+        if not cfg:
+            return 0
+        # A 1ª chamada para um produto é "pre" (desde < ate <= data_ref),
+        # a 2ª é "pos". Para simplificar, alternamos com base no histórico.
+        nth = sum(1 for c in self.chamadas if c[0] == produto)
+        return cfg.get("pre" if nth == 1 else "pos", 0)
+
+    def listar_chamados_periodo(self, horas, produtos=None):
+        return []
+
+    def listar_chamados_cliente(self, login_cliente, meses):
+        return []
+
+
+# -----------------------------------------------------------------------------
+# Volumetria pré-resolução + Delta de chamados (V2)
+# -----------------------------------------------------------------------------
+class TestVolumetriaPre:
+    def test_volumetria_pre_propagada_para_validacao(self):
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte = _FakeFonte(
+            prbs=[prb],
+            vol_pre_por_chave={
+                ("VPS", "vps-01"): {"qtd": 25, "clientes_unicos": 12, "categorias": 4},
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte)
+        v = validacoes[0]
+        assert v.qtd_incs_pre_resolucao == 25
+        assert v.clientes_unicos_pre == 12
+        assert v.categorias_pre == 4
+
+    def test_volumetria_pre_zero_quando_fonte_nao_tem(self):
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte = _FakeFonte(prbs=[prb])
+        validacoes = gerar_validacoes_entrega(fonte)
+        v = validacoes[0]
+        assert v.qtd_incs_pre_resolucao == 0
+        assert v.clientes_unicos_pre == 0
+        assert v.categorias_pre == 0
+
+
+class TestDeltaChamados:
+    def test_delta_negativo_quando_chamados_caem(self):
+        # Pre=20, Pos=5 → delta = (5-20)/20 = -0.75 (queda de 75%)
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            contagens_por_produto={"VPS": {"pre": 20, "pos": 5}},
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.chamados_pre == 20
+        assert v.chamados_pos == 5
+        assert v.delta_chamados_pct == -0.75
+
+    def test_delta_zero_quando_pre_zero(self):
+        # Sem base, delta = 0.0 (não pode dividir por zero)
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            contagens_por_produto={"VPS": {"pre": 0, "pos": 0}},
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.chamados_pre == 0
+        assert v.chamados_pos == 0
+        assert v.delta_chamados_pct == 0.0
+
+    def test_sem_fonte_chamados_delta_continua_zero(self):
+        # Quando gerar_validacoes_entrega é chamado sem fonte_chamados,
+        # delta fica 0 mas demais campos funcionam normalmente.
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        validacoes = gerar_validacoes_entrega(fonte_inc)  # sem fonte_chamados
+        v = validacoes[0]
+        assert v.chamados_pre == 0
+        assert v.chamados_pos == 0
+        assert v.delta_chamados_pct == 0.0
+
+    def test_delta_positivo_quando_chamados_sobem(self):
+        # Pre=4, Pos=10 → delta = (10-4)/4 = 1.5 (subida de 150%)
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            contagens_por_produto={"VPS": {"pre": 4, "pos": 10}},
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.delta_chamados_pct == 1.5

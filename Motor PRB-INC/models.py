@@ -159,6 +159,10 @@ class ValidacaoEntrega:
     o ValidadorEntrega olha PRBs já resolvidos e verifica se INCs do mesmo
     (produto, servidor) continuam aparecendo após a data de resolução.
     Fecha o loop de qualidade do fix.
+
+    A volumetria pré-resolução e o delta de chamados pré/pós são contextos
+    enriquecedores adicionados em 2026-06-02: mostram TAMANHO do problema que
+    o PRB resolveu e SE os contatos no suporte caíram após o fix.
     """
     prb_id: str
     descricao_curta: str
@@ -170,6 +174,27 @@ class ValidacaoEntrega:
     qtd_incs_pos_resolucao: int
     veredicto: str                        # "REINCIDENCIA" | "ENTREGA_VALIDADA" | "INCONCLUSIVO"
     incs_reincidentes: List[Incidente] = field(default_factory=list)
+
+    # --- Contexto do PRB ------------------------------------------------------
+    grupo_designado: str = ""             # squad/grupo dono do PRB no SNow
+    data_abertura_prb: Optional[datetime] = None  # idade total (aberto_em do PRB)
+
+    # --- Volumetria pré-resolução ---------------------------------------------
+    # Quantas INCs no mesmo (produto, servidor) o PRB cobriu no período
+    # `JANELA_VOLUMETRIA_PRE_DIAS` antes de `data_encerrado`. Mede TAMANHO do
+    # problema que o Change Team resolveu — diferencia "PRB que apagou 50 INCs"
+    # de "PRB que apagou 2 INCs".
+    qtd_incs_pre_resolucao: int = 0
+    clientes_unicos_pre: int = 0          # clientes distintos impactados pré-fix
+    categorias_pre: int = 0               # diversidade de categorização
+
+    # --- Delta de chamados pré vs pós ----------------------------------------
+    # Match por `chamados.produto = prb.produto` (exato) em janela simétrica
+    # de `JANELA_CHAMADOS_DELTA_DIAS` dias antes e depois de `data_encerrado`.
+    # Responde "o suporte respirou no produto após o fix?"
+    chamados_pre: int = 0
+    chamados_pos: int = 0
+    delta_chamados_pct: float = 0.0       # (pos - pre) / max(pre, 1); -1.0 a +inf
 
 
 @dataclass

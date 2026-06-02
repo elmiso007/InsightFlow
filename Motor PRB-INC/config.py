@@ -146,6 +146,19 @@ SCHEMA_BANCO = "lwsa"
 TABELA_INCIDENTES = "service_now_incidentes"
 TABELA_PROBLEMAS = "service_now_problems"
 
+# Filtro de organizações ativas. Restringe INCs/PRBs do ServiceNow e tabelas
+# de chamados às organizações listadas. Tupla vazia = sem filtro (todas as
+# orgs). Hoje o motor está focado em "Locaweb"; pra incluir KingHost, basta
+# acrescentar à tupla:
+#   ORGANIZACOES_ATIVAS = ("Locaweb", "KingHost")
+ORGANIZACOES_ATIVAS: tuple = ("Locaweb",)
+
+# Padrões substring (case-insensitive) que devem EXCLUIR INCs do levantamento
+# da Saúde do Cliente. Complementa ORGANIZACOES_ATIVAS para casos onde o DW
+# classifica a INC como 'Locaweb' mas o `login_cliente` indica outra origem
+# (ex.: URL `intranet.kinghost.com.br/.../ficha=NNN`). ILIKE substring.
+LOGIN_CLIENTE_PADROES_EXCLUIDOS: tuple = ("kinghost",)
+
 # Status que indicam PRB ainda ATIVO (relevante para sugestão de repriorização).
 # INCs não são filtradas por status — o motor olha o fluxo de 24h, não o estado.
 STATUS_PRB_ATIVOS = (
@@ -172,6 +185,17 @@ JANELA_VALIDACAO_ENTREGA_DIAS = 14  # PRBs com data_encerrado dentro dessa janel
 LIMIAR_INCS_REINCIDENCIA = 3        # >= INCs no mesmo (produto,servidor) pós-resolução = reincidência
 MIN_DIAS_PARA_VALIDAR = 7           # PRB precisa ter >= N dias pós-resolução para virar ENTREGA_VALIDADA
                                     # (abaixo disso, sem INCs novas = INCONCLUSIVO)
+
+# Volumetria pré-resolução: olhar janela ampla para capturar todo o histórico
+# que o PRB consolidou (PRBs grandes nascem após meses de INCs recorrentes).
+JANELA_VOLUMETRIA_PRE_DIAS = 60     # INCs no mesmo (produto,servidor) antes da resolução
+
+# Delta de chamados pré vs pós-resolução: KPI "os contatos respiraram?".
+# Match exato por produto: WHERE chamados.produto = prb.produto. Janela
+# simétrica em ambos lados da data_encerrado.
+JANELA_CHAMADOS_DELTA_DIAS = 14
+# Limiar para destacar redução significativa no alerta Slack (>= 50% queda).
+LIMIAR_REDUCAO_CHAMADOS_PCT = -0.5
 
 # -----------------------------------------------------------------------------
 # Registry declarativo de tabelas de chamados por organização (Abordagem 2)

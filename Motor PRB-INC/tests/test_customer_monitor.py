@@ -139,6 +139,11 @@ class _FakeFonteInc(FonteIncidentes):
             for login in logins_canonicos
         }
 
+    def contar_incidentes_no_ci_periodo(
+        self, produto, servidor, desde, ate
+    ) -> Dict[str, int]:
+        return {"qtd": 0, "clientes_unicos": 0, "categorias": 0}
+
 
 class _FakeFonteChamados(FonteChamados):
     def listar_chamados_periodo(self, horas, produtos=None) -> List[InteracaoChamado]:
@@ -151,6 +156,9 @@ class _FakeFonteChamados(FonteChamados):
         self, logins_canonicos: Sequence[str], meses: int
     ) -> Dict[str, List[InteracaoChamado]]:
         return {login: [] for login in logins_canonicos}
+
+    def contar_chamados_por_produto(self, produto, desde, ate) -> int:
+        return 0
 
 
 class TestAmpliacaoDeJanela:

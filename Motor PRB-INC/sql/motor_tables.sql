@@ -198,6 +198,90 @@ COMMENT ON COLUMN lwsa.motor_validacao_entrega.dias_pos_resolucao IS 'Quantos di
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.veredicto IS 'REINCIDENCIA | ENTREGA_VALIDADA | INCONCLUSIVO.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.incs_reincidentes IS 'Lista de INCs novas (numero, prioridade, data) que apareceram no mesmo (produto, servidor) após a resolução.';
 
+-- ----------------------------------------------------------------------------
+-- ALTER condicional: adicionar 8 colunas em motor_validacao_entrega
+-- ----------------------------------------------------------------------------
+-- Contexto + volumetria pré + delta de chamados pré/pós (V2 do ValidadorEntrega,
+-- aplicado em 2026-06-02). Bloco DO com check em information_schema para
+-- compatibilidade com Postgres 9.2/9.3 (sem IF NOT EXISTS de coluna).
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='grupo_designado'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN grupo_designado varchar(255);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='data_abertura_prb'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN data_abertura_prb timestamp with time zone;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='qtd_incs_pre_resolucao'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN qtd_incs_pre_resolucao int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='clientes_unicos_pre'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN clientes_unicos_pre int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='categorias_pre'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN categorias_pre int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='chamados_pre'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN chamados_pre int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='chamados_pos'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN chamados_pos int NOT NULL DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='delta_chamados_pct'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN delta_chamados_pct numeric(8,3) NOT NULL DEFAULT 0.0;
+    END IF;
+END $$;
+
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_incs_pre_resolucao IS 'INCs no mesmo (produto, servidor) nos JANELA_VOLUMETRIA_PRE_DIAS antes de data_resolucao.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.delta_chamados_pct IS '(chamados_pos - chamados_pre) / chamados_pre. Match exato por chamados.produto = prb.produto.';
+
 
 -- ----------------------------------------------------------------------------
 -- ALTER condicional: adicionar coluna total_validacoes_entrega em motor_execucao
