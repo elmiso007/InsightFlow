@@ -317,12 +317,57 @@ Ajustar `VENV` se o seu virtualenv ficar em outro caminho.
 para editar ou `Excluir` para remover. O motor continua funcionando se a task
 sumir — só para de ser agendado.
 
-**Para também agendar o `ValidadorEntrega`** (prisma retrospectivo, cada 6h):
-criar uma segunda task `Motor-PRB-ValidadorEntrega` apontando para
-`validar_entregas.py --once`. Mesma estrutura, mudando só o repetir para
-`6 horas` e o programa para um wrapper análogo
-(`python validar_entregas.py --once`). Se preferir manter manual, apenas rodar
-sob demanda quando quiser revisar reincidências.
+### 2.7 Agendamento do ValidadorEntrega (prisma retrospectivo)
+
+O `main.py` (preventivo, 15 min) e o `validar_entregas.py` (retrospectivo, 6 h)
+rodam em **entry-points separados**. Para ter os dois ativos, crie uma
+**segunda task** no Task Scheduler.
+
+**Wrapper já criado:** `Motor-PRB-Validador.bat` na raiz do projeto:
+
+```bat
+@echo off
+setlocal
+set "PROJ=%~dp0"
+set "VENV=C:\Users\emerson.ramos\Desktop\projetos\.venv"
+set "USAR_MOCKS=false"
+cd /d "%PROJ%"
+"%VENV%\Scripts\python.exe" validar_entregas.py --once
+endlocal & exit /b %ERRORLEVEL%
+```
+
+**Passo a passo na UI:**
+
+1. **Criar Tarefa...** com nome `Motor PRB - Validador de Entrega`.
+2. Aba **Geral:** marcar `Executar estando o usuário conectado ou não` +
+   `Executar com privilégios mais altos`.
+3. Aba **Disparadores → Novo...**:
+   - `Diariamente`, começar hoje em `00:05:00` (fora do pico)
+   - Configurações avançadas: `Repetir a tarefa a cada:` **`6 horas`**
+   - Pela duração de: `1 dia` (Windows repete daily, então isso basta)
+4. Aba **Ações → Nova...**:
+   - Programa/script: `C:\Users\emerson.ramos\Desktop\projetos\Motor PRB-INC\Motor-PRB-Validador.bat`
+   - Iniciar em: `C:\Users\emerson.ramos\Desktop\projetos\Motor PRB-INC`
+5. Aba **Condições:** desmarcar restrições de bateria.
+6. Aba **Configurações:**
+   - Marcar `Executar tarefa o mais cedo possível após perder uma execução`
+   - `Se a tarefa falhar, reiniciar a cada:` `15 minutos` / `3` tentativas
+   - `Interromper se rodar mais que:` `1 hora` (kill switch — normalmente leva ~30s)
+7. **OK** → vai pedir a senha do Windows.
+
+**Disparos resultantes:** 00:05, 06:05, 12:05, 18:05 — alinhados com janelas
+fora do pico operacional.
+
+**Verificando:**
+
+```sql
+SELECT id, timestamp_utc, total_validacoes_entrega, duracao_ciclo_ms
+FROM lwsa.motor_execucao
+WHERE total_validacoes_entrega > 0
+ORDER BY id DESC LIMIT 5;
+```
+
+Logs em `Motor PRB-INC\logs\validador-entrega-{YYYY-MM-DD}.log`.
 
 ---
 
@@ -352,7 +397,7 @@ Todas configuráveis via env. Defaults em `config.py`.
 |---|---|---|
 | `SLACK_WEBHOOK_URL` | _(vazio)_ | URL do webhook do Slack. Vazio = Slack desabilitado. |
 | `SLACK_CANAL_CRITICOS` | `#prb-alertas` | Canal para alertas (sobrescreve default do webhook). |
-| `SLACK_HABILITADO` | `true` | Liga/desliga Slack mesmo com webhook configurado. |
+| `SLACK_HABILITADO` | **`false`** | Liga/desliga Slack mesmo com webhook configurado. Default mudou em 2026-06-02 — quando desligado, motor prepara e *loga* a mensagem mas não envia (útil pra revisão antes de ativar). |
 
 ### 3.4 ServiceNow (não-usado hoje — placeholder)
 
@@ -1163,11 +1208,16 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
       CREATE INDEX IF NOT EXISTS idx_dyn_chamados_inc
         ON dynamics.chamados (inc) WHERE inc IS NOT NULL;
       ```
-- [ ] **DDL do ValidadorEntrega V2 executada** — adiciona 8 colunas em
-      `lwsa.motor_validacao_entrega` via DO block idempotente
-      (`sql/motor_tables.sql`, seção "ALTER condicional"). Sem isso, a
+- [ ] **DDL do ValidadorEntrega V2 + V3 executada** — adiciona **10 colunas**
+      em `lwsa.motor_validacao_entrega` via DO block idempotente
+      (`sql/motor_tables.sql`, seção "ALTER condicional"):
+      8 da V2 (grupo_designado, data_abertura_prb, volumetria pré, Δ chamados)
+      + 2 da V3 (qtd_prbs_novos_pos_resolucao, prbs_novos). Sem isso, a
       persistência do `validar_entregas.py` falha com `column "grupo_designado"
       does not exist`.
+- [ ] **2ª tarefa no Task Scheduler para o ValidadorEntrega** apontando para
+      `Motor-PRB-Validador.bat` (cadência 6h). Sem isso o validador nunca roda
+      automaticamente — apenas o `main.py` (preventivo) é agendado por default.
 
 ### Validação antes do loop
 

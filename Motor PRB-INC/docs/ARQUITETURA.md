@@ -341,13 +341,18 @@ com o projeto irmão locapredict.
 **Papel:** trazer dados de fora para Python.
 
 **ABCs (contratos):**
-- `FonteIncidentes` — `listar_incidentes_recentes/cliente/por_produto_servidor`,
+- `FonteIncidentes` — `listar_incidentes_recentes/cliente`,
+  `listar_incidentes_por_produto_servidor(produto, servidor, desde, ate=None)`
+  (com `ate` opcional para janela bilateral pré/pós),
   `listar_prbs_abertos/para_validacao`, `contar_clientes_com_inc_recente`
   (agregado, para a Saúde do Cliente), `listar_incidentes_para_saude` (bulk + slim),
-  `contar_incidentes_no_ci_periodo` (volumetria pré do ValidadorEntrega).
+  `contar_incidentes_no_ci_periodo` (volumetria pré do ValidadorEntrega),
+  `listar_prbs_novos_no_ci_periodo` (PRBs novos pós-resolução).
 - `FonteChamados` — `listar_chamados_periodo/cliente`, `listar_chamados_para_saude`
-  (bulk Locaweb + KingHost), `contar_chamados_por_produto` (delta pré/pós do
-  ValidadorEntrega, match exato por produto).
+  (bulk Locaweb + KingHost), `contar_chamados_vinculados` (delta pré/pós V3 do
+  ValidadorEntrega, match por `chamados.prb = prb_id` OU `inc IN (...)`).
+  `contar_chamados_por_produto` marcado como deprecated (era a V2 com match
+  por produto — substituído por `contar_chamados_vinculados`).
 
 **Implementações concretas:**
 - `ServiceNowExtractor` — SQL real em `lwsa.service_now_*`.
@@ -485,14 +490,14 @@ Com os índices `idx_sni_data_abertura`, `idx_dyn_chamados_datacriacao`,
 `idx_kh_chamados_datacriacao`, `idx_sni_data_tipo` no DBA, o ciclo total cai
 para ~30-45s.
 
-#### `validador_entrega.py` (~190 linhas) — prisma retrospectivo
+#### `validador_entrega.py` (~210 linhas) — prisma retrospectivo
 
 **Papel:** complemento ao `rules_engine` (preventivo) — olha PRBs **já
 entregues** pelo Change Team e verifica se o problema realmente foi resolvido.
 Fecha o loop de qualidade do fix.
 
 **Estratégia por PRB:** `_avaliar_prb(prb, fonte_inc, fonte_chamados)` coleta
-3 sinais:
+**4 sinais**:
 
 1. **Veredicto** via `fonte_inc.listar_incidentes_por_produto_servidor` +
    `_classificar(qtd_pos, dias_pos)`:
@@ -502,18 +507,23 @@ Fecha o loop de qualidade do fix.
 2. **Volumetria pré-resolução** via `fonte_inc.contar_incidentes_no_ci_periodo`
    (janela `JANELA_VOLUMETRIA_PRE_DIAS = 60` dias antes de `data_encerrado`).
    Retorna `{qtd, clientes_unicos, categorias}`.
-3. **Δ chamados pré/pós** via `fonte_chamados.contar_chamados_por_produto`
-   em duas chamadas (janela `JANELA_CHAMADOS_DELTA_DIAS = 14` dias em cada lado).
-   Match exato `chamados.produto = prb.produto`.
+3. **Δ chamados vinculados pré/pós (V3)** via `fonte_chamados.contar_chamados_vinculados`.
+   Para cada lado da janela: levanta INCs do CI no período via
+   `listar_incidentes_por_produto_servidor(produto, servidor, desde, ate)` e
+   conta chamados onde `prb = prb_id` **OU** `inc IN (incs_ids)`.
+   `JANELA_CHAMADOS_DELTA_DIAS = 14` dias em cada lado.
+4. **PRBs novos pós-resolução** via `fonte_inc.listar_prbs_novos_no_ci_periodo`.
+   Lista `numero` dos PRBs abertos no mesmo `(produto, servidor)` após
+   `data_encerrado`, com `ignorar_prb_id` excluindo o PRB sendo validado.
 
-**Defesa em camadas:** falha em um PRB não derruba o ciclo — registra warning
-e segue com os demais. `fonte_chamados` é opcional: sem ela, validador ainda
-emite veredicto + volumetria, mas Δ chamados fica em 0.
+**Defesa em camadas:** falha em um sinal não derruba o PRB — registra warning
+e zera o campo. `fonte_chamados` é opcional: sem ela, validador ainda emite
+veredicto + volumetria + PRBs novos, mas Δ chamados fica em 0.
 
 **Entry-point separado:** `validar_entregas.py` — análogo ao `main.py` mas com
 cadência default 6h (validações não mudam de minuto em minuto). Compartilha
-persistência Postgres (mesma `motor_execucao`). Passa `fonte_chamados` pro
-validador desde a V2 (2026-06-02).
+persistência Postgres (mesma `motor_execucao`). Wrapper Windows:
+`Motor-PRB-Validador.bat` para Task Scheduler.
 
 #### `notifier.py` (~290 linhas)
 
@@ -556,10 +566,12 @@ consumidores Python (Streamlit, Jupyter).
 - `motor_cluster` (1 linha por cluster)
 - `motor_prescricao` (1 linha por prescrição)
 - `motor_saude_cliente` (1 linha por avaliação de cliente)
-- `motor_validacao_entrega` (1 linha por PRB validado — 19 colunas, sendo
-  11 base + 8 V2: `grupo_designado`, `data_abertura_prb`,
-  `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre`,
-  `chamados_pre`, `chamados_pos`, `delta_chamados_pct`)
+- `motor_validacao_entrega` (1 linha por PRB validado — **21 colunas**:
+  11 base + 8 V2 (grupo_designado, data_abertura_prb, volumetria pré,
+  Δ chamados) + 2 V3-extension (`qtd_prbs_novos_pos_resolucao`, `prbs_novos`).
+  O significado de `chamados_pre`/`chamados_pos`/`delta_chamados_pct` mudou
+  na V3: agora conta apenas chamados vinculados via `prb`/`inc`, não por
+  produto)
 
 **Defesa:** se Postgres falhar, motor continua (JSON e Slack tentam).
 

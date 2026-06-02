@@ -1035,11 +1035,11 @@ separado (`validar_entregas.py`, cadência default 6h).
 Reincidência tem **precedência** sobre tempo: 3+ INCs no 2º dia ainda é
 reincidência.
 
-### Contexto enriquecedor (V2, 2026-06-02)
+### Contexto enriquecedor (V3, 2026-06-02)
 
-Cada `ValidacaoEntrega` carrega, além do veredicto, 2 sinais adicionais:
+Cada `ValidacaoEntrega` carrega, além do veredicto, **3 sinais adicionais**:
 
-**Volumetria pré-resolução** (`JANELA_VOLUMETRIA_PRE_DIAS = 60` dias antes
+**1. Volumetria pré-resolução** (`JANELA_VOLUMETRIA_PRE_DIAS = 60` dias antes
 da entrega):
 
 - `qtd_incs_pre_resolucao` — quantas INCs o PRB cobriu antes do fix
@@ -1048,25 +1048,43 @@ da entrega):
 
 Diferencia PRB "que apagou 50 INCs em 60d" de PRB "que apagou 2".
 
-**Δ chamados pré/pós-resolução** (`JANELA_CHAMADOS_DELTA_DIAS = 14` dias
-em cada lado):
+**2. Δ chamados vinculados pré/pós-resolução** (`JANELA_CHAMADOS_DELTA_DIAS = 14`
+dias em cada lado):
 
-- `chamados_pre` — chamados no produto antes de `data_encerrado`
-- `chamados_pos` — chamados no produto depois de `data_encerrado`
+- `chamados_pre` — chamados vinculados ao PRB antes de `data_encerrado`
+- `chamados_pos` — chamados vinculados depois de `data_encerrado`
 - `delta_chamados_pct` — `(pos - pre) / pre`
 
-Match **exato** por `chamados.produto = prb.produto` (não usa palavra-chave).
+Match via colunas `dynamics.chamados.prb` E/OU `dynamics.chamados.inc`:
+chamado conta se `prb = prb_id` **OU** `inc IN (INCs do CI no período)`.
+Substituiu o match V2 por produto (genérico/ruidoso). Cobertura cai mas
+precisão sobe drasticamente: PRBs sem chamados vinculados marcam `0/0`
+honesto (em vez de inflar com ruído de outros produtos).
+
 Quando `delta_chamados_pct ≤ LIMIAR_REDUCAO_CHAMADOS_PCT` (−0.5 = queda ≥ 50%),
 o alerta Slack mostra ↓ indicando que o fix funcionou.
 
+**3. PRBs novos pós-resolução** (mesma janela do veredicto):
+
+- `qtd_prbs_novos_pos_resolucao` — quantos PRBs **novos** foram abertos no
+  mesmo `(produto, servidor)` depois de `data_encerrado`
+- `prbs_novos` — lista de `numero` (ex.: `["PRB0012345"]`)
+
+Sinal complementar à reincidência por INCs: se um PRB novo foi criado,
+indica que o problema **voltou em outra forma** — possivelmente fix tratou
+sintoma, não causa raiz. Requisito da coordenação (2026-06-02). O PRB
+sendo validado é excluído por `numero <> %s` (defensivo contra
+auto-referência).
+
 ### Como interpretar (operacional)
 
-| Cenário | Volumetria pré | Δ chamados | Veredicto | Leitura |
-|---|---|---|---|---|
-| PRB resolveu um problema gigante | Alta (50+ INCs) | ↓ (>50%) | ENTREGA_VALIDADA | **Fix excelente.** |
-| PRB pequeno, sem reincidência | Baixa (2-5 INCs) | ~0 | ENTREGA_VALIDADA | OK, mas pouco impacto. |
-| Problema voltou | Qualquer | ↑ | REINCIDENCIA | **Re-investigar.** |
-| Janela curta, sem dado novo | — | — | INCONCLUSIVO | Aguardar próximo ciclo. |
+| Cenário | Volumetria pré | Δ chamados (vinculados) | PRBs novos | Veredicto | Leitura |
+|---|---|---|---|---|---|
+| PRB resolveu um problema gigante e zerou contato | Alta (50+ INCs) | ↓ (>50%) | 0 | ENTREGA_VALIDADA | **Fix excelente.** |
+| PRB pequeno, sem ruído | Baixa (2-5 INCs) | 0/0 | 0 | ENTREGA_VALIDADA | OK. Sem cobertura no Dynamics, mas sem reincidência também. |
+| Problema voltou em outra forma | Qualquer | Qualquer | ≥1 PRB | REINCIDENCIA OU INCONCLUSIVO | **Reabrir/investigar a causa raiz.** |
+| Fix piorou (contato subiu) | Qualquer | ↑ (>50%) | 0 | REINCIDENCIA | **Re-investigar urgente.** |
+| Janela curta, sem dado novo | — | — | 0 | INCONCLUSIVO | Aguardar próximo ciclo. |
 
 ---
 

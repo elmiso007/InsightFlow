@@ -197,13 +197,23 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   categorias). Aplicada em `validador_entrega._avaliar_prb` via
   `fonte_inc.contar_incidentes_no_ci_periodo`.
 
-- **Δ de chamados (pré/pós)** — Variação percentual de chamados no produto do
-  PRB em janela simétrica de `JANELA_CHAMADOS_DELTA_DIAS` (14) dias antes vs
-  depois de `data_encerrado`. KPI "o suporte respirou?" pro Change Team. Match
-  **exato** por `chamados.produto = prb.produto` (taxonomia precisa bater).
-  Quando `delta_chamados_pct ≤ -0.5` (queda ≥ 50%), o alerta Slack mostra ↓
-  indicando fix funcionou. Sem palavra-chave heurística (V2 original) — sinal
-  fraco demais, foi descartado.
+- **Δ de chamados vinculados (pré/pós)** — Variação percentual de chamados
+  **vinculados ao PRB** em janela simétrica de `JANELA_CHAMADOS_DELTA_DIAS`
+  (14) dias antes vs depois de `data_encerrado`. KPI "o contato respirou após
+  o fix?" pro Change Team. Match por `chamados.prb = prb.numero` **OU**
+  `chamados.inc IN (incs_do_ci_na_janela)`. Quando
+  `delta_chamados_pct ≤ -0.5` (queda ≥ 50%), o alerta Slack mostra ↓.
+  Histórico: V1 não tinha esse sinal, V2 usava match por produto (genérico
+  e ruidoso), V3 (atual, 2026-06-02) usa match por PRB/INC explícito
+  — muito mais preciso, captura `0/0` honestos quando não há vínculo real.
+
+- **PRBs novos pós-resolução** — Lista de PRBs **novos** abertos no mesmo
+  `(produto, servidor)` após `data_encerrado` do PRB validado. Sinal
+  complementar à reincidência por INCs: se o problema voltou já como um
+  PRB novo (em vez de só INCs soltas), indica que o fix original tratou
+  sintoma, não causa raiz. Campos: `qtd_prbs_novos_pos_resolucao` e
+  `prbs_novos` (lista de `numero`). Requisito da coordenação (2026-06-02).
+  Slack mostra "PRBs novos no CI: N (PRB123, PRB456)" quando ≥ 1.
 
 ---
 

@@ -208,9 +208,9 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 | Prescrições geradas | 70-95 (1-2 críticas/ciclo) |
 | **Clientes Nominais únicos (30 dias, Locaweb)** | **~1.270** |
 | **Recorrência alta (≥3 INCs em 30d)** | **9-12 clientes** com logins canônicos limpos |
-| Validações de entrega (6h) | 10 PRBs (~3 reincidências, ~5 validadas, ~2 inconclusivos) |
-| Alertas Slack | 7-8 por ciclo |
-| **Tempo total do ciclo** | **22-30 segundos** ⚡ |
+| Validações de entrega (6h) | 10 PRBs (~3 reincidências, ~5 validadas, ~2 inconclusivos) com 4 sinais: veredicto + volumetria pré + Δ chamados vinculados + PRBs novos |
+| Alertas Slack | 7-8 por ciclo (desligado por default em 2026-06-02 — preparados e loggados, não enviados) |
+| **Tempo total do ciclo** | **22-31 segundos** ⚡ |
 | Erros | 0 |
 
 **Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 22-30s:**
@@ -232,11 +232,19 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
    em vez do `login_cliente` do SNow (que pode vir vazio ou com URL).
    Identificou 5 clientes a mais com login real.
 9. **ValidadorEntrega V2** — além do veredicto, mede volumetria pré-resolução
-   (`60d`) e Δ de chamados pré/pós (`14d` simétrico) por produto.
+   (`60d`) e Δ de chamados pré/pós (`14d` simétrico).
+10. **ValidadorEntrega V3** — Δ chamados agora usa match **`chamados.prb = prb_id`
+    OR `chamados.inc IN (incs)`** em vez de match por produto. Captura `0/0`
+    honestos quando não há vínculo, e revela aumentos reais quando há (ex.: um
+    dos PRBs reincidentes mostrou +33% de chamados vinculados pós-fix).
+11. **Tagueamento de PRB resolvido + rastreio de PRBs novos pós-resolução** —
+    requisito da coordenação. Cada PRB validado carrega `qtd_prbs_novos_pos_resolucao`
+    e a lista `prbs_novos` com os `numero` dos PRBs abertos no mesmo
+    `(produto, servidor)` após a entrega.
 
 **Validação técnica:**
 
-- ✅ **101 testes automatizados** passando.
+- ✅ **104 testes automatizados** passando.
 - ✅ **Bug de regressão protegido** (caso "ra" / "fora" não pode voltar).
 - ✅ **Persistência funcional** em Postgres + JSON paralelo.
 
