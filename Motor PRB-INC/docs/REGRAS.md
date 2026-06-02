@@ -1092,6 +1092,8 @@ auto-referência).
 
 - **[ARQUITETURA.md](ARQUITETURA.md):** como o motor implementa essas regras.
 - **[MANUAL.md](MANUAL.md):** como usar o motor.
+- **[SAUDE_DO_CLIENTE.md](SAUDE_DO_CLIENTE.md):** processo completo do prisma de Saúde do Cliente (ponta a ponta).
+- **[VALIDADOR_ENTREGA.md](VALIDADOR_ENTREGA.md):** processo completo do prisma retrospectivo (ponta a ponta).
 - **[../GLOSSARIO.md](../GLOSSARIO.md):** termos técnicos (CI, PRB, INC, OLA, etc.).
 - **`config.py`:** todos os thresholds e termos heurísticos.
 - **`rules_engine.py`:** implementação da cascata P1-P5.

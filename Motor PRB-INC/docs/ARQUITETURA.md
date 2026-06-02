@@ -1121,6 +1121,8 @@ Diretrizes para devs que vão evoluir o motor.
 
 - **[MANUAL.md](MANUAL.md):** como usar o motor (operadores).
 - **[REGRAS.md](REGRAS.md):** matriz oficial P1-P5 e critérios de negócio.
+- **[SAUDE_DO_CLIENTE.md](SAUDE_DO_CLIENTE.md):** processo completo do prisma de Saúde do Cliente.
+- **[VALIDADOR_ENTREGA.md](VALIDADOR_ENTREGA.md):** processo completo do prisma retrospectivo (V3).
 - **[../GLOSSARIO.md](../GLOSSARIO.md):** termos técnicos.
 - **`sql/motor_tables.sql`:** DDL das tabelas de persistência.
 - **`config.py`:** todas as decisões de produto centralizadas.
@@ -1129,4 +1131,4 @@ Diretrizes para devs que vão evoluir o motor.
 ---
 
 _Documento mantido sob responsabilidade dos contribuidores do motor. Última
-atualização: 2026-05-27._
+atualização: 2026-06-02._
