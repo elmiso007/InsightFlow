@@ -204,6 +204,18 @@ class ValidacaoEntrega:
     qtd_prbs_novos_pos_resolucao: int = 0
     prbs_novos: List[str] = field(default_factory=list)
 
+    # --- Times impactados (via dynamics.chamados.equipeproprietaria) ---------
+    # Top N (config.TOP_EQUIPES_IMPACTADAS) equipes proprietárias dos chamados
+    # vinculados ao PRB/INCs na janela JANELA_CHAMADOS_DELTA_DIAS pré-resolução.
+    # `equipes_impactadas_pos` guarda a contagem dessas MESMAS equipes na janela
+    # pós-resolução; equipes que sumiram pós ficam com 0. `equipes_delta_pct`
+    # tem o % de redução de cada uma (-1.0 = zerou, 0.0 = igual, +N = subiu).
+    # Responde ao pedido do coordenador (2026-06-03): "quem o PRB impactava e
+    # deixou de chamar". Equipes nulas/vazias no Dynamics caem em '<sem-equipe>'.
+    equipes_impactadas_pre: Dict[str, int] = field(default_factory=dict)
+    equipes_impactadas_pos: Dict[str, int] = field(default_factory=dict)
+    equipes_delta_pct: Dict[str, float] = field(default_factory=dict)
+
 
 @dataclass
 class ExecucaoMotor:

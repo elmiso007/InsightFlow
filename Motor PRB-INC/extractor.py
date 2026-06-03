@@ -174,6 +174,25 @@ class FonteChamados(ABC):
         """
         ...
 
+    @abstractmethod
+    def agrupar_chamados_vinculados_por_equipe(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> Dict[str, int]:
+        """Agrupa chamados vinculados ao PRB/INCs por `equipeproprietaria`.
+
+        Mesma cláusula de filtro de `contar_chamados_vinculados`
+        (prb = prb_id OU inc IN incs_ids) na janela [desde, ate), com
+        GROUP BY equipeproprietaria. Retorna {equipe: qtd}, ordenado por
+        qtd desc. Equipes nulas/vazias caem em '<sem-equipe>'.
+
+        Usado pelo ValidadorEntrega para identificar quais times internos
+        da Locaweb foram impactados pelo problema do PRB (pré-resolução)
+        e se eles deixaram de abrir chamados após o fix (pós-resolução).
+        Resposta ao pedido do coordenador (2026-06-03).
+        """
+        ...
+
 
 # -----------------------------------------------------------------------------
 # Normalização de login_cliente
@@ -1065,6 +1084,66 @@ class ChamadosExtractor(FonteChamados):
             )
             return 0
 
+    def agrupar_chamados_vinculados_por_equipe(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> Dict[str, int]:
+        """Agrupa chamados vinculados ao PRB/INCs por equipeproprietaria.
+
+        Mesma cláusula OR de `contar_chamados_vinculados` (prb=X OR inc IN ...),
+        com GROUP BY em COALESCE(NULLIF(TRIM(equipeproprietaria), ''),
+        '<sem-equipe>'). Ordena por qtd desc — caller (ValidadorEntrega)
+        limita ao Top N (config.TOP_EQUIPES_IMPACTADAS).
+
+        Edge cases (idênticos a contar_chamados_vinculados):
+          - prb_id vazio e incs_ids vazio → retorna {} sem hit no banco.
+          - incs_ids vazio → só filtra por prb.
+          - prb_id vazio → só filtra por inc IN (...).
+        """
+        prb_id = (prb_id or "").strip()
+        incs = [i for i in incs_ids if i and i.strip()]
+        if not prb_id and not incs:
+            return {}
+
+        clausulas = []
+        params: List[Any] = [
+            time_utils.utc_para_string_banco(desde),
+            time_utils.utc_para_string_banco(ate),
+        ]
+        if prb_id:
+            clausulas.append("prb = %s")
+            params.append(prb_id)
+        if incs:
+            placeholders = ",".join(["%s"] * len(incs))
+            clausulas.append(
+                f"(inc IS NOT NULL AND TRIM(inc) <> '' AND inc IN ({placeholders}))"
+            )
+            params.extend(incs)
+        clausula_or = " OR ".join(clausulas)
+
+        sql = f"""
+            SELECT COALESCE(NULLIF(TRIM(equipeproprietaria), ''), '<sem-equipe>') AS equipe,
+                   COUNT(*) AS qtd
+            FROM dynamics.chamados
+            WHERE datacriacao >= %s
+              AND datacriacao <  %s
+              AND ({clausula_or})
+            GROUP BY 1
+            ORDER BY qtd DESC
+        """
+        try:
+            from db import conectar
+            with conectar() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, tuple(params))
+                    return {row[0]: int(row[1]) for row in cur.fetchall()}
+        except Exception as exc:
+            log.warning(
+                "Falha em agrupar_chamados_vinculados_por_equipe(prb=%s, %d incs): %s",
+                prb_id, len(incs), exc,
+            )
+            return {}
+
     def contar_chamados_por_produto(
         self, produto: str, desde: datetime, ate: datetime
     ) -> int:
@@ -1586,6 +1665,13 @@ class ChamadosExtractorMock(FonteChamados):
         # Mock: o dataset sintético não tem colunas inc/prb nos chamados —
         # retorna 0. Testes injetam comportamento via _FakeFonteChamados.
         return 0
+
+    def agrupar_chamados_vinculados_por_equipe(
+        self, prb_id: str, incs_ids: Sequence[str],
+        desde: datetime, ate: datetime,
+    ) -> Dict[str, int]:
+        # Mock: dataset sintético não tem equipeproprietaria — retorna {}.
+        return {}
 
     def listar_chamados_cliente(
         self, login_cliente: str, meses: int

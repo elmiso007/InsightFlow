@@ -194,8 +194,21 @@ JANELA_VOLUMETRIA_PRE_DIAS = 60     # INCs no mesmo (produto,servidor) antes da 
 # Match exato por produto: WHERE chamados.produto = prb.produto. Janela
 # simétrica em ambos lados da data_encerrado.
 JANELA_CHAMADOS_DELTA_DIAS = 14
-# Limiar para destacar redução significativa no alerta Slack (>= 50% queda).
+# Limiares simétricos para destacar variação significativa no alerta Slack.
+# Δ <= LIMIAR_REDUCAO ⇒ ↓ (fix funcionou).
+# Δ >= LIMIAR_AUMENTO ⇒ ↑ (fix piorou).
+# Default ±0.5 (queda/subida >= 50%). Podem ser calibrados separadamente:
+# ex.: LIMIAR_AUMENTO=0.3 alerta subida mais cedo que reduzir o LIMIAR_REDUCAO.
+# Valem para o Δ global (V3) e para o Δ por equipe (V3.1, §10 do
+# VALIDADOR_ENTREGA.md).
 LIMIAR_REDUCAO_CHAMADOS_PCT = -0.5
+LIMIAR_AUMENTO_CHAMADOS_PCT = 0.5
+
+# Top N de times internos (dynamics.chamados.equipeproprietaria) reportados no
+# bloco "Times impactados" do ValidadorEntrega. Pega as N equipes com mais
+# chamados vinculados na janela pré-resolução e mede a redução de cada uma
+# na janela simétrica pós-resolução. Default 5 (pedido do coordenador 2026-06-03).
+TOP_EQUIPES_IMPACTADAS = 5
 
 # -----------------------------------------------------------------------------
 # Registry declarativo de tabelas de chamados por organização (Abordagem 2)

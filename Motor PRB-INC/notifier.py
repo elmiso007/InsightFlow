@@ -141,7 +141,7 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
         seta = ""
         if v.delta_chamados_pct <= config.LIMIAR_REDUCAO_CHAMADOS_PCT:
             seta = " :arrow_down:"  # queda significativa
-        elif v.delta_chamados_pct >= 0.5:
+        elif v.delta_chamados_pct >= config.LIMIAR_AUMENTO_CHAMADOS_PCT:
             seta = " :arrow_up:"  # aumento significativo
         linha_delta = (
             f"*Δ Chamados vinculados ({config.JANELA_CHAMADOS_DELTA_DIAS}d):* "
@@ -165,6 +165,33 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
             f"({prbs_resumo})\n"
         )
 
+    # Times impactados — top N equipes proprietárias dos chamados vinculados
+    # pré-resolução, com % de redução pós. Só inclui se houver pelo menos 1
+    # equipe no top do pré (sem chamados pré não há "time impactado" a reportar).
+    bloco_equipes = ""
+    if v.equipes_impactadas_pre:
+        linhas_equipes = []
+        for equipe, qtd_pre in v.equipes_impactadas_pre.items():
+            qtd_pos = v.equipes_impactadas_pos.get(equipe, 0)
+            pct = v.equipes_delta_pct.get(equipe, 0.0)
+            if qtd_pos == 0:
+                marcador = " :white_check_mark: zerou"
+            elif pct <= config.LIMIAR_REDUCAO_CHAMADOS_PCT:
+                marcador = " :arrow_down:"
+            elif pct >= config.LIMIAR_AUMENTO_CHAMADOS_PCT:
+                marcador = " :arrow_up:"
+            else:
+                marcador = ""
+            linhas_equipes.append(
+                f"    • {equipe}: {qtd_pre} → {qtd_pos} ({pct * 100:+.1f}%){marcador}"
+            )
+        bloco_equipes = (
+            f"*Times impactados (top {len(v.equipes_impactadas_pre)} — "
+            f"{config.JANELA_CHAMADOS_DELTA_DIAS}d pré → pós):*\n"
+            + "\n".join(linhas_equipes)
+            + "\n"
+        )
+
     return (
         f":warning::arrows_counterclockwise: *PRB {v.prb_id} — REINCIDÊNCIA DETECTADA*\n"
         f"*Descrição:* {v.descricao_curta}\n"
@@ -177,6 +204,7 @@ def formatar_alerta_reincidencia(v: ValidacaoEntrega) -> str:
         f"*Pós-resolução:* {v.qtd_incs_pos_resolucao} novas INCs no mesmo (produto, servidor)\n"
         f"{linha_delta}"
         f"{linha_prbs_novos}"
+        f"{bloco_equipes}"
         f"*INCs:* {incs_resumo}\n"
         f"_Change Team: validar se o fix entregue cobre os novos casos._"
     )
@@ -406,6 +434,9 @@ def _validacao_entrega_para_dict(v: ValidacaoEntrega) -> Dict[str, Any]:
         "delta_chamados_pct": v.delta_chamados_pct,
         "qtd_prbs_novos_pos_resolucao": v.qtd_prbs_novos_pos_resolucao,
         "prbs_novos": v.prbs_novos,
+        "equipes_impactadas_pre": v.equipes_impactadas_pre,
+        "equipes_impactadas_pos": v.equipes_impactadas_pos,
+        "equipes_delta_pct": v.equipes_delta_pct,
     }
 
 

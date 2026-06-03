@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import config
 import time_utils
@@ -111,7 +111,13 @@ def _avaliar_prb(
     # --- Delta de chamados pré vs pós (V3: match por prb/inc vinculados) ---
     # Substitui o match por produto (V2) — usa as colunas dynamics.chamados.prb
     # e dynamics.chamados.inc pra contar APENAS chamados realmente vinculados.
+    # Inclui também o agrupamento por equipeproprietaria (top N): identifica
+    # QUEM (time interno Locaweb) estava chamando antes do fix e o quanto
+    # reduziu depois — pedido do coordenador (2026-06-03).
     chamados_pre = chamados_pos = 0
+    equipes_pre: Dict[str, int] = {}
+    equipes_pos: Dict[str, int] = {}
+    equipes_delta_pct: Dict[str, float] = {}
     if fonte_chamados is not None:
         janela = timedelta(days=config.JANELA_CHAMADOS_DELTA_DIAS)
         try:
@@ -135,6 +141,29 @@ def _avaliar_prb(
                 desde=data_ref,
                 ate=data_ref + janela,
             )
+
+            # Top N times internos com chamados vinculados pré-resolução
+            # (mais impactados pelo problema). Limita pelo PRÉ — são os
+            # times que estavam chamando; depois medimos a redução de cada.
+            ranking_pre = fonte_chamados.agrupar_chamados_vinculados_por_equipe(
+                prb_id=prb.prb_id, incs_ids=incs_ids_pre,
+                desde=data_ref - janela, ate=data_ref,
+            )
+            equipes_pre = dict(
+                list(ranking_pre.items())[: config.TOP_EQUIPES_IMPACTADAS]
+            )
+            if equipes_pre:
+                ranking_pos = fonte_chamados.agrupar_chamados_vinculados_por_equipe(
+                    prb_id=prb.prb_id, incs_ids=incs_ids_pos,
+                    desde=data_ref, ate=data_ref + janela,
+                )
+                for equipe, qtd_pre_equipe in equipes_pre.items():
+                    qtd_pos_equipe = ranking_pos.get(equipe, 0)
+                    equipes_pos[equipe] = qtd_pos_equipe
+                    equipes_delta_pct[equipe] = (
+                        round((qtd_pos_equipe - qtd_pre_equipe) / qtd_pre_equipe, 3)
+                        if qtd_pre_equipe > 0 else 0.0
+                    )
         except Exception as exc:
             log.warning(
                 "Falha ao contar chamados pré/pós de %s: %s", prb.prb_id, exc
@@ -179,6 +208,9 @@ def _avaliar_prb(
         delta_chamados_pct=round(delta_pct, 3),
         qtd_prbs_novos_pos_resolucao=len(prbs_novos),
         prbs_novos=prbs_novos,
+        equipes_impactadas_pre=equipes_pre,
+        equipes_impactadas_pos=equipes_pos,
+        equipes_delta_pct=equipes_delta_pct,
     )
 
 

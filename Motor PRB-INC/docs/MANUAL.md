@@ -436,7 +436,9 @@ afetam todas as consultas. Editar arquivo + reiniciar motor.
 | `JANELA_CANDIDATOS_SAUDE_DIAS` | `30` | Janela para identificar candidatos a Saúde. |
 | `JANELA_VOLUMETRIA_PRE_DIAS` | `60` | Janela do volumetria pré do ValidadorEntrega. |
 | `JANELA_CHAMADOS_DELTA_DIAS` | `14` | Janela do Δ de chamados (simétrica). |
-| `LIMIAR_REDUCAO_CHAMADOS_PCT` | `-0.5` | Δ ≤ esse valor mostra ↓ no Slack. |
+| `LIMIAR_REDUCAO_CHAMADOS_PCT` | `-0.5` | Δ ≤ esse valor mostra ↓ no Slack (queda significativa). |
+| `LIMIAR_AUMENTO_CHAMADOS_PCT` | `+0.5` | Δ ≥ esse valor mostra ↑ no Slack (subida significativa). |
+| `TOP_EQUIPES_IMPACTADAS` | `5` | Top N times internos Locaweb no bloco "Times impactados" (V3.1). |
 
 ### 3.7 Exemplo `.env` (não commitar!)
 

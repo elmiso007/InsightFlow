@@ -67,6 +67,32 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
 - **OData / Web API** — Protocolo de consulta REST do Dynamics. Não usado
   diretamente — lemos via banco já ingerido.
 
+- **`data_encerrado`** (em `service_now_problems`) — Timestamp em que o
+  Change Team marcou o PRB como entregue. **Pedra angular do ValidadorEntrega**:
+  define o ponto zero a partir do qual o motor mede reincidência, Δ de
+  chamados e PRBs novos no CI. Status como "Aguardando Validação da
+  Resolução" no DW da Locaweb sempre têm `data_encerrado` NULL — por isso
+  ficam fora de `STATUS_PRB_ENCERRADOS`.
+
+- **`grupo_designado`** — Coluna do SNow que indica o squad/grupo dono do
+  PRB (ex.: "NOC", "Service Operation"). Persistido na linha de
+  `motor_validacao_entrega` para o alerta Slack permitir cobrar o time
+  certo na reincidência.
+
+- **`chamados.prb` / `chamados.inc`** — Colunas em `dynamics.chamados` que
+  associam o chamado a um PRB (ex.: `"PRB0063672"`) ou a uma INC (ex.:
+  `"INC8842845"`). Cobertura observada: ~1.4% dos chamados têm `prb`
+  preenchido, ~5.4% têm `inc`. **Base do match V3 do Δ chamados** do
+  ValidadorEntrega. Indexado em produção via `idx_dyn_chamados_inc`.
+
+- **`chamados.equipeproprietaria`** — Coluna em `dynamics.chamados` que
+  indica o **time interno da Locaweb dono do chamado** (ex.: "Cobrança",
+  "Suporte Painel", "DBA Cloud"). Diferente de `chamados.logincliente`
+  (que é o cliente externo que abriu o chamado). Base do sinal **Times
+  impactados (V3.1)** do ValidadorEntrega — identifica QUEM internamente
+  foi afetado pelo problema que o PRB resolveu. Equipes nulas/vazias caem
+  em `'<sem-equipe>'` no agrupamento.
+
 ---
 
 ## 3. Conceitos do Motor PRB-INC (projeto interno)
@@ -176,11 +202,23 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   agrupamentos significativos entram. Permanece em memória pra alimentar a
   Saúde do Cliente. Antes da omissão, singletons inflavam a tabela em ~50%.
 
+- **Prisma (preventivo vs retrospectivo)** — Terminologia interna do motor
+  para distinguir os dois olhares:
+  - **Prisma preventivo** — `main.py` + `rules_engine.py`, cadência 15 min.
+    Olha INCs ativas das últimas 24h e responde "*quais PRBs eu deveria
+    abrir AGORA?*"
+  - **Prisma retrospectivo** — `validar_entregas.py` + `validador_entrega.py`,
+    cadência 6h. Olha PRBs já entregues nos últimos 14d e responde "*os
+    PRBs que o CT entregou realmente resolveram?*"
+  Os dois rodam em entry-points separados, gravam na mesma `motor_execucao`,
+  mas têm cadências e propósitos diferentes.
+
 - **ValidadorEntrega (prisma retrospectivo)** — Módulo que olha PRBs já
   encerrados pelo Change Team e verifica se o problema realmente foi
   resolvido. Implementado em `validador_entrega.py`, entry-point separado
   `validar_entregas.py` (cadência default 6h). Complementa o prisma
   preventivo do `rules_engine` — fecha o loop de qualidade do fix.
+  Documentação ponta a ponta em [docs/VALIDADOR_ENTREGA.md](docs/VALIDADOR_ENTREGA.md).
 
 - **Veredictos do ValidadorEntrega**
   - `REINCIDENCIA` — ≥`LIMIAR_INCS_REINCIDENCIA` (3) INCs no mesmo
@@ -201,11 +239,18 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   **vinculados ao PRB** em janela simétrica de `JANELA_CHAMADOS_DELTA_DIAS`
   (14) dias antes vs depois de `data_encerrado`. KPI "o contato respirou após
   o fix?" pro Change Team. Match por `chamados.prb = prb.numero` **OU**
-  `chamados.inc IN (incs_do_ci_na_janela)`. Quando
-  `delta_chamados_pct ≤ -0.5` (queda ≥ 50%), o alerta Slack mostra ↓.
+  `chamados.inc IN (incs_do_ci_na_janela)`.
+  **Fórmula:** `(pos - pre) / pre if pre > 0 else 0.0`, arredondado a 3 casas.
+  Range: `-1.0` (zerou) até `+inf` teoricamente; quando `pre == 0` o motor
+  reporta `0.0` (decisão deliberada pra não disparar "alerta de aumento
+  explosivo" sem base de comparação). Alerta Slack destaca:
+  `↓` quando `Δ ≤ LIMIAR_REDUCAO_CHAMADOS_PCT` (default `-0.5`, queda ≥ 50%);
+  `↑` quando `Δ ≥ LIMIAR_AUMENTO_CHAMADOS_PCT` (default `+0.5`, subida ≥ 50%).
+  Limiares simétricos por default, mas configuráveis independentemente.
   Histórico: V1 não tinha esse sinal, V2 usava match por produto (genérico
   e ruidoso), V3 (atual, 2026-06-02) usa match por PRB/INC explícito
   — muito mais preciso, captura `0/0` honestos quando não há vínculo real.
+  Detalhamento completo em [docs/VALIDADOR_ENTREGA.md §8](docs/VALIDADOR_ENTREGA.md#8-δ-chamados-vinculados-v3).
 
 - **PRBs novos pós-resolução** — Lista de PRBs **novos** abertos no mesmo
   `(produto, servidor)` após `data_encerrado` do PRB validado. Sinal
@@ -214,6 +259,54 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   sintoma, não causa raiz. Campos: `qtd_prbs_novos_pos_resolucao` e
   `prbs_novos` (lista de `numero`). Requisito da coordenação (2026-06-02).
   Slack mostra "PRBs novos no CI: N (PRB123, PRB456)" quando ≥ 1.
+
+- **Times impactados (V3.1)** — Top N times internos da Locaweb (via
+  `dynamics.chamados.equipeproprietaria`) com mais chamados vinculados
+  ao PRB/INCs na janela `JANELA_CHAMADOS_DELTA_DIAS` pré-resolução, com a
+  contagem das **mesmas equipes** na janela pós e o % de redução por
+  time. Detalha o Δ chamados V3 por equipe interna — responde
+  diretamente ao pedido do coordenador (2026-06-03): _"quem o PRB
+  impactava e deixou de chamar"_. 3 campos no `ValidacaoEntrega`
+  (dicts `{equipe: valor}`): `equipes_impactadas_pre`,
+  `equipes_impactadas_pos`, `equipes_delta_pct`. Top N controlado por
+  `TOP_EQUIPES_IMPACTADAS = 5`. Equipes sem time atribuído caem em
+  `'<sem-equipe>'`. Apenas times que estavam no top do PRÉ são
+  rastreados — equipes novas que só aparecem no pós são ignoradas.
+  Slack mostra bloco "Times impactados (top N — 14d pré → pós)" com
+  `✅ zerou` quando `qtd_pos == 0`, `↓` quando queda ≥ 50%, `↑` quando
+  subida ≥ 50%.
+
+- **`STATUS_PRB_ENCERRADOS`** — Tupla em `config.py` com os status do SNow
+  considerados "PRB entregue pelo Change Team": `("Encerrado Automaticamente",
+  "Concluído")`. Esses são os únicos status que entram no
+  ValidadorEntrega — outros como "Aguardando Validação da Resolução"
+  ficam de fora porque no DW da Locaweb sempre têm `data_encerrado` NULL.
+
+- **`motor_validacao_entrega`** — Tabela `lwsa.motor_validacao_entrega`
+  onde o ValidadorEntrega grava 1 linha por PRB avaliado. Cresceu de 11
+  colunas (V1) para 19 (V2, +volumetria e Δ chamados), 21 (V3,
+  +tagueamento PRBs novos) e finalmente **24 (V3.1, +times impactados
+  via equipeproprietaria)**. DDL idempotente em `sql/motor_tables.sql`.
+
+- **Thresholds do ValidadorEntrega** — Conjunto de configs em `config.py`
+  que calibram o prisma retrospectivo:
+  - `JANELA_VALIDACAO_ENTREGA_DIAS = 14` — quantos dias de PRBs encerrados
+    o motor enxerga em cada ciclo
+  - `LIMIAR_INCS_REINCIDENCIA = 3` — INCs novas em `(produto, servidor)`
+    para disparar `REINCIDENCIA`
+  - `MIN_DIAS_PARA_VALIDAR = 7` — quanto tempo precisa passar sem novas
+    INCs para virar `ENTREGA_VALIDADA`
+  - `JANELA_VOLUMETRIA_PRE_DIAS = 60` — janela da volumetria pré-resolução
+  - `JANELA_CHAMADOS_DELTA_DIAS = 14` — janela simétrica do Δ chamados
+    (e do agrupamento de times impactados V3.1)
+  - `LIMIAR_REDUCAO_CHAMADOS_PCT = -0.5` — Δ ≤ esse valor mostra ↓ no Slack
+    (queda ≥ 50% = sinal de fix bom). Vale tanto pro Δ global quanto pro
+    Δ por time
+  - `LIMIAR_AUMENTO_CHAMADOS_PCT = +0.5` — espelho simétrico do anterior
+    (Δ ≥ esse valor mostra ↑ — subida ≥ 50%). Configurável independente:
+    pode querer alertar subida mais cedo que reconhecer queda
+  - `TOP_EQUIPES_IMPACTADAS = 5` — quantos times internos Locaweb
+    aparecem no bloco "Times impactados" (V3.1)
 
 ---
 
@@ -281,6 +374,15 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
 
 - **Service Operation** — Time responsável pela operação cotidiana dos
   serviços. Outro valor comum em `grupo_designado`.
+
+- **Change Team (CT)** — Time responsável por **entregar a resolução** dos
+  PRBs depois que o problema foi diagnosticado. Quando um PRB sai do status
+  "Em andamento" para "Encerrado Automaticamente" / "Concluído", foi o CT
+  que executou. **Cliente principal do ValidadorEntrega**: os alertas de
+  `REINCIDENCIA` são pra ele cobrar se o fix entregue cobre os casos novos.
+  No SNow não é um grupo específico (não há um `grupo_designado = 'Change Team'`);
+  na prática são as squads operacionais que executam mudanças. O motor
+  agrega isso via `STATUS_PRB_ENCERRADOS` (status que indica "entregue").
 
 - **lw_octadesk.classificacoes** — Tabela auxiliar usada para derivar o
   `produto` em chamados Locaweb via JOIN pelos 5 níveis hierárquicos

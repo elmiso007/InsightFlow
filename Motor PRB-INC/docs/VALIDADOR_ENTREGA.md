@@ -1,4 +1,4 @@
-# ValidadorEntrega — Processo Completo (V3)
+# ValidadorEntrega — Processo Completo (V3.1)
 
 > **Audiência:** Change Team, PO, coordenadores, analistas que vão consumir
 > os veredictos. Para detalhe de implementação ver [ARQUITETURA.md](ARQUITETURA.md).
@@ -16,17 +16,18 @@ PRBs entregues pelo Change Team — fechando o loop de qualidade do fix.
 2. [Por que existe (preventivo vs retrospectivo)](#2-por-que-existe-preventivo-vs-retrospectivo)
 3. [Fluxo do processo](#3-fluxo-do-processo)
 4. [Quais PRBs entram](#4-quais-prbs-entram)
-5. [Os 4 sinais coletados por PRB](#5-os-4-sinais-coletados-por-prb)
+5. [Os 5 sinais coletados por PRB](#5-os-5-sinais-coletados-por-prb)
 6. [Veredicto (REINCIDENCIA / ENTREGA_VALIDADA / INCONCLUSIVO)](#6-veredicto-reincidencia--entrega_validada--inconclusivo)
 7. [Volumetria pré-resolução](#7-volumetria-pré-resolução)
 8. [Δ chamados vinculados (V3)](#8-δ-chamados-vinculados-v3)
 9. [PRBs novos pós-resolução](#9-prbs-novos-pós-resolução)
-10. [O que aparece no dashboard / banco / Slack](#10-o-que-aparece-no-dashboard--banco--slack)
-11. [Como interpretar (operacional)](#11-como-interpretar-operacional)
-12. [Cadência e agendamento](#12-cadência-e-agendamento)
-13. [Como ajustar](#13-como-ajustar)
-14. [Histórico de versões (V1 → V2 → V3)](#14-histórico-de-versões-v1--v2--v3)
-15. [Limitações conhecidas](#15-limitações-conhecidas)
+10. [Times impactados (V3.1)](#10-times-impactados-v31)
+11. [O que aparece no dashboard / banco / Slack](#11-o-que-aparece-no-dashboard--banco--slack)
+12. [Como interpretar (operacional)](#12-como-interpretar-operacional)
+13. [Cadência e agendamento](#13-cadência-e-agendamento)
+14. [Como ajustar](#14-como-ajustar)
+15. [Histórico de versões (V1 → V2 → V3 → V3.1)](#15-histórico-de-versões-v1--v2--v3--v31)
+16. [Limitações conhecidas](#16-limitações-conhecidas)
 
 ---
 
@@ -40,15 +41,16 @@ dias** e emite um **veredicto** sobre cada um:
 - `ENTREGA_VALIDADA` — o fix segurou (0 INCs novas + ≥7 dias decorridos)
 - `INCONCLUSIVO` — ainda cedo pra decidir (janela curta, sinais ambíguos)
 
-Além do veredicto, cada PRB carrega **3 sinais adicionais** (V3):
-volumetria pré-resolução, Δ de chamados vinculados pré/pós, e lista de
-PRBs novos abertos no mesmo CI.
+Além do veredicto, cada PRB carrega **4 sinais adicionais** (V3.1):
+volumetria pré-resolução, Δ de chamados vinculados pré/pós, lista de
+PRBs novos abertos no mesmo CI, e **times internos Locaweb impactados**
+(top N equipes proprietárias dos chamados vinculados + % de redução pós-fix).
 
 **Implementação:**
 - Módulo: [validador_entrega.py](../validador_entrega.py)
 - Entry-point: [validar_entregas.py](../validar_entregas.py)
 - Wrapper Windows: [Motor-PRB-Validador.bat](../Motor-PRB-Validador.bat)
-- Persistência: tabela `lwsa.motor_validacao_entrega` (21 colunas)
+- Persistência: tabela `lwsa.motor_validacao_entrega` (24 colunas)
 
 ---
 
@@ -89,7 +91,7 @@ ValidadorEntrega.
   ~10 PRBs candidatos
 
 ┌─────────────────────────────────────────────────────────────────────┐
-│  FASE 2 — Avaliar cada PRB (4 sinais)                                │
+│  FASE 2 — Avaliar cada PRB (5 sinais)                                │
 └─────────────────────────────────────────────────────────────────────┘
 
   para cada PRB:
@@ -108,18 +110,27 @@ ValidadorEntrega.
     │     contar_chamados_vinculados(prb_id, incs_pos, ...)   → chamados_pos
     │     delta_chamados_pct = (pos - pre) / pre
     │
-    └─ SINAL 4: PRBs novos pós-resolução
-          listar_prbs_novos_no_ci_periodo(produto, servidor,
-                                           desde=data_resolucao,
-                                           ignorar_prb_id=prb.prb_id)
-          → ["PRB0012345", ...]
+    ├─ SINAL 4: PRBs novos pós-resolução
+    │     listar_prbs_novos_no_ci_periodo(produto, servidor,
+    │                                      desde=data_resolucao,
+    │                                      ignorar_prb_id=prb.prb_id)
+    │     → ["PRB0012345", ...]
+    │
+    └─ SINAL 5: Times impactados (V3.1)
+          agrupar_chamados_vinculados_por_equipe(prb_id, incs_pre, janela_pre)
+                → ranking_pre (top N por chamados)
+          agrupar_chamados_vinculados_por_equipe(prb_id, incs_pos, janela_pos)
+                → ranking_pos
+          Para cada equipe do TOP_EQUIPES_IMPACTADAS do pré:
+                pct = (qtd_pos - qtd_pre) / qtd_pre
+          → {equipe: qtd_pre}, {equipe: qtd_pos}, {equipe: pct}
 
 ┌─────────────────────────────────────────────────────────────────────┐
 │  FASE 3 — Saída (3 destinos, defesa em camadas)                      │
 └─────────────────────────────────────────────────────────────────────┘
 
   ┌── output/validacoes_entrega.json (JSON do dashboard)
-  ├── lwsa.motor_validacao_entrega   (21 colunas persistidas)
+  ├── lwsa.motor_validacao_entrega   (24 colunas persistidas)
   └── Slack                           (1 mensagem POR REINCIDENCIA detectada)
 ```
 
@@ -143,7 +154,7 @@ direto (sem `CI` confiável não dá pra match).
 
 ---
 
-## 5. Os 4 sinais coletados por PRB
+## 5. Os 5 sinais coletados por PRB
 
 Cada `ValidacaoEntrega` carrega:
 
@@ -164,6 +175,11 @@ Ver §7.
 
 2 campos: `qtd_prbs_novos_pos_resolucao`, `prbs_novos` (lista de
 `numero`). Ver §9.
+
+### Sinal 5 — Times impactados (V3.1)
+
+3 campos (dicts `{equipe: valor}`): `equipes_impactadas_pre`,
+`equipes_impactadas_pos`, `equipes_delta_pct`. Ver §10.
 
 ---
 
@@ -268,15 +284,69 @@ O **OR** é importante: captura chamados rotulados explicitamente com o PRB
 (`prb = 'PRB0070000'`) **e** chamados que falam de qualquer INC do CI no
 período (`inc IN (incs_pre)`).
 
-### Como interpretar
+### Anatomia da fórmula
 
-`delta_chamados_pct = (chamados_pos - chamados_pre) / chamados_pre`
+```python
+# Em validador_entrega._avaliar_prb:
+delta_pct = (chamados_pos - chamados_pre) / chamados_pre if chamados_pre > 0 else 0.0
+delta_chamados_pct = round(delta_pct, 3)
+```
 
-| Δ | Significado | Slack |
+`Δ` (delta) é a notação universal pra **"variação relativa entre dois
+momentos"**. Aqui: quanto o volume de chamados vinculados mudou pós-fix em
+relação ao volume pré-fix.
+
+#### Por que dividir pelo PRÉ (e não pelo pós)
+
+O **pré é o baseline** — a pergunta é _"em relação ao que existia ANTES,
+quanto mudou DEPOIS?"_. Isso garante que:
+
+- `pre=10, pos=5` → `(5-10)/10 = -0.5` → caiu metade ✅
+- `pre=10, pos=20` → `(20-10)/10 = +1.0` → dobrou ✅
+- `pre=10, pos=0` → `(0-10)/10 = -1.0` → zerou ✅
+
+Dividir pelo pós inverteria o sentido em casos de variação grande e ficaria
+contra-intuitivo.
+
+#### Range de valores possíveis
+
+| Valor de Δ | Significa | Conversão pra % | Marcador Slack |
+|---|---|---|---|
+| `-1.000` | Zerou (`pos == 0`) | -100% | ↓ |
+| `-0.500` a `-0.999` | Caiu 50% a 99% | -50% a -99% | ↓ |
+| `-0.001` a `-0.499` | Caiu 0% a 49% | -0% a -49% | (sem marcador) |
+| `0.000` | Pós igual ao pré, OU pré era zero | 0% | (sem marcador) |
+| `+0.001` a `+0.499` | Subiu 0% a 49% | +0% a +49% | (sem marcador) |
+| `+0.500` ou mais | Subiu ≥ 50% | +50%+ | ↑ |
+
+> **Conversão simples:** `pct × 100`. `-0.875` → `-87.5%`.
+
+#### Edge cases (decisões do código)
+
+1. **`pre == 0`:** divisão por zero seria erro. Motor reporta `0.0`
+   (e não `+inf`/`null`) — escolha conservadora pra evitar disparar
+   "alerta de aumento explosivo" quando não havia base de comparação.
+   Você ainda vê `chamados_pre=0, chamados_pos=8` nos campos brutos,
+   mas o **%** fica neutro.
+2. **`pre == 0` e `pos == 0`:** trivialmente `0.0`. PRB sem nenhuma
+   cobertura no Dynamics — sinal totalmente neutro (ver "0/0 é
+   informação válida" abaixo).
+3. **Arredondamento a 3 casas:** `round(delta_pct, 3)` — evita ruído
+   tipo `-0.8750000003`. Persistido no banco como `numeric(8,3)`.
+
+#### Limiares de destaque no Slack
+
+| Quando | Configuração | Marcador |
 |---|---|---|
-| `< -0.5` (queda ≥ 50%) | Fix funcionou — contato caiu | ↓ |
-| `~0` | Sem mudança ou sem cobertura | sem seta |
-| `> +0.5` (subida ≥ 50%) | Fix não funcionou ou piorou | ↑ |
+| `Δ ≤ LIMIAR_REDUCAO_CHAMADOS_PCT` (default `-0.5`) | queda ≥ 50% | ↓ |
+| `Δ ≥ LIMIAR_AUMENTO_CHAMADOS_PCT` (default `+0.5`) | subida ≥ 50% | ↑ |
+| Entre os dois | variação ≤ 50% em qualquer direção | (sem marcador) |
+
+Os **dois limiares são simétricos por default** (`±0.5`) e ficam em
+`config.py` — podem ser calibrados independentemente. Ex.: se quiser
+alertar subida mais cedo, baixe `LIMIAR_AUMENTO_CHAMADOS_PCT` pra `0.3`.
+
+> Os mesmos limiares valem pro Δ por equipe (V3.1, §10).
 
 **`0/0` é informação válida:** indica que esse PRB não tem chamados
 vinculados explícitos — o que pode significar "fix sem ruído" OU "ETL não
@@ -326,9 +396,114 @@ No Slack: `*PRBs novos no CI:* N (PRB123, PRB456)` quando ≥ 1.
 
 ---
 
-## 10. O que aparece no dashboard / banco / Slack
+## 10. Times impactados (V3.1)
 
-### `lwsa.motor_validacao_entrega` (21 colunas)
+**Janela:** mesma do Δ chamados V3 — `JANELA_CHAMADOS_DELTA_DIAS = 14`
+em cada lado de `data_encerrado`.
+
+**Top N:** `TOP_EQUIPES_IMPACTADAS = 5` (default).
+
+### O que responde
+
+Pedido do coordenador (2026-06-03): _"Quem o PRB impactava? ex.: time
+cobrança. Valida se o time parou de abrir chamados sobre o assunto do PRB."_
+
+A V3.1 detalha o Δ chamados V3 (§8) **por time interno da Locaweb** —
+identifica quem ESTAVA chamando antes do fix e mede a redução de cada um
+pós-resolução.
+
+### O match
+
+```sql
+SELECT COALESCE(NULLIF(TRIM(equipeproprietaria), ''), '<sem-equipe>') AS equipe,
+       COUNT(*) AS qtd
+FROM dynamics.chamados
+WHERE datacriacao >= %s            -- início da janela (pré OU pós)
+  AND datacriacao <  %s            -- fim da janela
+  AND (
+        prb = %s                       -- mesmo critério V3
+        OR (inc IS NOT NULL AND inc IN (%s, %s, ...))
+      )
+GROUP BY 1
+ORDER BY qtd DESC;
+```
+
+Roda 2× por PRB: uma na janela pré, outra na pós.
+
+### Lógica de comparação
+
+1. **Pré:** roda a query e pega o **top `TOP_EQUIPES_IMPACTADAS`** por
+   volume de chamados → `equipes_impactadas_pre`.
+2. **Pós:** roda a mesma query na janela pós; para cada equipe do top
+   pré, lê `qtd_pos = ranking_pos.get(equipe, 0)`. Equipes que sumiram
+   pós ficam com 0 explícito → `equipes_impactadas_pos`.
+3. **Δ por equipe:** `pct = (qtd_pos - qtd_pre) / qtd_pre`, arredondado
+   pra 3 casas → `equipes_delta_pct`.
+
+**Importante:** só rastreamos quem ESTAVA chamando antes do fix.
+Equipes novas que aparecem só no pós (mas não estavam no pré) são
+ignoradas — não são "times impactados pelo PRB original".
+
+### Campos no modelo
+
+```python
+equipes_impactadas_pre: Dict[str, int]    # {equipe: qtd_pre}
+equipes_impactadas_pos: Dict[str, int]    # {equipe: qtd_pos}, mesmas keys
+equipes_delta_pct: Dict[str, float]       # {equipe: pct}, mesmas keys
+```
+
+### Como interpretar
+
+| Δ por equipe | Significado | Marcador Slack |
+|---|---|---|
+| `qtd_pos == 0` | Time deixou de chamar — fix segurou pra essa equipe | ✅ zerou |
+| `pct ≤ -0.5` (queda ≥ 50%) | Forte redução — fix funcionou bem | ↓ |
+| `-0.5 < pct < 0.5` | Mudança pequena ou ruído | (sem marcador) |
+| `pct ≥ 0.5` (subida ≥ 50%) | Time CONTINUA ou AUMENTOU chamados — fix falhou pra eles | ↑ |
+
+### Edge cases
+
+- **`equipeproprietaria` NULL/vazia:** agrupada como `'<sem-equipe>'` —
+  aparece como um time com nome literal `<sem-equipe>`. Útil pra debug
+  (sinaliza chamados sem time atribuído no Dynamics).
+- **PRB sem chamados vinculados:** todos os 3 dicts ficam `{}`. O bloco
+  "Times impactados" simplesmente não aparece no Slack.
+- **`ranking_pre` vazio mas `ranking_pos` cheio:** dicts ficam `{}` —
+  intencionalmente não rastreamos equipes que só apareceram pós.
+
+### Exemplo
+
+Hipótese: PRB resolveu um bug na ferramenta de cobrança que afetava
+internamente o time de Cobrança e o de Faturamento, com algum chamado de
+overflow indo pra Suporte Geral.
+
+```
+equipes_impactadas_pre = {
+    "Cobrança":         12,
+    "Faturamento":       8,
+    "Suporte Geral":     3,
+}
+equipes_impactadas_pos = {
+    "Cobrança":          0,    # ← zerou! :white_check_mark:
+    "Faturamento":       1,    # caiu 87%
+    "Suporte Geral":     2,    # caiu 33%
+}
+equipes_delta_pct = {
+    "Cobrança":      -1.0,
+    "Faturamento":   -0.875,
+    "Suporte Geral": -0.333,
+}
+```
+
+Leitura: fix excelente pro time de Cobrança (zerou), bom pra Faturamento
+(forte queda), discreto pra Suporte Geral (queda moderada, talvez ruído
+não relacionado).
+
+---
+
+## 11. O que aparece no dashboard / banco / Slack
+
+### `lwsa.motor_validacao_entrega` (24 colunas)
 
 | Grupo | Colunas |
 |---|---|
@@ -338,6 +513,7 @@ No Slack: `*PRBs novos no CI:* N (PRB123, PRB456)` quando ≥ 1.
 | **Volumetria pré** | `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre` |
 | **Δ chamados V3** | `chamados_pre`, `chamados_pos`, `delta_chamados_pct` |
 | **PRBs novos** | `qtd_prbs_novos_pos_resolucao`, `prbs_novos` (JSON) |
+| **Times impactados (V3.1)** | `equipes_impactadas_pre` (JSON), `equipes_impactadas_pos` (JSON), `equipes_delta_pct` (JSON) |
 
 ### `output/validacoes_entrega.json`
 
@@ -356,6 +532,10 @@ Pré-resolução (60d): 25 INCs · 8 clientes · 3 categorias
 Pós-resolução: 13 novas INCs no mesmo (produto, servidor)
 Δ Chamados vinculados (14d): 6 → 8 (+33.3%) ↑
 PRBs novos no CI: 1 (PRB0072001)
+Times impactados (top 3 — 14d pré → pós):
+    • Cobrança: 12 → 0 (-100.0%) ✅ zerou
+    • Faturamento: 8 → 1 (-87.5%) ↓
+    • Suporte Geral: 3 → 2 (-33.3%)
 INCs: INC8847001 (P3), INC8847002 (P3), INC8847005 (P2) (+10)
 _Change Team: validar se o fix entregue cobre os novos casos._
 ```
@@ -365,20 +545,21 @@ inconclusivas não geram Slack (evita ruído).
 
 ---
 
-## 11. Como interpretar (operacional)
+## 12. Como interpretar (operacional)
 
-| Cenário | Volumetria pré | Δ chamados | PRBs novos | Veredicto | Leitura |
-|---|---|---|---|---|---|
-| Fix excelente — grande problema resolvido | Alta (50+ INCs) | ↓ (>50%) | 0 | ENTREGA_VALIDADA | **Modelo a replicar.** |
-| Fix limpo de PRB pequeno | Baixa (2-5 INCs) | 0/0 | 0 | ENTREGA_VALIDADA | OK. Sem cobertura no Dynamics, mas sem reincidência. |
-| Problema voltou em outra forma | Qualquer | Qualquer | ≥ 1 PRB | REINCIDENCIA OU INCONCLUSIVO | **Reabrir/investigar causa raiz.** |
-| Fix piorou (contato subiu) | Qualquer | ↑ (>50%) | 0 | REINCIDENCIA | **Re-investigar URGENTE.** |
-| Janela curta, sem dado | — | — | 0 | INCONCLUSIVO | Aguardar próximo ciclo. |
-| Fix segurou as INCs mas contato subiu | Qualquer | ↑ (>50%) | 0 | ENTREGA_VALIDADA | Estranho. Talvez chamados não relacionados — auditar manualmente. |
+| Cenário | Volumetria pré | Δ chamados | PRBs novos | Times impactados | Veredicto | Leitura |
+|---|---|---|---|---|---|---|
+| Fix excelente — grande problema resolvido | Alta (50+ INCs) | ↓ (>50%) | 0 | Todos ✅ zerou ou ↓ | ENTREGA_VALIDADA | **Modelo a replicar.** |
+| Fix limpo de PRB pequeno | Baixa (2-5 INCs) | 0/0 | 0 | `{}` (sem cobertura) | ENTREGA_VALIDADA | OK. Sem cobertura no Dynamics, mas sem reincidência. |
+| Problema voltou em outra forma | Qualquer | Qualquer | ≥ 1 PRB | Qualquer | REINCIDENCIA OU INCONCLUSIVO | **Reabrir/investigar causa raiz.** |
+| Fix piorou (contato subiu) | Qualquer | ↑ (>50%) | 0 | ≥ 1 equipe com ↑ | REINCIDENCIA | **Re-investigar URGENTE.** |
+| Fix beneficiou alguns times e não outros | Qualquer | ~0 (média) | 0 | Misto (✅ + ↑) | qualquer | Detalhar: fix resolveu uma classe de chamado mas criou outra. Conversar com equipes ↑. |
+| Janela curta, sem dado | — | — | 0 | `{}` | INCONCLUSIVO | Aguardar próximo ciclo. |
+| Fix segurou as INCs mas contato subiu | Qualquer | ↑ (>50%) | 0 | ≥ 1 equipe com ↑ | ENTREGA_VALIDADA | Estranho. Identificar EQUIPE específica com ↑ — auditar manualmente. |
 
 ---
 
-## 12. Cadência e agendamento
+## 13. Cadência e agendamento
 
 ### Cadência default
 
@@ -405,7 +586,7 @@ Resumo: criar 2ª task no Task Scheduler apontando para
 
 ---
 
-## 13. Como ajustar
+## 14. Como ajustar
 
 Todos os ajustes em [config.py](../config.py):
 
@@ -449,14 +630,30 @@ JANELA_CHAMADOS_DELTA_DIAS = 7   # antes: 14
 
 Janela menor é mais sensível a mudança imediata pós-fix.
 
-### Limiar de redução pra mostrar ↓ no Slack
+### Limiares de variação pra mostrar ↓ / ↑ no Slack
 
 ```python
 LIMIAR_REDUCAO_CHAMADOS_PCT = -0.3   # antes: -0.5
+LIMIAR_AUMENTO_CHAMADOS_PCT =  0.3   # antes: +0.5
 ```
 
-Default conservador (queda ≥ 50% pra marcar ↓). Reduzir pra `-0.3` deixa
-a seta aparecer com queda ≥ 30%.
+Defaults conservadores (variação ≥ 50% em qualquer direção pra marcar
+seta). Reduzir os módulos pra `±0.3` deixa as setas aparecerem com
+variação ≥ 30%. **Valem tanto pro Δ global quanto pro Δ por time** (§10).
+
+Os dois são **independentes** — pode querer alertar subida mais cedo do
+que reconhecer queda. Ex.: `LIMIAR_REDUCAO=-0.5, LIMIAR_AUMENTO=+0.2`
+sinaliza qualquer aumento >= 20% mas só destaca quedas >= 50%.
+
+### Top N de times impactados
+
+```python
+TOP_EQUIPES_IMPACTADAS = 3   # antes: 5
+```
+
+Reduzir pra mostrar só os mais relevantes; aumentar pra ver cauda longa
+(ex.: 10 pra debug). Não afeta a query — apenas o quanto entra em
+`equipes_impactadas_pre` (e por consequência o Slack/banco).
 
 ### Status considerados "encerrados"
 
@@ -473,7 +670,7 @@ adicionar — senão vira INCONCLUSIVO eterno.
 
 ---
 
-## 14. Histórico de versões (V1 → V2 → V3)
+## 15. Histórico de versões (V1 → V2 → V3 → V3.1)
 
 ### V1 (motor original)
 
@@ -490,7 +687,7 @@ adicionar — senão vira INCONCLUSIVO eterno.
 - **Limitação observada:** match por produto trazia ruído (falsos positivos
   de chamados em outros assuntos do mesmo produto)
 
-### V3 (2026-06-02, ValidadorEntrega V3 atual)
+### V3 (2026-06-02, ValidadorEntrega V3)
 
 - Substitui match por produto: agora `chamados.prb = prb_id` **OU**
   `chamados.inc IN (incs)` — match explícito via vínculo
@@ -501,6 +698,20 @@ adicionar — senão vira INCONCLUSIVO eterno.
   inflar com ruído). PRBs com vínculo real revelam Δ preciso (ex.:
   PRB0055135 mostrou +33% com 13 INCs reincidentes — sinal duplo de falha).
 
+### V3.1 (2026-06-03, ValidadorEntrega V3.1 atual)
+
+- Adiciona **Times impactados** (§10): top N equipes
+  proprietárias dos chamados vinculados (pré e pós) + % de redução por
+  time. Usa `dynamics.chamados.equipeproprietaria`.
+- Detalha o Δ chamados V3 por equipe interna Locaweb — responde
+  diretamente ao pedido do coordenador: _"quem o PRB impactava e deixou
+  de chamar?"_
+- 24 colunas em `motor_validacao_entrega` (+3 JSON da V3.1)
+- Novo threshold em config: `TOP_EQUIPES_IMPACTADAS = 5`
+- **Ganho operacional:** Slack agora identifica EXATAMENTE quais times
+  internos beneficiaram do fix e quais ainda chamam — coordenador pode
+  conversar direto com o time específico que ainda tem dor.
+
 ### Versão "Radar CT" (revertida)
 
 Tentamos uma V2 antes com heurística de palavra-chave pra delta de chamados
@@ -510,7 +721,7 @@ recuperar.
 
 ---
 
-## 15. Limitações conhecidas
+## 16. Limitações conhecidas
 
 ### Match de chamados depende do ETL
 
@@ -555,6 +766,24 @@ o PRB anterior já resolveu" de "INCs que este PRB resolveu".
 O motor emite veredicto, mas não recebe retroalimentação ("foi falso
 positivo", "este PRB é especial"). Não aprende. Pra calibrar é preciso
 ajustar thresholds no `config.py` manualmente.
+
+### Times impactados dependem de `equipeproprietaria` preenchida
+
+O sinal V3.1 (§10) só é útil se `dynamics.chamados.equipeproprietaria`
+estiver preenchida no DW. Chamados sem time atribuído caem em
+`'<sem-equipe>'` — se a maioria dos chamados vinculados não tem time,
+o bloco "Times impactados" vira pouco informativo.
+
+**Mitigação:** o `<sem-equipe>` no Slack já sinaliza visualmente o
+problema de qualidade do dado.
+
+### Equipes que mudaram de nome no Dynamics
+
+Se uma equipe foi renomeada entre a janela pré e a pós (ex.: "Cobrança"
+virou "Cobrança e Faturamento"), o validador trata como equipes distintas
+— o pré aparece como "ainda chamando" (não bate) e o pós com nova chave
+é ignorado (porque não estava no top do pré). Esse caso é raro mas vale
+saber.
 
 ---
 

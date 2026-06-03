@@ -239,20 +239,27 @@ class TestGerarValidacoes:
 # Fake fonte de chamados — V3 usa match por prb_id/inc_ids
 # -----------------------------------------------------------------------------
 class _FakeFonteChamados:
-    """Devolve contagens fixas pré/pós por prb_id.
+    """Devolve contagens fixas pré/pós por prb_id + agrupamentos por equipe.
 
-    Estrutura: contagens_por_prb = {prb_id: {"pre": N, "pos": M}}
-    O validador chama contar_chamados_vinculados 2x por PRB; alternamos
-    pre/pos com base no histórico.
+    Estruturas:
+      contagens_por_prb    = {prb_id: {"pre": N, "pos": M}}
+      agrupamentos_por_prb = {prb_id: {"pre": {equipe: qtd, ...},
+                                       "pos": {equipe: qtd, ...}}}
+    O validador chama contar_chamados_vinculados 2x e
+    agrupar_chamados_vinculados_por_equipe 2x por PRB; alternamos pré/pós
+    com base no histórico (chamadas separadas por método).
     """
 
     def __init__(
         self,
         contagens_por_prb: dict[str, dict[str, int]] | None = None,
+        agrupamentos_por_prb: dict[str, dict[str, dict[str, int]]] | None = None,
     ) -> None:
         self.contagens_por_prb = contagens_por_prb or {}
-        # Histórico de chamadas: lista de (prb_id, incs_ids, desde, ate)
+        self.agrupamentos_por_prb = agrupamentos_por_prb or {}
+        # Históricos separados por método (cada um alterna pré/pós).
         self.chamadas: List[tuple] = []
+        self.chamadas_agrupar: List[tuple] = []
 
     def contar_chamados_vinculados(self, prb_id, incs_ids, desde, ate):
         self.chamadas.append((prb_id, tuple(incs_ids), desde, ate))
@@ -261,6 +268,15 @@ class _FakeFonteChamados:
             return 0
         nth = sum(1 for c in self.chamadas if c[0] == prb_id)
         return cfg.get("pre" if nth == 1 else "pos", 0)
+
+    def agrupar_chamados_vinculados_por_equipe(self, prb_id, incs_ids, desde, ate):
+        self.chamadas_agrupar.append((prb_id, tuple(incs_ids), desde, ate))
+        cfg = self.agrupamentos_por_prb.get(prb_id)
+        if not cfg:
+            return {}
+        nth = sum(1 for c in self.chamadas_agrupar if c[0] == prb_id)
+        fase = "pre" if nth == 1 else "pos"
+        return dict(cfg.get(fase, {}))
 
     def contar_chamados_por_produto(self, produto, desde, ate):
         # Mantido só pra compat com a abstract — não é mais usado pelo validador.
@@ -418,3 +434,128 @@ class TestPrbsNovosPosResolucao:
         # Fake aplica o filtro ignorar_prb_id — devolve so PRB_OUTRO.
         assert v.qtd_prbs_novos_pos_resolucao == 1
         assert v.prbs_novos == ["PRB_OUTRO"]
+
+
+# -----------------------------------------------------------------------------
+# Times impactados (top N equipes via dynamics.chamados.equipeproprietaria)
+# Requisito de coordenação 2026-06-03.
+# -----------------------------------------------------------------------------
+class TestEquipesImpactadas:
+    def test_top_n_equipes_limita_ao_threshold(self, monkeypatch):
+        # 7 equipes no pré → só TOP_EQUIPES_IMPACTADAS (5 default) entram.
+        monkeypatch.setattr(config, "TOP_EQUIPES_IMPACTADAS", 5)
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            agrupamentos_por_prb={
+                "PRB_X": {
+                    "pre": {
+                        "Cobrança": 15, "Suporte": 12, "DBA": 10,
+                        "Redes": 7, "Plataforma": 5,
+                        "Vendas": 3, "Financeiro": 1,  # devem ser cortadas
+                    },
+                    "pos": {},
+                }
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert len(v.equipes_impactadas_pre) == 5
+        # Top 5 deve estar em ordem decrescente.
+        assert list(v.equipes_impactadas_pre.keys()) == [
+            "Cobrança", "Suporte", "DBA", "Redes", "Plataforma"
+        ]
+        assert "Vendas" not in v.equipes_impactadas_pre
+        assert "Financeiro" not in v.equipes_impactadas_pre
+
+    def test_equipe_que_zerou_aparece_com_pos_zero_e_pct_minus_100(self):
+        # Cobrança tinha 10 chamados pré, 0 pós → delta = -1.0 (-100%).
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            agrupamentos_por_prb={
+                "PRB_X": {
+                    "pre": {"Cobrança": 10},
+                    "pos": {},  # zerou
+                }
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.equipes_impactadas_pre == {"Cobrança": 10}
+        assert v.equipes_impactadas_pos == {"Cobrança": 0}
+        assert v.equipes_delta_pct == {"Cobrança": -1.0}
+
+    def test_equipe_que_aumentou_pos(self):
+        # Suporte foi de 4 para 10 → +1.5 (+150%).
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            agrupamentos_por_prb={
+                "PRB_X": {
+                    "pre": {"Suporte": 4},
+                    "pos": {"Suporte": 10},
+                }
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.equipes_impactadas_pos["Suporte"] == 10
+        assert v.equipes_delta_pct["Suporte"] == 1.5
+
+    def test_apenas_equipes_do_top_pre_recebem_pct(self):
+        # Time que aparece SO no pos (não estava no pré) é ignorado —
+        # só rastreamos quem ESTAVA chamando antes do fix.
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados(
+            agrupamentos_por_prb={
+                "PRB_X": {
+                    "pre": {"Cobrança": 5},
+                    "pos": {"Cobrança": 2, "TimeNovo": 8},  # TimeNovo não é top do pre
+                }
+            },
+        )
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert set(v.equipes_impactadas_pre.keys()) == {"Cobrança"}
+        assert set(v.equipes_impactadas_pos.keys()) == {"Cobrança"}
+        assert "TimeNovo" not in v.equipes_impactadas_pos
+
+    def test_sem_agrupamento_retorna_dicts_vazios(self):
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        fonte_ch = _FakeFonteChamados()  # nenhum agrupamento
+        validacoes = gerar_validacoes_entrega(fonte_inc, fonte_ch)
+        v = validacoes[0]
+        assert v.equipes_impactadas_pre == {}
+        assert v.equipes_impactadas_pos == {}
+        assert v.equipes_delta_pct == {}
+
+    def test_sem_fonte_chamados_retorna_dicts_vazios(self):
+        # Sem fonte_chamados, validador devolve campos default (dicts vazios).
+        prb = make_prb(
+            prb_id="PRB_X", produto="VPS", servidor="vps-01",
+            data_resolucao=_agora() - timedelta(days=10),
+        )
+        fonte_inc = _FakeFonte(prbs=[prb])
+        validacoes = gerar_validacoes_entrega(fonte_inc)  # sem fonte_chamados
+        v = validacoes[0]
+        assert v.equipes_impactadas_pre == {}
+        assert v.equipes_impactadas_pos == {}
+        assert v.equipes_delta_pct == {}

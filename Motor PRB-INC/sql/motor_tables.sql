@@ -296,12 +296,45 @@ BEGIN
         ALTER TABLE lwsa.motor_validacao_entrega
             ADD COLUMN prbs_novos json NOT NULL DEFAULT '[]'::json;
     END IF;
+
+    -- Times impactados via dynamics.chamados.equipeproprietaria
+    -- (requisito de coordenação 2026-06-03). Top N equipes proprietárias
+    -- dos chamados vinculados pré/pós + % de redução por equipe.
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='equipes_impactadas_pre'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN equipes_impactadas_pre json NOT NULL DEFAULT '{}'::json;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='equipes_impactadas_pos'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN equipes_impactadas_pos json NOT NULL DEFAULT '{}'::json;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema='lwsa' AND table_name='motor_validacao_entrega'
+          AND column_name='equipes_delta_pct'
+    ) THEN
+        ALTER TABLE lwsa.motor_validacao_entrega
+            ADD COLUMN equipes_delta_pct json NOT NULL DEFAULT '{}'::json;
+    END IF;
 END $$;
 
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_incs_pre_resolucao IS 'INCs no mesmo (produto, servidor) nos JANELA_VOLUMETRIA_PRE_DIAS antes de data_resolucao.';
-COMMENT ON COLUMN lwsa.motor_validacao_entrega.delta_chamados_pct IS '(chamados_pos - chamados_pre) / chamados_pre. Match exato por chamados.produto = prb.produto.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.delta_chamados_pct IS '(chamados_pos - chamados_pre) / chamados_pre. Match V3 por dynamics.chamados.prb / .inc.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_prbs_novos_pos_resolucao IS 'PRBs NOVOS abertos no mesmo (produto, servidor) após data_resolucao. Sinal de problema que voltou em outra forma.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.prbs_novos IS 'Array JSON com os numeros dos PRBs novos (ex.: ["PRB0012345"]).';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pre IS 'Top N times Locaweb (dynamics.chamados.equipeproprietaria) com chamados vinculados ao PRB/INCs pré-resolução: {"equipe": qtd}.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pos IS 'Mesmas equipes do pre — contagem na janela pós-resolução (0 = parou de chamar): {"equipe": qtd}.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_delta_pct IS '% de redução por equipe: {"equipe": -0.75}. Negativo = caiu, +N = subiu, -1.0 = zerou.';
 
 
 -- ----------------------------------------------------------------------------

@@ -171,6 +171,11 @@ class _FakeFonteChamados(FonteChamados):
     ) -> int:
         return 0
 
+    def agrupar_chamados_vinculados_por_equipe(
+        self, prb_id, incs_ids, desde, ate
+    ) -> Dict[str, int]:
+        return {}
+
 
 class TestAmpliacaoDeJanela:
     def test_amplia_janela_quando_config_pede_mais_dias(self, monkeypatch):
