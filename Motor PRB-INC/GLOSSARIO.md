@@ -269,7 +269,7 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   impactava e deixou de chamar"_. 3 campos no `ValidacaoEntrega`
   (dicts `{equipe: valor}`): `equipes_impactadas_pre`,
   `equipes_impactadas_pos`, `equipes_delta_pct`. Top N controlado por
-  `TOP_EQUIPES_IMPACTADAS = 5`. Equipes sem time atribuído caem em
+  `TOP_EQUIPES_IMPACTADAS = 7`. Equipes sem time atribuído caem em
   `'<sem-equipe>'`. Apenas times que estavam no top do PRÉ são
   rastreados — equipes novas que só aparecem no pós são ignoradas.
   Slack mostra bloco "Times impactados (top N — 14d pré → pós)" com
@@ -305,7 +305,7 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   - `LIMIAR_AUMENTO_CHAMADOS_PCT = +0.5` — espelho simétrico do anterior
     (Δ ≥ esse valor mostra ↑ — subida ≥ 50%). Configurável independente:
     pode querer alertar subida mais cedo que reconhecer queda
-  - `TOP_EQUIPES_IMPACTADAS = 5` — quantos times internos Locaweb
+  - `TOP_EQUIPES_IMPACTADAS = 7` — quantos times internos Locaweb
     aparecem no bloco "Times impactados" (V3.1)
 
 ---

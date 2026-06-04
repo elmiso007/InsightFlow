@@ -204,13 +204,19 @@ def _insert_saude_clientes(cur, execucao_id: int, saudes: Iterable[SaudeCliente]
 def _insert_validacoes_entrega(
     cur, execucao_id: int, validacoes: Iterable[ValidacaoEntrega]
 ) -> None:
-    """Insere N validações de entrega em batch.
+    """Insere N validações de entrega + suas equipes impactadas (V3.1).
 
-    Serializa apenas o essencial das INCs reincidentes (numero, prioridade,
-    abertura) — não duplica o registro completo, que continua em
-    lwsa.service_now_incidentes.
+    Persistência em 2 tabelas:
+      - lwsa.motor_validacao_entrega: 1 linha por PRB (com os 3 dicts em json
+        preservados para retrocompatibilidade).
+      - lwsa.motor_validacao_entrega_equipe: 1 linha por (PRB, equipe) —
+        espelho relacional das colunas json, pensado para dashboards.
+
+    Loop por validação (não executemany) porque precisamos do `id` retornado
+    pelo RETURNING para popular a tabela filha. Volume tipico: 10 PRBs/ciclo,
+    overhead irrelevante.
     """
-    sql = """
+    sql_pai = """
         INSERT INTO lwsa.motor_validacao_entrega (
             execucao_id, prb_id, descricao_curta, produto, servidor, status_prb,
             data_resolucao, dias_pos_resolucao, qtd_incs_pos_resolucao,
@@ -225,9 +231,16 @@ def _insert_validacoes_entrega(
                 %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s::json,
                 %s::json, %s::json, %s::json)
+        RETURNING id
     """
-    rows = [
-        (
+    sql_filha = """
+        INSERT INTO lwsa.motor_validacao_entrega_equipe (
+            validacao_id, equipe, qtd_pre, qtd_pos, delta_pct
+        )
+        VALUES (%s, %s, %s, %s, %s)
+    """
+    for v in validacoes:
+        cur.execute(sql_pai, (
             execucao_id,
             v.prb_id,
             v.descricao_curta,
@@ -259,11 +272,20 @@ def _insert_validacoes_entrega(
             _jsonb(v.equipes_impactadas_pre),
             _jsonb(v.equipes_impactadas_pos),
             _jsonb(v.equipes_delta_pct),
-        )
-        for v in validacoes
-    ]
-    if rows:
-        cur.executemany(sql, rows)
+        ))
+        validacao_id = cur.fetchone()[0]
+
+        # Espelha as 3 colunas json em forma relacional. Itera as equipes
+        # do top do pré (são as "impactadas"); pega qtd_pos e delta_pct das
+        # outras 2 estruturas com fallback defensivo (não deveriam divergir).
+        for equipe, qtd_pre in v.equipes_impactadas_pre.items():
+            cur.execute(sql_filha, (
+                validacao_id,
+                equipe,
+                int(qtd_pre),
+                int(v.equipes_impactadas_pos.get(equipe, 0)),
+                float(v.equipes_delta_pct.get(equipe, 0.0)),
+            ))
 
 
 # -----------------------------------------------------------------------------

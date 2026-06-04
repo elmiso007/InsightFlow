@@ -207,8 +207,9 @@ LIMIAR_AUMENTO_CHAMADOS_PCT = 0.5
 # Top N de times internos (dynamics.chamados.equipeproprietaria) reportados no
 # bloco "Times impactados" do ValidadorEntrega. Pega as N equipes com mais
 # chamados vinculados na janela pré-resolução e mede a redução de cada uma
-# na janela simétrica pós-resolução. Default 5 (pedido do coordenador 2026-06-03).
-TOP_EQUIPES_IMPACTADAS = 5
+# na janela simétrica pós-resolução. Original 5 (V3.1, 2026-06-03), ajustado
+# para 7 logo em seguida a pedido — equipes com cauda longa cabem no recorte.
+TOP_EQUIPES_IMPACTADAS = 7
 
 # -----------------------------------------------------------------------------
 # Registry declarativo de tabelas de chamados por organização (Abordagem 2)
@@ -331,10 +332,10 @@ class SlackConfig:
     channels: list[str] = None  # type: ignore[assignment]
     webhook_url: str = os.environ.get("SLACK_WEBHOOK_URL", "")
     canal_criticos: str = os.environ.get("SLACK_CANAL_CRITICOS", "#prb-alertas")
-    # Default = false (Slack desligado até o time confirmar canal/rate-limit).
-    # Pra religar localmente: $env:SLACK_HABILITADO = "true". Pra religar
-    # permanente: trocar o segundo argumento de "false" pra "true".
-    habilitado: bool = os.environ.get("SLACK_HABILITADO", "false").lower() == "true"
+    # Default = true (Slack ligado em produção a partir de 2026-06-03).
+    # Pra desligar temporariamente (ex.: dry-run local): $env:SLACK_HABILITADO = "false".
+    # Pra desligar permanente: trocar o segundo argumento de "true" pra "false".
+    habilitado: bool = os.environ.get("SLACK_HABILITADO", "true").lower() == "true"
 
     def __post_init__(self) -> None:
         # Resolve dinamicamente do config.ini se ainda vazio (permite

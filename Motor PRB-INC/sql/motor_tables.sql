@@ -332,9 +332,45 @@ COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_incs_pre_resolucao IS 'INCs n
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.delta_chamados_pct IS '(chamados_pos - chamados_pre) / chamados_pre. Match V3 por dynamics.chamados.prb / .inc.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.qtd_prbs_novos_pos_resolucao IS 'PRBs NOVOS abertos no mesmo (produto, servidor) após data_resolucao. Sinal de problema que voltou em outra forma.';
 COMMENT ON COLUMN lwsa.motor_validacao_entrega.prbs_novos IS 'Array JSON com os numeros dos PRBs novos (ex.: ["PRB0012345"]).';
-COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pre IS 'Top N times Locaweb (dynamics.chamados.equipeproprietaria) com chamados vinculados ao PRB/INCs pré-resolução: {"equipe": qtd}.';
-COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pos IS 'Mesmas equipes do pre — contagem na janela pós-resolução (0 = parou de chamar): {"equipe": qtd}.';
-COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_delta_pct IS '% de redução por equipe: {"equipe": -0.75}. Negativo = caiu, +N = subiu, -1.0 = zerou.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pre IS 'Top N times Locaweb (dynamics.chamados.equipeproprietaria) com chamados vinculados ao PRB/INCs pré-resolução: {"equipe": qtd}. Espelhado em forma relacional na tabela motor_validacao_entrega_equipe (preferida para dashboards/joins).';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_impactadas_pos IS 'Mesmas equipes do pre — contagem na janela pós-resolução (0 = parou de chamar): {"equipe": qtd}. Espelhado em motor_validacao_entrega_equipe.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega.equipes_delta_pct IS '% de redução por equipe: {"equipe": -0.75}. Negativo = caiu, +N = subiu, -1.0 = zerou. Espelhado em motor_validacao_entrega_equipe.';
+
+
+-- ----------------------------------------------------------------------------
+-- 6. motor_validacao_entrega_equipe — N equipes por validação (V3.1, relacional)
+-- ----------------------------------------------------------------------------
+-- Espelho relacional das 3 colunas json equipes_* de motor_validacao_entrega.
+-- Pensado para consumo de dashboards (Apache Superset, Power BI, Metabase) que
+-- preferem SQL relacional puro a explosão de json em runtime. 1 linha por
+-- (validação, equipe). FK + ON DELETE CASCADE acompanha o TTL do pai.
+--
+-- Volume típico: até TOP_EQUIPES_IMPACTADAS (7) linhas por PRB validado.
+-- Por ciclo: 10 PRBs * 7 equipes = ~70 linhas. Irrelevante.
+CREATE TABLE IF NOT EXISTS lwsa.motor_validacao_entrega_equipe (
+    id              serial PRIMARY KEY,
+    validacao_id    int NOT NULL REFERENCES lwsa.motor_validacao_entrega(id) ON DELETE CASCADE,
+    equipe          varchar(255) NOT NULL,
+    qtd_pre         int NOT NULL DEFAULT 0,
+    qtd_pos         int NOT NULL DEFAULT 0,
+    delta_pct       numeric(8,3) NOT NULL DEFAULT 0.0
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_val_eq_validacao') THEN
+        CREATE INDEX idx_motor_val_eq_validacao ON lwsa.motor_validacao_entrega_equipe(validacao_id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_val_eq_equipe') THEN
+        CREATE INDEX idx_motor_val_eq_equipe ON lwsa.motor_validacao_entrega_equipe(equipe);
+    END IF;
+END $$;
+
+COMMENT ON TABLE  lwsa.motor_validacao_entrega_equipe IS 'Espelho relacional das colunas json equipes_* de motor_validacao_entrega (V3.1). 1 linha por (validação, equipe). Preferida para dashboards.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega_equipe.equipe IS 'dynamics.chamados.equipeproprietaria. Valores ''<sem-equipe>'' representam chamados sem time atribuído.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega_equipe.qtd_pre IS 'Chamados vinculados pré-resolução na janela JANELA_CHAMADOS_DELTA_DIAS.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega_equipe.qtd_pos IS 'Chamados vinculados pós-resolução. 0 = equipe parou de chamar.';
+COMMENT ON COLUMN lwsa.motor_validacao_entrega_equipe.delta_pct IS '(qtd_pos - qtd_pre) / qtd_pre, arredondado a 3 casas. -1.0 = zerou.';
 
 
 -- ----------------------------------------------------------------------------

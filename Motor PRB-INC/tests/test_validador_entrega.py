@@ -442,7 +442,8 @@ class TestPrbsNovosPosResolucao:
 # -----------------------------------------------------------------------------
 class TestEquipesImpactadas:
     def test_top_n_equipes_limita_ao_threshold(self, monkeypatch):
-        # 7 equipes no pré → só TOP_EQUIPES_IMPACTADAS (5 default) entram.
+        # 7 equipes no pré → só TOP_EQUIPES_IMPACTADAS entram. Teste fixa em 5
+        # pra exercitar o corte explicitamente (default atual é 7).
         monkeypatch.setattr(config, "TOP_EQUIPES_IMPACTADAS", 5)
         prb = make_prb(
             prb_id="PRB_X", produto="VPS", servidor="vps-01",

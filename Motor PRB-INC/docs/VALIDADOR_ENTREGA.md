@@ -401,7 +401,7 @@ No Slack: `*PRBs novos no CI:* N (PRB123, PRB456)` quando ≥ 1.
 **Janela:** mesma do Δ chamados V3 — `JANELA_CHAMADOS_DELTA_DIAS = 14`
 em cada lado de `data_encerrado`.
 
-**Top N:** `TOP_EQUIPES_IMPACTADAS = 5` (default).
+**Top N:** `TOP_EQUIPES_IMPACTADAS = 7` (default).
 
 ### O que responde
 
@@ -513,7 +513,43 @@ não relacionado).
 | **Volumetria pré** | `qtd_incs_pre_resolucao`, `clientes_unicos_pre`, `categorias_pre` |
 | **Δ chamados V3** | `chamados_pre`, `chamados_pos`, `delta_chamados_pct` |
 | **PRBs novos** | `qtd_prbs_novos_pos_resolucao`, `prbs_novos` (JSON) |
-| **Times impactados (V3.1)** | `equipes_impactadas_pre` (JSON), `equipes_impactadas_pos` (JSON), `equipes_delta_pct` (JSON) |
+| **Times impactados (V3.1)** | `equipes_impactadas_pre` (JSON), `equipes_impactadas_pos` (JSON), `equipes_delta_pct` (JSON) — **espelhados em `motor_validacao_entrega_equipe`** |
+
+### `lwsa.motor_validacao_entrega_equipe` (V3.1 — relacional)
+
+Espelho **relacional** das 3 colunas JSON `equipes_*`. 1 linha por (validação,
+equipe). Pensada para consumo de dashboards (Superset, Power BI) que preferem
+SQL relacional puro a explosão de JSON em runtime.
+
+| Coluna | Tipo | Conteúdo |
+|---|---|---|
+| `id` | serial PK | — |
+| `validacao_id` | int FK → `motor_validacao_entrega(id)` | ON DELETE CASCADE |
+| `equipe` | varchar(255) | `dynamics.chamados.equipeproprietaria` (ou `'<sem-equipe>'`) |
+| `qtd_pre` | int | chamados na janela pré (14d) |
+| `qtd_pos` | int | chamados na janela pós (14d) — `0` = parou de chamar |
+| `delta_pct` | numeric(8,3) | `(pos - pre) / pre`, -1.0 = zerou |
+
+**Volume:** até `TOP_EQUIPES_IMPACTADAS = 7` linhas por PRB validado. Em um
+ciclo típico (10 PRBs), gera ~70 linhas.
+
+**Por que coexistir com o JSON:** o JSON é fonte da verdade pro Slack e pro
+`output/dashboard_state.json` (consumido em memória pelo dataclass
+`ValidacaoEntrega`). A tabela filha é fonte da verdade pra dashboards SQL.
+
+**Query típica para Superset:**
+
+```sql
+SELECT
+    e.timestamp_utc      AS detectado_em,
+    v.prb_id, v.descricao_curta, v.produto, v.veredicto,
+    v.grupo_designado, v.data_resolucao,
+    eq.equipe, eq.qtd_pre, eq.qtd_pos, eq.delta_pct
+FROM lwsa.motor_validacao_entrega v
+JOIN lwsa.motor_execucao e ON e.id = v.execucao_id
+JOIN lwsa.motor_validacao_entrega_equipe eq ON eq.validacao_id = v.id
+WHERE v.veredicto = 'REINCIDENCIA';
+```
 
 ### `output/validacoes_entrega.json`
 
@@ -648,11 +684,12 @@ sinaliza qualquer aumento >= 20% mas só destaca quedas >= 50%.
 ### Top N de times impactados
 
 ```python
-TOP_EQUIPES_IMPACTADAS = 3   # antes: 5
+TOP_EQUIPES_IMPACTADAS = 10  # antes: 7
 ```
 
-Reduzir pra mostrar só os mais relevantes; aumentar pra ver cauda longa
-(ex.: 10 pra debug). Não afeta a query — apenas o quanto entra em
+Aumentar pra ver cauda longa (ex.: 10+ pra debug ou análises mais
+amplas); reduzir pra mostrar só os mais relevantes (ex.: 3 pra Slack
+mais conciso). Não afeta a query — apenas o quanto entra em
 `equipes_impactadas_pre` (e por consequência o Slack/banco).
 
 ### Status considerados "encerrados"
@@ -707,7 +744,9 @@ adicionar — senão vira INCONCLUSIVO eterno.
   diretamente ao pedido do coordenador: _"quem o PRB impactava e deixou
   de chamar?"_
 - 24 colunas em `motor_validacao_entrega` (+3 JSON da V3.1)
-- Novo threshold em config: `TOP_EQUIPES_IMPACTADAS = 5`
+- Novo threshold em config: `TOP_EQUIPES_IMPACTADAS` (introduzido como `5`,
+  ajustado pra `7` ainda em 2026-06-03 a pedido — equipes com cauda longa
+  cabem no recorte)
 - **Ganho operacional:** Slack agora identifica EXATAMENTE quais times
   internos beneficiaram do fix e quais ainda chamam — coordenador pode
   conversar direto com o time específico que ainda tem dor.
