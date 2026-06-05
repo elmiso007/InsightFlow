@@ -150,6 +150,13 @@ class _FakeFonteInc(FonteIncidentes):
     ) -> List[str]:
         return []
 
+    def listar_prbs_por_numero(
+        self, numeros: Sequence[str]
+    ) -> List[PRBExistente]:
+        # Stub para satisfazer ABC FonteIncidentes (Plan 01-03 Phase 1).
+        # Customer monitor não usa este método — retornar vazio é seguro.
+        return []
+
 
 class _FakeFonteChamados(FonteChamados):
     def listar_chamados_periodo(self, horas, produtos=None) -> List[InteracaoChamado]:
