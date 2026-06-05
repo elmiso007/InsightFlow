@@ -122,6 +122,16 @@ class FonteIncidentes(ABC):
         """
         ...
 
+    @abstractmethod
+    def listar_prbs_por_numero(self, numeros: Sequence[str]) -> List[PRBExistente]:
+        """PRBs por número exato (sem janela temporal — D-03 Phase 1 Change Team).
+
+        Aceita qualquer status. Devolve um PRBExistente por número encontrado
+        no SNow. Números fornecidos que não baterem no SNow são silenciosamente
+        omitidos — chamador deve comparar input vs output para detectar misses.
+        """
+        ...
+
 
 class FonteChamados(ABC):
     @abstractmethod
