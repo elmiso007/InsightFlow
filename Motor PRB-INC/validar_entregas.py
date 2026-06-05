@@ -85,6 +85,21 @@ def executar_validacao() -> ExecucaoMotor:
         log.exception("Falha no ValidadorEntrega: %s", exc)
         execucao.erros.append(f"validador_entrega: {exc}")
 
+    # --- BLOCO NOVO Phase 1: Painel Change Team (Defense in Depth — DEC-010) ----
+    # Falha aqui NÃO altera execucao.validacoes_entrega (V3.1 CON-012 LOCKED).
+    # Imports lazy dentro do `if` pra que ImportError em modulos novos não
+    # derrube o ciclo do validador.
+    if config.CHANGE_TEAM_HABILITADO:
+        try:
+            from change_team import gerar_painel_change_team
+            from notifier_db import persistir_painel_change_team
+            rows_change_team = gerar_painel_change_team(fonte_inc, fonte_chamados)
+            persistir_painel_change_team(rows_change_team)
+        except Exception as exc:
+            log.exception("Falha no Painel Change Team: %s", exc)
+            execucao.erros.append(f"change_team: {exc}")
+    # ----------------------------------------------------------------------------
+
     # Persistência: JSON sempre (rede de segurança), Postgres se habilitado.
     try:
         gravar_payload_dashboard(execucao, caminho=JSON_OUTPUT_PATH)
