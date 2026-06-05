@@ -178,6 +178,10 @@ STATUS_PRB_ENCERRADOS = (
     "Concluído",
 )
 
+# Tabelas do motor Change Team (Phase 1 do painel — 2026-06-05).
+TABELA_CHANGE_TEAM = "motor_change_team"               # master list soft-deleted (D-01)
+TABELA_CHANGE_TEAM_PAINEL = "motor_change_team_painel"  # snapshot materializado (D-04)
+
 # -----------------------------------------------------------------------------
 # Thresholds do ValidadorEntrega (prisma retrospectivo do motor)
 # -----------------------------------------------------------------------------
@@ -381,6 +385,14 @@ JANELA_TTL_BANCO_DIAS: int = int(os.environ.get("JANELA_TTL_BANCO_DIAS", "30"))
 # DBA (cron externo, pg_cron, ou manual periódico). Sem cleanup, o banco
 # acumula execuções indefinidamente (não é problema operacional até 1-2 anos).
 CLEANUP_TTL_HABILITADO: bool = os.environ.get("CLEANUP_TTL_HABILITADO", "false").lower() == "true"
+
+# Habilita/desabilita o snapshot do painel Change Team dentro do ciclo do
+# ValidadorEntrega. Default = "true" (feature ligada em produção). Para
+# desligar temporariamente (ex.: investigação de issue), no PowerShell:
+#   $env:CHANGE_TEAM_HABILITADO = "false"
+CHANGE_TEAM_HABILITADO: bool = (
+    os.environ.get("CHANGE_TEAM_HABILITADO", "true").lower() == "true"
+)
 
 # Fuso horário assumido para as colunas `text` de data no banco (sem tz info).
 # Convencionado America/Sao_Paulo (BRT) — confirmar com time de dados se ETL

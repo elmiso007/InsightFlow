@@ -218,6 +218,39 @@ class ValidacaoEntrega:
 
 
 @dataclass
+class PainelChangeTeamRow:
+    """Uma linha do painel Change Team materializado em lwsa.motor_change_team_painel.
+
+    Para PRBs abertos (D-05 — Phase 1 CONTEXT): preenche apenas as colunas até
+    `ultima_atualizacao` e deixa os campos de veredicto/sinais pós-resolução
+    como None/0.
+
+    Para PRBs resolvidos (D-06): adiciona veredicto + sinais derivados de
+    `validador_entrega._avaliar_prb` (reaproveitamento, sem duplicação).
+    """
+    # --- Identificação + estado atual (D-05, todos exceto dias_em_aberto/ultima_atualizacao são obrigatórios) ---
+    prb_id: str
+    descricao_curta: str
+    produto: str
+    servidor: str
+    status_snow: str
+    prioridade_atual: str
+    grupo_designado: str
+    dias_em_aberto: Optional[int] = None        # NULL se aberto_em ausente (Pitfall 6)
+    ultima_atualizacao: Optional[datetime] = None
+    # --- Acompanhamento pós-resolução (D-06) — NULL/0 para PRBs abertos ---
+    veredicto: Optional[str] = None             # REINCIDENCIA | ENTREGA_VALIDADA | INCONCLUSIVO
+    data_resolucao: Optional[datetime] = None
+    dias_pos_resolucao: Optional[int] = None
+    qtd_incs_pos_resolucao: int = 0
+    qtd_incs_pre_resolucao: int = 0
+    delta_chamados_pct: float = 0.0
+    qtd_prbs_novos_pos_resolucao: int = 0
+    # --- Auditoria ---
+    snapshot_em: Optional[datetime] = None      # populado pelo orquestrador
+
+
+@dataclass
 class ExecucaoMotor:
     """Estado completo de uma execução do motor (15 min). Alimenta dashboard e Slack."""
     timestamp: datetime
