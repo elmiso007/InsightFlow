@@ -144,7 +144,7 @@ GRANT DELETE ON lwsa.motor_execucao TO <USUARIO>;
 Rodar uma execução de teste **em modo mock** (não toca o banco):
 
 ```bash
-USAR_MOCKS=true python main.py --once
+USAR_MOCKS=true python main.py
 ```
 
 Saída esperada (resumo):
@@ -166,37 +166,23 @@ tópico).
 
 ## 2. Como rodar o motor
 
-### 2.1 Modo single-run (`--once`)
+### 2.1 Execução (single-run)
 
-Executa **um único ciclo** e encerra. Útil para:
-- Debug / validação após mudança.
-- CI/CD (exit code 0 = sucesso, 1 = houve erros).
-- Cron externo (cron dispara `python main.py --once` a cada 15 min).
-
-```bash
-python main.py --once
-```
-
-### 2.2 Modo loop contínuo (default)
-
-Executa em loop a cada 15 min, **para sempre**, até receber `Ctrl+C`.
+A aplicação **sempre** roda um único ciclo e encerra. A cadência é controlada
+externamente — em produção, pelo Windows Task Scheduler. Não há mais loop
+interno (removido em 2026-06-05).
 
 ```bash
 python main.py
 ```
 
-Para mudar o intervalo:
+Exit code: `0` = sucesso, `1` = houve erros (útil pra Task Scheduler/CI).
 
-```bash
-python main.py --interval 5    # a cada 5 min
-python main.py --interval 60   # a cada 1 hora
-```
-
-### 2.3 Modo mock vs. produção
+### 2.2 Modo mock vs. produção
 
 | Modo | Quando usar | Como ativar |
 |---|---|---|
-| **Produção (default)** | Banco real, alertas reais | Sem env var — apenas `python main.py --once` |
+| **Produção (default)** | Banco real, alertas reais | Sem env var — apenas `python main.py` |
 | **Mock** | Desenvolvimento, testes, demo, validação local | `$env:USAR_MOCKS = "true"` (PowerShell) ou `USAR_MOCKS=true` (bash) |
 
 **Default mudou em 2026-06-02:** antes era mock por padrão. Hoje é produção
@@ -208,50 +194,11 @@ lógica sem ter banco disponível.
 
 **Em modo produção:** lê dos schemas `lwsa.*`, `dynamics.*`, `kinghost.*` reais.
 
-### 2.4 Encerrar o motor graciosamente
+### 2.3 Agendamento via Windows Task Scheduler (UI)
 
-```
-Ctrl+C  (no terminal)
-```
-
-ou via PID:
-
-```bash
-kill <pid>      # SIGTERM
-```
-
-O motor:
-1. Recebe o sinal.
-2. **Termina o ciclo em andamento** (se houver).
-3. Sai limpo, fechando conexões e gravando dashboard final.
-4. Loga `"Loop encerrado."`.
-
-**Não use `kill -9`** — interrompe abruptamente, pode corromper JSON ou deixar
-transação Postgres pendente.
-
-### 2.5 Sob supervisor (produção)
-
-Para garantir restart automático em caso de crash, rodar sob:
-
-- **systemd** (Linux):
-  ```ini
-  [Service]
-  Type=simple
-  WorkingDirectory=/opt/motor-prb-inc
-  ExecStart=/opt/motor-prb-inc/.venv/bin/python main.py
-  Restart=always
-  RestartSec=10
-  ```
-
-- **Docker:** `restart: unless-stopped` no compose.
-
-- **supervisor**, **pm2**, etc.
-
-### 2.6 Agendamento via Windows Task Scheduler (UI)
-
-Padrão recomendado em Windows: rodar `main.py --once` agendado a cada 15 min
-(em vez de loop interno). Vantagem: se uma execução crashar, a próxima ainda
-roda intacta — o Task Scheduler faz o papel do supervisor.
+Padrão recomendado em produção: o Task Scheduler dispara `Motor-PRB.bat` a cada
+15 min. Vantagem: se uma execução crashar, a próxima ainda roda intacta — o
+Task Scheduler faz o papel do supervisor.
 
 **Pré-requisito:** o wrapper `Motor-PRB.bat` na raiz do projeto. Ele já vem
 com o repositório e contém:
@@ -263,7 +210,7 @@ set "PROJ=%~dp0"
 set "VENV=C:\Users\emerson.ramos\Desktop\projetos\.venv"
 set "USAR_MOCKS=false"
 cd /d "%PROJ%"
-"%VENV%\Scripts\python.exe" main.py --once
+"%VENV%\Scripts\python.exe" main.py
 endlocal & exit /b %ERRORLEVEL%
 ```
 
@@ -332,7 +279,7 @@ set "PROJ=%~dp0"
 set "VENV=C:\Users\emerson.ramos\Desktop\projetos\.venv"
 set "USAR_MOCKS=false"
 cd /d "%PROJ%"
-"%VENV%\Scripts\python.exe" validar_entregas.py --once
+"%VENV%\Scripts\python.exe" validar_entregas.py
 endlocal & exit /b %ERRORLEVEL%
 ```
 
@@ -1149,7 +1096,7 @@ Certificate Store responder.
 Move-Item .venv/Lib/site-packages/pip_system_certs.pth `
           .venv/Lib/site-packages/pip_system_certs.pth.disabled
 ```
-Roda o motor (`python main.py --once`). Depois pode restaurar movendo de volta —
+Roda o motor (`python main.py`). Depois pode restaurar movendo de volta —
 o problema é transiente.
 
 ### Sintoma 7: Cluster com classificação inesperada
@@ -1221,12 +1168,12 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
       `Motor-PRB-Validador.bat` (cadência 6h). Sem isso o validador nunca roda
       automaticamente — apenas o `main.py` (preventivo) é agendado por default.
 
-### Validação antes do loop
+### Validação antes de agendar no Task Scheduler
 
-Rodar `--once` em modo produção:
+Rodar manualmente em modo produção:
 
 ```bash
-USAR_MOCKS=false python main.py --once 2>&1 | tee /tmp/motor-validacao.log
+USAR_MOCKS=false python main.py 2>&1 | tee /tmp/motor-validacao.log
 ```
 
 Verificar no log:

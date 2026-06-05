@@ -2,7 +2,7 @@
 REM ==========================================================================
 REM  Motor Prescritivo PRB - wrapper para Windows Task Scheduler
 REM ==========================================================================
-REM  Roda main.py --once (prisma preventivo).
+REM  Roda main.py (prisma preventivo, sempre single-run).
 REM  Agenda recomendada no Task Scheduler: a cada 15 minutos.
 REM
 REM  Caminhos absolutos para funcionar independente do working directory
@@ -23,7 +23,7 @@ REM Garante working dir certo (logs vao gravar em .\logs)
 cd /d "%PROJ%"
 
 REM Executa
-"%VENV%\Scripts\python.exe" main.py --once
+"%VENV%\Scripts\python.exe" main.py
 set "EXITCODE=%ERRORLEVEL%"
 
 endlocal & exit /b %EXITCODE%

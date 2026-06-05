@@ -18,7 +18,7 @@ JANELA_INC_HORAS = 24                 # ServiceNow: INCs abertas nas últimas N 
 JANELA_DYNAMICS_HORAS = 24            # Dynamics: chamados/interações do dia anterior
 JANELA_SAUDE_CLIENTE_MESES = 6        # Histórico de cliente para alerta de recorrência
 JANELA_RECORRENCIA_CI_DIAS = 15       # Detecção de mesmo CI repetindo em N dias
-INTERVALO_JOB_MINUTOS = 15            # Frequência do scheduler
+INTERVALO_JOB_MINUTOS = 15            # Cadência recomendada do Task Scheduler (Motor-PRB.bat)
 
 
 # -----------------------------------------------------------------------------

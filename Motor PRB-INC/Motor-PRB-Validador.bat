@@ -2,7 +2,7 @@
 REM ==========================================================================
 REM  Motor Prescritivo PRB - Validador de Entrega (prisma retrospectivo)
 REM ==========================================================================
-REM  Roda validar_entregas.py --once.
+REM  Roda validar_entregas.py (sempre single-run).
 REM  Agenda recomendada no Task Scheduler: a cada 6 horas.
 REM
 REM  Por que separado do Motor-PRB.bat:
@@ -29,7 +29,7 @@ REM Garante working dir certo (logs vao gravar em .\logs)
 cd /d "%PROJ%"
 
 REM Executa
-"%VENV%\Scripts\python.exe" validar_entregas.py --once
+"%VENV%\Scripts\python.exe" validar_entregas.py
 set "EXITCODE=%ERRORLEVEL%"
 
 endlocal & exit /b %EXITCODE%

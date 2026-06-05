@@ -1,24 +1,16 @@
 # =============================================================================
-# Motor Prescritivo PRB — Scheduler (job a cada 15 minutos)
+# Motor Prescritivo PRB — Pipeline de execução
 # =============================================================================
-# Orquestra o pipeline completo em loop temporizado. Tratamento de erro é
-# defensivo: qualquer falha em uma execução é logada mas NÃO derruba o loop —
-# o motor precisa sobreviver a flakiness das APIs ServiceNow/Dynamics.
+# Orquestra o pipeline completo de uma rodada. Tratamento de erro é defensivo:
+# qualquer falha é logada mas NÃO interrompe o pipeline — o motor precisa
+# sobreviver a flakiness das APIs ServiceNow/Dynamics.
 #
-# Em produção, considere substituir o `schedule` por:
-#   - cron do sistema (mais simples de monitorar)
-#   - APScheduler (se precisar de persistência / replay)
-#   - Kubernetes CronJob (se for containerizar)
-# O `schedule` é mantido aqui por ser zero-dependência além do PyPI.
+# A cadência é externa (Windows Task Scheduler chama main.py periodicamente).
+# Esse módulo expõe apenas executar_ciclo() — não há mais loop interno.
 # =============================================================================
 from __future__ import annotations
 
 import logging
-import signal
-import sys
-import time
-from datetime import datetime
-from typing import Optional
 
 import config
 import time_utils
@@ -31,8 +23,6 @@ import rules_engine
 from extractor import (
     FonteIncidentes,
     FonteChamados,
-    criar_fonte_incidentes,
-    criar_fonte_chamados,
 )
 
 log = logging.getLogger(__name__)
@@ -156,80 +146,3 @@ def executar_ciclo(
     )
 
     return execucao
-
-
-# -----------------------------------------------------------------------------
-# Loop com `schedule` (zero-dep, simples)
-# -----------------------------------------------------------------------------
-_STOP_REQUESTED = False
-
-
-def _stop_handler(signum, frame) -> None:
-    """SIGINT/SIGTERM → encerra o loop ao final do ciclo corrente."""
-    global _STOP_REQUESTED
-    log.info("Sinal %s recebido — encerrando após o ciclo atual.", signum)
-    _STOP_REQUESTED = True
-
-
-def rodar_loop(intervalo_min: int = config.INTERVALO_JOB_MINUTOS) -> None:
-    """Loop principal. Roda imediatamente uma vez e depois a cada N minutos."""
-    fonte_inc = criar_fonte_incidentes()
-    fonte_chamados = criar_fonte_chamados()
-
-    # SIGINT/SIGTERM: encerramento limpo
-    signal.signal(signal.SIGINT, _stop_handler)
-    if hasattr(signal, "SIGTERM"):
-        signal.signal(signal.SIGTERM, _stop_handler)
-
-    try:
-        import schedule
-    except ImportError:
-        log.warning(
-            "Lib `schedule` não instalada — caindo para loop manual com sleep. "
-            "Recomendo `pip install schedule`."
-        )
-        return _rodar_loop_manual(fonte_inc, fonte_chamados, intervalo_min)
-
-    def _job() -> None:
-        log.info("=" * 70)
-        log.info("Iniciando ciclo do Motor Prescritivo PRB às %s",
-                 time_utils.agora_utc().isoformat(timespec="seconds"))
-        try:
-            execucao = executar_ciclo(fonte_inc, fonte_chamados)
-            log.info(
-                "Ciclo concluído: %d clusters, %d prescrições, %d saúde de clientes, %d erros.",
-                len(execucao.clusters), len(execucao.prescricoes),
-                len(execucao.saude_clientes), len(execucao.erros),
-            )
-        except Exception as exc:
-            log.exception("Erro não tratado no ciclo: %s", exc)
-
-    # Roda uma vez imediatamente para validar o setup
-    _job()
-
-    schedule.every(intervalo_min).minutes.do(_job)
-    log.info("Agendado: job a cada %d minutos. Ctrl+C para encerrar.", intervalo_min)
-
-    while not _STOP_REQUESTED:
-        schedule.run_pending()
-        time.sleep(1)
-
-    log.info("Loop encerrado.")
-
-
-def _rodar_loop_manual(
-    fonte_inc: FonteIncidentes,
-    fonte_chamados: FonteChamados,
-    intervalo_min: int,
-) -> None:
-    """Fallback sem `schedule`: sleep simples entre ciclos."""
-    intervalo_seg = intervalo_min * 60
-    while not _STOP_REQUESTED:
-        try:
-            executar_ciclo(fonte_inc, fonte_chamados)
-        except Exception as exc:
-            log.exception("Erro não tratado no ciclo: %s", exc)
-        for _ in range(intervalo_seg):
-            if _STOP_REQUESTED:
-                break
-            time.sleep(1)

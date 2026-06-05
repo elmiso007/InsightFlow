@@ -2,13 +2,14 @@
 # Motor Prescritivo PRB — Entry point
 # =============================================================================
 # Uso:
-#   python main.py                  → loop contínuo a cada 15 min (produção)
-#   python main.py --once           → executa uma única rodada e sai (debug)
-#   python main.py --interval 5     → intervalo customizado em minutos
+#   python main.py    → executa um ciclo e encerra
+#
+# A cadência é controlada pelo Windows Task Scheduler (Motor-PRB.bat) — não
+# há mais loop interno. Cada disparo do scheduler chama esse script que roda
+# uma única rodada do pipeline e sai com 0 (sucesso) ou 1 (houve erro).
 # =============================================================================
 from __future__ import annotations
 
-import argparse
 import logging
 import os
 import sys
@@ -16,7 +17,7 @@ from datetime import datetime
 
 import config
 from extractor import criar_fonte_incidentes, criar_fonte_chamados
-from scheduler import executar_ciclo, rodar_loop
+from scheduler import executar_ciclo
 
 
 def configurar_logging() -> None:
@@ -55,49 +56,23 @@ def configurar_logging() -> None:
 
     # Silencia ruído de libs externas
     logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("schedule").setLevel(logging.WARNING)
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Motor Prescritivo PRB — antecipa PRBs a partir de INCs."
-    )
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Executa apenas uma rodada e encerra (útil para debug/CI).",
-    )
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=config.INTERVALO_JOB_MINUTOS,
-        help=f"Intervalo entre ciclos em minutos (default: {config.INTERVALO_JOB_MINUTOS}).",
-    )
-    return parser.parse_args()
 
 
 def main() -> int:
-    args = parse_args()
     configurar_logging()
     log = logging.getLogger("main")
 
     log.info("Motor Prescritivo PRB iniciado.")
-    log.info("Modo mocks: %s | Intervalo: %d min | Logs em %s",
-             config.USAR_MOCKS, args.interval, config.LOG_DIR)
+    log.info("Modo mocks: %s | Logs em %s", config.USAR_MOCKS, config.LOG_DIR)
 
-    if args.once:
-        log.info("Modo single-run (--once) ativado.")
-        fonte_inc = criar_fonte_incidentes()
-        fonte_chamados = criar_fonte_chamados()
-        execucao = executar_ciclo(fonte_inc, fonte_chamados)
-        log.info(
-            "Execução única concluída: %d clusters, %d prescrições, %d saúde de clientes.",
-            len(execucao.clusters), len(execucao.prescricoes), len(execucao.saude_clientes),
-        )
-        return 0 if not execucao.erros else 1
-
-    rodar_loop(intervalo_min=args.interval)
-    return 0
+    fonte_inc = criar_fonte_incidentes()
+    fonte_chamados = criar_fonte_chamados()
+    execucao = executar_ciclo(fonte_inc, fonte_chamados)
+    log.info(
+        "Execução concluída: %d clusters, %d prescrições, %d saúde de clientes.",
+        len(execucao.clusters), len(execucao.prescricoes), len(execucao.saude_clientes),
+    )
+    return 0 if not execucao.erros else 1
 
 
 if __name__ == "__main__":

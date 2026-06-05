@@ -883,7 +883,7 @@ em Reclame Aqui."
 - [ ] Mudei `config.py` (não código de regra) sempre que possível.
 - [ ] Adicionei/ajustei teste correspondente.
 - [ ] Rodei `pytest tests/` — todos passam.
-- [ ] Rodei `python main.py --once` — pipeline completo sem erros.
+- [ ] Rodei `python main.py` — pipeline completo sem erros.
 - [ ] Atualizei este documento (REGRAS.md) refletindo a mudança.
 - [ ] Commit message explica **o porquê** da mudança, não só **o quê**.
 

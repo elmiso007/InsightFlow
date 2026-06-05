@@ -582,47 +582,38 @@ consumidores Python (Streamlit, Jupyter).
 
 #### `scheduler.py` (~210 linhas)
 
-**Papel:** loop principal + signal handling.
+**Papel:** pipeline de execução single-run.
 
 **Função core:** `executar_ciclo(fonte_inc, fonte_chamados)` — executa pipeline
 de 5 fases, com defesa em camadas. Retorna `ExecucaoMotor` sempre (mesmo em
 falha).
 
-**Loop:** `rodar_loop(intervalo_min=15)`:
-- Cria fontes uma vez no setup.
-- Registra signal handlers (SIGINT/SIGTERM).
-- Lazy import de `schedule` (com fallback `_rodar_loop_manual` se faltar).
-- Executa `_job()` **imediatamente** + agenda recorrente.
-- `while not _STOP_REQUESTED: schedule.run_pending(); time.sleep(1)`.
-
-**Signal handling:**
-- `_stop_handler(signum, frame)` seta `_STOP_REQUESTED=True`.
-- Encerramento gracioso após ciclo atual terminar.
+**Sem loop interno** (removido em 2026-06-05). A cadência é externa: Windows
+Task Scheduler dispara `Motor-PRB.bat` que chama `python main.py` uma vez.
+Vantagem: se um ciclo crashar, o próximo ainda roda intacto — o Task Scheduler
+faz o papel do supervisor.
 
 **Métrica:** `duracao_ciclo_ms` populada antes da persistência Postgres (não
 inclui Slack que é variável).
 
-#### `main.py` (~95 linhas, entry point preventivo)
+#### `main.py` (~75 linhas, entry point preventivo)
 
-**Papel:** CLI + setup de logging do prisma preventivo.
+**Papel:** setup de logging + chamada do pipeline do prisma preventivo.
 
-- `parse_args()` — `--once` (single run) ou `--interval N` (minutos).
 - `configurar_logging()` — handlers console (UTF-8 forçado) + arquivo
   rotacionado por dia (`motor-prb-{data}.log`).
-- `main()` — chama `executar_ciclo()` (single) ou `rodar_loop()` (loop).
+- `main()` — chama `executar_ciclo()` uma vez e sai. Exit code 0/1.
 
 **Agendado:** Windows Task Scheduler → cada 15 min (via `Motor-PRB.bat`).
 
-#### `validar_entregas.py` (~165 linhas, entry point retrospectivo)
+#### `validar_entregas.py` (~120 linhas, entry point retrospectivo)
 
 **Papel:** entry-point do ValidadorEntrega — separado do `main.py` por design.
 
 - `executar_validacao()` — cria `ExecucaoMotor`, popula
   `validacoes_entrega` via `gerar_validacoes_entrega(fonte_inc, fonte_chamados)`,
   persiste em Postgres + JSON, dispara Slack para reincidências.
-- `rodar_loop(intervalo_horas)` — loop simples (sem `schedule`, sem signal
-  handling complexo — task é leve).
-- `--once` / `--interval N` (horas; default 6).
+- `main()` — chama `executar_validacao()` uma vez e sai.
 
 **Por que entry-point separado:**
 - Cadência diferente (15min vs 6h) — não faz sentido bundlear no mesmo loop.
@@ -770,12 +761,6 @@ notifier.disparar_alertas_criticos(execucao)
 **Funcionalidade reduzida é melhor que funcionalidade ausente.**
 
 ```python
-# extractor: fallback se schedule/psycopg2 faltar
-try:
-    import schedule
-except ImportError:
-    return _rodar_loop_manual(...)
-
 # scheduler: hierarquia de criticidade entre fontes
 try:
     incidentes = ...
@@ -1064,7 +1049,7 @@ Diretrizes para devs que vão evoluir o motor.
 1. **Leia este documento + GLOSSARIO.md.** Entenda os 7 princípios.
 2. **Rode `python -m pytest tests/`.** Confirme que tudo passa antes da
    mudança. Garante baseline.
-3. **Rode `python main.py --once` com `USAR_MOCKS=true`.** Veja saída atual.
+3. **Rode `python main.py` com `USAR_MOCKS=true`.** Veja saída atual.
 
 ### Durante a mudança
 
@@ -1079,7 +1064,7 @@ Diretrizes para devs que vão evoluir o motor.
 ### Antes de fazer commit
 
 1. **Rode `python -m pytest tests/ -v`.** Todos os 54+ testes devem passar.
-2. **Rode `python main.py --once`.** Pipeline completo sem erros.
+2. **Rode `python main.py`.** Pipeline completo sem erros.
 3. **Verifique o JSON de output** (`output/dashboard_state.json`). Sanity check.
 4. **Se mudou regra de negócio:** atualize [REGRAS.md](REGRAS.md).
 5. **Se mudou comportamento operacional:** atualize [MANUAL.md](MANUAL.md).
@@ -1110,7 +1095,7 @@ Diretrizes para devs que vão evoluir o motor.
 
 - [ ] Testes adicionados ou ajustados.
 - [ ] Todos os testes passam (`pytest`).
-- [ ] `--once` funciona sem erros.
+- [ ] `python main.py` (single-run) funciona sem erros.
 - [ ] Configurabilidade respeitada (sem números mágicos).
 - [ ] Documentação atualizada (ARQUITETURA / MANUAL / REGRAS conforme escopo).
 - [ ] Justificativa de design no commit message.
