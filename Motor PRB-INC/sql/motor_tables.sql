@@ -374,6 +374,95 @@ COMMENT ON COLUMN lwsa.motor_validacao_entrega_equipe.delta_pct IS '(qtd_pos - q
 
 
 -- ----------------------------------------------------------------------------
+-- 7. motor_change_team — lista master soft-deleted (D-01, Phase 1)
+-- ----------------------------------------------------------------------------
+-- Catálogo dos PRBs da force-task interdisciplinar "Change Team" (~84 entradas
+-- no momento). Soft delete via `ativo` + `removido_em` preserva auditoria
+-- ("esse PRB foi da Change Team em algum momento?"). Gestão manual via SQL
+-- direto até decisão futura sobre CRUD CLI.
+--
+-- Para REMOVER um PRB da Change Team, NÃO delete a linha — atualize:
+--   UPDATE lwsa.motor_change_team
+--   SET ativo = false, removido_em = NOW(), observacao = 'motivo'
+--   WHERE numero = 'PRB0000XXX';
+CREATE TABLE IF NOT EXISTS lwsa.motor_change_team (
+    id              serial PRIMARY KEY,
+    numero          varchar(20) NOT NULL UNIQUE,
+    ativo           boolean NOT NULL DEFAULT true,
+    adicionado_em   timestamp with time zone NOT NULL DEFAULT NOW(),
+    removido_em     timestamp with time zone,
+    observacao      text
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_change_team_numero') THEN
+        CREATE INDEX idx_motor_change_team_numero ON lwsa.motor_change_team(numero);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_change_team_ativos') THEN
+        CREATE INDEX idx_motor_change_team_ativos ON lwsa.motor_change_team(numero) WHERE ativo = true;
+    END IF;
+END $$;
+
+COMMENT ON TABLE  lwsa.motor_change_team IS 'Lista master da force-task Change Team — PRBs sob acompanhamento dedicado. Soft delete via ativo/removido_em.';
+COMMENT ON COLUMN lwsa.motor_change_team.numero IS 'Identificador do PRB no ServiceNow (ex.: "PRB0072001"). UNIQUE — uma linha por PRB.';
+COMMENT ON COLUMN lwsa.motor_change_team.ativo IS 'true = aparece no painel; false = histórico (mantém auditoria).';
+COMMENT ON COLUMN lwsa.motor_change_team.observacao IS 'Texto livre — motivo da entrada/saída, link interno, etc.';
+
+
+-- ----------------------------------------------------------------------------
+-- 8. motor_change_team_painel — snapshot materializado (D-04 / D-05 / D-06)
+-- ----------------------------------------------------------------------------
+-- Reescrita inteira a cada execução do ValidadorEntrega (6h) via TRUNCATE+INSERT
+-- atômico em notifier_db.persistir_painel_change_team. Sem FK para motor_execucao
+-- porque snapshot é independente do ciclo (sem versionamento — só estado atual
+-- interessa). Consumido pelo chart "PRB Change Team" no Superset corporativo (D-07).
+--
+-- ATENÇÃO (T-01-02): TRUNCATE pode aguardar leitores Superset (ACCESS EXCLUSIVE
+-- lock). Cadência 6h tolera espera curta. Sem CASCADE — tabela é folha.
+-- RESTART IDENTITY zera o serial PK a cada ciclo.
+CREATE TABLE IF NOT EXISTS lwsa.motor_change_team_painel (
+    id                              serial PRIMARY KEY,
+    prb_id                          varchar(20) NOT NULL,
+    descricao_curta                 varchar(500),
+    produto                         varchar(255),
+    servidor                        varchar(255),
+    status_snow                     varchar(100),
+    prioridade_atual                varchar(5),
+    dias_em_aberto                  int,
+    grupo_designado                 varchar(255),
+    ultima_atualizacao              timestamp with time zone,
+    -- Só preenchidos quando PRB está resolvido (D-06):
+    veredicto                       varchar(30),
+    data_resolucao                  timestamp with time zone,
+    dias_pos_resolucao              int,
+    qtd_incs_pos_resolucao          int,
+    qtd_incs_pre_resolucao          int,
+    delta_chamados_pct              numeric(8,3),
+    qtd_prbs_novos_pos_resolucao    int,
+    -- Auditoria:
+    snapshot_em                     timestamp with time zone NOT NULL DEFAULT NOW()
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_ct_painel_prb') THEN
+        CREATE INDEX idx_motor_ct_painel_prb ON lwsa.motor_change_team_painel(prb_id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_ct_painel_status') THEN
+        CREATE INDEX idx_motor_ct_painel_status ON lwsa.motor_change_team_painel(status_snow);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname='lwsa' AND indexname='idx_motor_ct_painel_veredicto') THEN
+        CREATE INDEX idx_motor_ct_painel_veredicto ON lwsa.motor_change_team_painel(veredicto) WHERE veredicto IS NOT NULL;
+    END IF;
+END $$;
+
+COMMENT ON TABLE  lwsa.motor_change_team_painel IS 'Snapshot materializado dos PRBs Change Team. Reescrito inteiro a cada 6h pelo ValidadorEntrega (TRUNCATE+INSERT atômico). Consumido pelo chart "PRB Change Team" no Superset.';
+COMMENT ON COLUMN lwsa.motor_change_team_painel.veredicto IS 'NULL para PRBs ainda abertos; REINCIDENCIA/ENTREGA_VALIDADA/INCONCLUSIVO para resolvidos.';
+COMMENT ON COLUMN lwsa.motor_change_team_painel.snapshot_em IS 'Timestamp de quando este snapshot foi gravado — monitora frescor do painel.';
+
+
+-- ----------------------------------------------------------------------------
 -- ALTER condicional: adicionar coluna total_validacoes_entrega em motor_execucao
 -- ----------------------------------------------------------------------------
 -- Tabela motor_execucao já existe em produção (foi criada em DDL anterior).
