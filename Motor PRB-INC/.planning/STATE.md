@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: Discovery (aguardando `/gsd-discuss-phase 1` ou `/gsd-spec-phase 1`)
 stopped_at: Phase 1 context gathered
-last_updated: "2026-06-05T17:45:43.125Z"
+last_updated: "2026-06-05T20:09:41.738Z"
 last_activity: 2026-06-05 — GSD bootstrap concluido (PROJECT.md, REQUIREMENTS.md,
 progress:
   total_phases: 2
