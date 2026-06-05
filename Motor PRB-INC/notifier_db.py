@@ -22,13 +22,14 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, List, Tuple
 
 import config
 import time_utils
 from models import (
     Cluster,
     ExecucaoMotor,
+    PainelChangeTeamRow,
     PrescricaoPRB,
     SaudeCliente,
     ValidacaoEntrega,
@@ -339,3 +340,73 @@ def persistir_execucao(execucao: ExecucaoMotor) -> int | None:
     except Exception as exc:
         log.exception("Falha na persistência Postgres — JSON ainda foi gravado: %s", exc)
         return None
+
+
+# -----------------------------------------------------------------------------
+# Painel Change Team — TRUNCATE+INSERT atômico (D-04)
+# -----------------------------------------------------------------------------
+def persistir_painel_change_team(rows: List[PainelChangeTeamRow]) -> int:
+    """TRUNCATE + INSERT atômico do painel Change Team.
+
+    Padrão D-04 (snapshot completo a cada ciclo). Mesmo idioma de
+    `persistir_execucao`: `with conectar() as conn` + cursor manual +
+    `conn.commit()` ao final. Sem CASCADE — tabela é folha (sem FK para
+    filhos).
+
+    TRUNCATE pode aguardar leitores Superset; cadência 6h tolera espera.
+    Try/except retorna 0 em falha — caller (validar_entregas) tem try/except
+    próprio que propaga para `execucao.erros` sem regredir CON-012.
+    """
+    if not config.PERSISTIR_NO_BANCO:
+        log.info("Persistência Postgres desabilitada — pulando painel Change Team.")
+        return 0
+    try:
+        from db import conectar
+        with conectar() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"TRUNCATE TABLE {config.SCHEMA_BANCO}."
+                    f"{config.TABELA_CHANGE_TEAM_PAINEL} RESTART IDENTITY"
+                )
+                if rows:
+                    _insert_painel_change_team(cur, rows)
+                conn.commit()
+        log.info("Painel Change Team gravado: %d rows.", len(rows))
+        return len(rows)
+    except Exception as exc:
+        log.exception("Falha ao persistir painel Change Team: %s", exc)
+        return 0
+
+
+def _insert_painel_change_team(
+    cur, rows: Iterable[PainelChangeTeamRow]
+) -> None:
+    """Batch INSERT — sem RETURNING porque tabela é folha (sem FK para filhos)."""
+    sql = f"""
+        INSERT INTO {config.SCHEMA_BANCO}.{config.TABELA_CHANGE_TEAM_PAINEL} (
+            prb_id, descricao_curta, produto, servidor,
+            status_snow, prioridade_atual, dias_em_aberto,
+            grupo_designado, ultima_atualizacao,
+            veredicto, data_resolucao, dias_pos_resolucao,
+            qtd_incs_pos_resolucao, qtd_incs_pre_resolucao,
+            delta_chamados_pct, qtd_prbs_novos_pos_resolucao,
+            snapshot_em
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    cur.executemany(
+        sql,
+        [
+            (
+                r.prb_id, r.descricao_curta, r.produto, r.servidor,
+                r.status_snow, r.prioridade_atual, r.dias_em_aberto,
+                r.grupo_designado, r.ultima_atualizacao,
+                r.veredicto, r.data_resolucao, r.dias_pos_resolucao,
+                r.qtd_incs_pos_resolucao, r.qtd_incs_pre_resolucao,
+                r.delta_chamados_pct, r.qtd_prbs_novos_pos_resolucao,
+                r.snapshot_em,
+            )
+            for r in rows
+        ],
+    )
