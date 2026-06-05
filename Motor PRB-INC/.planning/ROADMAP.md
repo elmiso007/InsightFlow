@@ -21,9 +21,10 @@ discovery de Phase 1.
       producao: extracao, analise, regras, saude do cliente, validador, output
       e agendamento.
 
-- [ ] **Phase 1: Painel Change Team — Discovery** - Coleta escopo dos ~88 PRBs,
-      define cadencia, decide fronteira tecnologica (extender JSON vs dashboard
-      novo) e audiencia.
+- [x] **Phase 1: Painel Change Team — Discovery** - Coleta escopo dos 84 PRBs
+      (lista deduplicada de 92 entries originais), define cadencia 6h (D-02),
+      decide fronteira tecnologica Superset corporativo (D-07) e implementa
+      tabela materializada + chart guia. Complete 2026-06-05.
 
 ## Phase Details
 
@@ -92,21 +93,21 @@ discovery e um PRD/SPEC suficiente para prescrever Phase 2+ (implementacao).
      promovidos de "em aberto" para fechados.**Plans**: 6 plans
 **Wave 1**
 
-  - [ ] 01-01-PLAN.md — SQL DDL idempotente (motor_change_team + motor_change_team_painel) + seed inicial
-  - [ ] 01-02-PLAN.md — Models (PainelChangeTeamRow) + Config (toggle env var + nomes de tabela)
+  - [x] 01-01-PLAN.md — SQL DDL idempotente (motor_change_team + motor_change_team_painel) + seed 84 PRBs
+  - [x] 01-02-PLAN.md — Models (PainelChangeTeamRow) + Config (toggle CHANGE_TEAM_HABILITADO + nomes de tabela)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-  - [ ] 01-03-PLAN.md — Extractor: novo metodo listar_prbs_por_numero (ABC + Real + Mock)
-  - [ ] 01-04-PLAN.md — Modulo change_team.py + persistencia atomica em notifier_db
+  - [x] 01-03-PLAN.md — Extractor: novo metodo listar_prbs_por_numero (ABC + Real + Mock)
+  - [x] 01-04-PLAN.md — Modulo change_team.py + persistencia atomica em notifier_db
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-  - [ ] 01-05-PLAN.md — Integracao no validar_entregas.py (3o try/except) + suite de testes
-  - [ ] 01-06-PLAN.md — Documentacao operacional docs/DASHBOARD_CHANGE_TEAM.md (chart Superset + gestao master)
+  - [x] 01-05-PLAN.md — Integracao no validar_entregas.py (3o try/except) + 6 testes
+  - [x] 01-06-PLAN.md — Documentacao operacional docs/DASHBOARD_CHANGE_TEAM.md (chart Superset + gestao master)
 
-**Status**: Planning (planos prontos para execucao)
-**UI hint**: yes
+**Status**: Complete (2026-06-05) — implementacao + 116 testes verdes + smoke OK + VERIFICATION.md PASSED. Bug colateral fixado (change_team SELECT numero em vez de prb_id).
+**UI hint**: yes (chart Superset corporativo — D-07)
 
 > **Nota sobre Phase 2+:** intencionalmente nao prescritas. O resultado da
 > discovery de Phase 1 (PRD/ADR) vai determinar quantas phases de
@@ -124,4 +125,4 @@ discovery)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Estado as-built (baseline) | 0/0 | Complete | 2026-06-05 (registrada) |
-| 1. Painel Change Team — Discovery | 0/6 | Planning | - |
+| 1. Painel Change Team — Discovery | 6/6 | Complete | 2026-06-05 |

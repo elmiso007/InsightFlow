@@ -86,18 +86,22 @@ discovery (status Pending). Cada requisito mapeia para exatamente uma phase.
 
 ### Painel Change Team
 
-- [ ] **PNCT-01**: Dashboard de acompanhamento dos ~88 PRBs especificos da
-  force-task interdisciplinar Change Team. Permite tracking de progresso
-  (prioridade atual, status, idade, ultima atualizacao), cruzamento com
-  ValidadorEntrega (entregas vs reincidencias) e potencial cruzamento com
-  Saude do Cliente (clientes impactados).
-  - **Em discovery** — acceptance final dependente de:
-    - Criterio de selecao dos 88 PRBs (numero, grupo_designado, etiqueta?)
-    - Fronteira tecnologica (dashboard web Streamlit/HTML novo vs extensao do
-      JSON existente)
-    - Cadencia (real-time, 15min acompanhando motor, ou outra)
-    - Onde mora a lista (hardcoded, tabela nova, etiqueta SNow)
-    - Audiencia (Change Team, coordenacao, todos)
+- [x] **PNCT-01**: Painel de acompanhamento dos 84 PRBs especificos da
+  force-task interdisciplinar Change Team. Materializa em
+  `lwsa.motor_change_team_painel` (snapshot atomico a cada 6h via
+  ValidadorEntrega) com tracking de status SNow, idade, prioridade,
+  veredicto V3.1 (PRBs entregues) e sinais pos-resolucao reaproveitando
+  `validador_entrega._avaliar_prb` (CON-012 LOCKED preservado).
+  - **Acceptance fechado (2026-06-05, Phase 1):**
+    - Criterio de selecao: tabela dedicada `lwsa.motor_change_team` com
+      coluna `numero` + soft delete (D-01)
+    - Fronteira tecnologica: Superset corporativo lendo SQL direto da
+      tabela materializada — chart "PRB Change Team" (D-07, D-08)
+    - Cadencia: 6h via ValidadorEntrega (D-02) — entry-point ja em producao
+    - Onde mora a lista: `lwsa.motor_change_team` (soft delete via
+      ativo/removido_em — D-01)
+    - Audiencia: Change Team + operador + DBA/PO; consumo via Superset
+      corporativo (documentado em docs/DASHBOARD_CHANGE_TEAM.md §1, §3)
 
 ## v2 Requirements
 
@@ -145,10 +149,10 @@ Mapeamento de cada requisito v1 para a phase correspondente.
 | ORCH-02 | Phase 0 | Complete |
 | ORCH-03 | Phase 0 | Complete |
 | ORCH-04 | Phase 0 | Complete |
-| PNCT-01 | Phase 1 | Pending (discovery) |
+| PNCT-01 | Phase 1 | Complete (2026-06-05) |
 
 **Coverage:**
-- v1 requirements: 18 total (17 Complete + 1 Pending)
+- v1 requirements: 18 total (18 Complete)
 - Mapped to phases: 18
 - Unmapped: 0 ✓
 
