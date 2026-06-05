@@ -587,6 +587,28 @@ class ServiceNowExtractor(FonteIncidentes):
         rows = self._query(sql, params)
         return [self._row_para_prb(r) for r in rows]
 
+    def listar_prbs_por_numero(self, numeros: Sequence[str]) -> List[PRBExistente]:
+        """Implementação real — sem janela, sem filtro de status (D-03).
+
+        Aplica filtro de organização (_filtro_orgs_sni) para coerência com o
+        resto do extractor. Edge case: lista vazia → retorna [].
+        Não levanta exception em PRBs ausentes no SNow — silenciosamente omite.
+        """
+        if not numeros:
+            return []
+        placeholders = ",".join(["%s"] * len(numeros))
+        filtro_org, params_org = _filtro_orgs_sni()
+        sql = f"""
+            SELECT numero, descricao_curta, descricao, produto, servidor,
+                   prioridade, status, solucao_alternativa, categoria, subcategoria,
+                   grupo_designado, atualizacoes, data_abertura, data_encerrado
+            FROM {config.SCHEMA_BANCO}.{config.TABELA_PROBLEMAS}
+            WHERE numero IN ({placeholders})
+              {filtro_org}
+        """
+        rows = self._query(sql, tuple(numeros) + params_org)
+        return [self._row_para_prb(r) for r in rows]
+
     def listar_prbs_novos_no_ci_periodo(
         self, produto: str, servidor: str, desde: datetime, ignorar_prb_id: str = ""
     ) -> List[str]:
