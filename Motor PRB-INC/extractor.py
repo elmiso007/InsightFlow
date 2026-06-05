@@ -1534,6 +1534,18 @@ class ServiceNowExtractorMock(FonteIncidentes):
             if p.data_resolucao is not None and p.data_resolucao >= corte
         ]
 
+    def listar_prbs_por_numero(self, numeros: Sequence[str]) -> List[PRBExistente]:
+        """Mock: pega PRBs sintéticos cujo numero está na lista solicitada.
+
+        Não filtra por status; espelha o comportamento da implementação real
+        (D-03 — sem janela). Edge case: lista vazia → retorna [].
+        """
+        if not numeros:
+            return []
+        alvos = set(numeros)
+        todos = self._gerador.gerar_prbs() + self._gerador.gerar_prbs_para_validacao()
+        return [p for p in todos if p.prb_id in alvos]
+
     def listar_incidentes_por_produto_servidor(
         self, produto: str, servidor: str, desde: datetime,
         ate: Optional[datetime] = None,
