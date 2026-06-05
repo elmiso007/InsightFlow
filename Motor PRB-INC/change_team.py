@@ -50,9 +50,11 @@ def _ler_lista_change_team_ativa() -> List[str]:
     """
     try:
         from db import conectar
+        # NOTA: a coluna na tabela master se chama `numero` (PRB number no
+        # SNow), NÃO `prb_id`. Confira a DDL em sql/motor_tables.sql §7.
         sql = (
-            f"SELECT prb_id FROM {config.SCHEMA_BANCO}."
-            f"{config.TABELA_CHANGE_TEAM} WHERE ativo = true ORDER BY prb_id"
+            f"SELECT numero FROM {config.SCHEMA_BANCO}."
+            f"{config.TABELA_CHANGE_TEAM} WHERE ativo = true ORDER BY numero"
         )
         with conectar() as conn:
             with conn.cursor() as cur:
