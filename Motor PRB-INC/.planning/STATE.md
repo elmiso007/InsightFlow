@@ -1,14 +1,17 @@
 ---
-gsd_state_version: '1.0'
-status: planning
-milestone_version: v1.0
-current_phase: 1
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: Discovery (aguardando `/gsd-discuss-phase 1` ou `/gsd-spec-phase 1`)
+stopped_at: Phase 1 context gathered
+last_updated: "2026-06-05T17:45:43.125Z"
+last_activity: 2026-06-05 — GSD bootstrap concluido (PROJECT.md, REQUIREMENTS.md,
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 50
+  percent: 0
 ---
 
 # Project State
@@ -35,6 +38,7 @@ discovery)
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0 (Phase 0 e baseline as-built, sem plans)
 - Average duration: n/a
 - Total execution time: n/a
@@ -47,6 +51,7 @@ discovery)
 | 1. Painel Change Team — Discovery | 0/TBD | n/a | n/a |
 
 **Recent Trend:**
+
 - Nenhum plan executado ainda no GSD
 - Trend: n/a
 
@@ -62,6 +67,7 @@ relevantes para o trabalho atual:
 
 - Phase 0 (2026-06-05): Estado as-built registrado sem replanejar — motor ja
   em producao desde maio/2026.
+
 - Phase 1 (2026-06-05): Painel Change Team aberta em discovery — REQ-painel-
   change-team sem fonte documental (WARNING do ingest resolvido via
   sugestao (c): tratar como force-task discovery).
@@ -75,6 +81,7 @@ durante a discovery.
 
 - **Phase 1 (discovery):** acceptance de PNCT-01 esta provisorio. Decisoes em
   aberto bloqueiam Plans:
+
   1. Onde mora a lista dos ~88 PRBs (hardcoded vs tabela vs etiqueta SNow)
   2. Fronteira tecnologica (extensao JSON vs dashboard novo)
   3. Cadencia (15min vs 6h vs real-time)
@@ -88,8 +95,8 @@ durante a discovery.
 
 ## Session Continuity
 
-Last session: 2026-06-05 (GSD bootstrap)
-Stopped at: Artefatos .planning/ gerados a partir de intel/ — pronto para
+Last session: 2026-06-05T17:45:43.111Z
+Stopped at: Phase 1 context gathered
 discovery de Phase 1.
-Resume file: None (proximo passo sugerido: `/gsd-discuss-phase 1` ou
+Resume file: .planning/phases/01-painel-change-team-discovery/01-CONTEXT.md
 `/gsd-spec-phase 1`)
