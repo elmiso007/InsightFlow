@@ -1,5 +1,5 @@
 <!--
-Slides executivos do Motor Prescritivo PRB.
+Apresentação executiva do Motor PRB-INC.
 
 Formato: cada slide separado por `---` (linha horizontal).
 Compatível com:
@@ -10,363 +10,528 @@ Para gerar PDF (opcional):
   npx @marp-team/marp-cli APRESENTACAO.md --pdf
 -->
 
-# Motor Prescritivo PRB
+# Motor PRB-INC
 
-### Antecipação de problemas via análise semântica de incidentes
+### O vigia automático que enxerga o que ninguém vê
 
-**Apresentação executiva** · Junho/2026 (atualizada 2026-06-09 após go-live Phase 1)
-**Audiência:** Jéssica, Victor, Bruno + Coordenação
-
----
-
-## O problema (antes do motor)
-
-**Cenário operacional típico:**
-
-- Analista A pega INC: "VPS-01 não pinga" → reinicia → fecha em 30 min.
-- 8h depois, Analista B (plantão noite): mesma INC, mesmo servidor → reinicia → fecha.
-- 36h depois, Analista C: idem.
-- **Sábado, madrugada:** servidor cai de vez. Crise P1.
-
-**Cada analista tratou um evento isolado.** Ninguém viu o padrão.
-
-**Custo:**
-- 🔥 Crise inevitável.
-- ⏰ Tempo desperdiçado em ações repetitivas.
-- 📉 Cliente impactado várias vezes antes da resolução real.
+**Apresentação executiva** · Junho/2026
+**Audiência:** Liderança, Coordenação e Change Team
+**Linguagem:** direta, sem jargão técnico
 
 ---
 
-## A solução em 1 minuto
+## Em uma frase
 
-A cada **1 hora** (cadência PROD revista em 2026-06-09; antes era 15min), o motor:
+> *O Motor PRB-INC é um robô que lê o tempo todo as reclamações dos
+> clientes e os chamados internos, percebe quando várias delas falam
+> da mesma coisa, e avisa o time antes do problema virar uma crise.*
 
-1. 📥 Lê todas as INCs/chamados das últimas 24h (Postgres).
-2. 🧩 **Agrupa por similaridade semântica** — INCs do "mesmo assunto" viram um cluster.
-3. 📊 Calcula **scores** (criticidade, ineficiência do time).
-4. ⚖️ Aplica a **matriz oficial P1-P5** automaticamente.
-5. 💡 **Sugere ação:** abrir PRB / repriorizar PRB existente / monitorar.
-6. 🌡️ **Avalia saúde dos clientes recorrentes** (≥3 INCs em 6 meses).
-7. 📤 Notifica: **Slack** (críticos) + **Dashboard** (todos) + **Postgres** (histórico).
-
-**Resultado operacional:** plantão recebe alerta proativo **antes** do problema escalar.
+Pense nele como um **vigia 24h que nunca cansa** e que consegue ler
+centenas de incidentes por dia, encontrar padrões que humanos
+demorariam horas para enxergar — e cutucar a gente no Slack quando
+algo cheira mal.
 
 ---
 
-## Como funciona — visão geral
+## O problema que ele resolve
+
+### Antes do motor — um dia ruim típico
+
+- 🕘 **Terça, 10h:** Analista A pega um chamado: *"servidor VPS-01
+  não responde"*. Reinicia, fecha em 30 min.
+- 🕡 **Terça, 18h:** Outro analista, plantão da tarde, pega o **mesmo
+  servidor** com problema parecido. Reinicia de novo. Fecha.
+- 🌙 **Quarta, 02h:** Plantão da madrugada — terceira vez. Reinicia,
+  fecha.
+- 🔥 **Sábado, 03h:** Servidor cai de vez. Crise no Reclame Aqui.
+  Cliente perdido.
+
+**O que aconteceu?** Cada analista tratou um chamado isolado.
+**Ninguém viu o padrão.** Esse é o erro que o motor evita.
+
+---
+
+## O que o motor faz, no dia a dia
+
+A cada **1 hora**, automaticamente:
+
+1. 📥 **Lê tudo o que entrou** — chamados do ServiceNow (sistema oficial
+   de incidentes da Locaweb) e tickets do suporte ao cliente.
+
+2. 🔍 **Procura padrões** — agrupa incidentes que falam da mesma coisa,
+   mesmo que estejam escritos com palavras diferentes.
+
+3. 🚦 **Decide a urgência** — aplica a régua oficial da Locaweb
+   (P1 = crise, P2 = alta, P3 = média, P4/P5 = baixa) com base no que
+   ele encontrou.
+
+4. 💬 **Sugere o que fazer** — abrir uma ficha de problema (PRB), elevar
+   a prioridade de uma ficha existente, ou só monitorar.
+
+5. 🌡️ **Vigia clientes ruidosos** — quando um cliente abre 3 ou mais
+   incidentes em 6 meses, ele avisa a coordenação.
+
+6. 📤 **Conta pra gente** — pelo Slack (quando é crítico) e por um
+   painel visual atualizado.
+
+---
+
+## O que é "incidente" e "PRB"?
+
+Dois termos que vão aparecer muito. Vamos descomplicar:
+
+| Termo | O que é, em linguagem simples |
+|---|---|
+| **Incidente (INC)** | Um chamado de algo que está dando errado **agora**. *"Servidor caiu"*, *"meu painel não abre"*. Resolve-se reiniciando, restaurando, etc. — foco em **voltar a funcionar**. |
+| **PRB (Problema)** | A **causa raiz** que está gerando vários incidentes. Se 5 INCs vêm do mesmo servidor caindo todo dia, abre-se 1 PRB para investigar o motivo de fundo. **Resolve-se o problema, não só o sintoma.** |
+| **Change Team** | Time interdisciplinar da Locaweb que **entrega a solução** dos PRBs. Quando um PRB sai como "concluído", foi a Change Team que fez. |
+| **OLA** | Acordo de prazo interno entre times (ex.: "time A entrega para o time B em até 4h"). |
+
+> 💡 **Resumo:** INC é o sintoma. PRB é a doença. Change Team é o
+> médico que cura.
+
+---
+
+## O motor olha por 3 ângulos diferentes
+
+Hoje ele faz três trabalhos complementares:
+
+### 1️⃣ Olha pra frente — *"o que pode dar problema?"*
+
+A cada 1 hora, lê todos os incidentes ativos e identifica padrões.
+Se 5 chamados parecidos surgem no mesmo servidor, ele avisa **antes**
+de virar crise.
+
+### 2️⃣ Olha pra trás — *"o que a gente entregou realmente funcionou?"*
+
+A cada 6 horas, pega os PRBs que a Change Team marcou como
+"concluídos" nos últimos 14 dias e checa: **o problema voltou?**
+Se voltou (3+ incidentes novos no mesmo lugar), avisa que o fix
+não pegou de verdade.
+
+### 3️⃣ Olha pra força-tarefa — *"como estão os 84 PRBs prioritários?"*
+
+A Change Team mantém uma lista de **84 PRBs específicos** que precisam
+acompanhamento dedicado. O motor materializa essa lista num painel
+sempre atualizado — quem ainda está aberto, quem foi resolvido, quem
+voltou a dar problema.
+
+---
+
+## Como o motor "entende" os incidentes?
+
+Sem entrar em detalhe técnico — o motor lê o texto livre de cada
+chamado e **percebe similaridade semântica**. Exemplo:
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  POSTGRES (lwsa.* + dynamics.* + kinghost.*)         │
-└──────────────────────┬───────────────────────────────┘
-                       ↓ (a cada 1h preventivo · 6h validador+Change Team)
-┌──────────────────────────────────────────────────────┐
-│  MOTOR PRB-INC                                       │
-│                                                      │
-│  ① Lê INCs + chamados + PRBs                         │
-│  ② Agrupa INCs similares (NLP)                       │
-│  ③ Calcula scores                                    │
-│  ④ Aplica matriz P1-P5                               │
-│  ⑤ Avalia Saúde do Cliente                           │
-│                                                      │
-└────────┬──────────────┬──────────────┬───────────────┘
-         ↓              ↓              ↓
-    ┌────────┐    ┌──────────┐    ┌─────────┐
-    │ Slack  │    │Dashboard │    │Postgres │
-    │(crítico)│   │  (JSON)  │    │(histórico)│
-    └────────┘    └──────────┘    └─────────┘
+INC 1: "Servidor caiu - kernel panic no VPS-01"
+INC 2: "VPS-01 não está respondendo, parece travado"
+INC 3: "Cliente reportando que servidor 01 fora do ar"
 ```
+
+Para um humano, os três parecem assuntos diferentes. **Para o motor,
+é o mesmo problema** — mesmo servidor, mesma natureza. Ele agrupa os
+três como **um único caso** e dá uma só recomendação.
+
+Isso é o que permite ele perceber padrões que escapam à leitura
+incidente-a-incidente.
 
 ---
 
-## Requisitos atendidos
+## Onde a informação chega para você
 
-Levantados na reunião original:
+```
+┌─────────────────────────────────────────────────────────┐
+│  Sistema de chamados (ServiceNow + suporte ao cliente)  │
+│                  Banco central da Locaweb               │
+└──────────────────────────┬──────────────────────────────┘
+                           │ a cada 1h (preventivo)
+                           │ a cada 6h (validador + Change Team)
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    MOTOR PRB-INC                         │
+│                                                          │
+│   Lê → Agrupa → Avalia → Recomenda → Avisa              │
+└──────┬──────────────┬───────────────────┬───────────────┘
+       │              │                   │
+       ▼              ▼                   ▼
+   ┌───────┐    ┌───────────┐       ┌──────────────┐
+   │ Slack │    │  Painel   │       │  Histórico   │
+   │ 🚨    │    │  visual   │       │  pra consulta│
+   │ urgente│    │ (Superset)│       │  (Postgres)  │
+   └───────┘    └───────────┘       └──────────────┘
+```
 
-| Requisito | Quem pediu | Status |
+**Cada saída atende uma audiência diferente:**
+
+- **Slack** → plantão recebe avisos críticos no momento que acontecem
+- **Painel** → coordenação abre de manhã e vê tudo organizado
+- **Histórico** → liderança e PO consultam tendências mensais
+
+---
+
+## Exemplo concreto — alerta crítico no Slack
+
+Quando o motor detecta uma crise, o time recebe assim:
+
+```
+🚨🆘 Motor PRB-INC — Alerta CRÍTICO
+Sugestão: ABRIR PRB | Prioridade: P1
+
+📦 Produto: CAL
+🖥️ Servidor: cal-frontend-03
+📈 6 incidentes parecidos nas últimas horas
+💬 16 clientes ligaram falando do mesmo problema hoje
+🔁 Esse servidor já apareceu 4x esta quinzena
+
+Justificativas (por que P1):
+• Contratação indisponível, sem solução temporária (P1).
+• Mesmo servidor reaparecendo repetidamente.
+• Volume alto de chamados de clientes.
+```
+
+> 🎯 **A vantagem:** o coordenador entende em 5 segundos *o que está
+> acontecendo* e *por que é grave*. Sem precisar abrir 6 sistemas
+> diferentes para confirmar.
+
+---
+
+## Saúde do Cliente — o "termômetro" do cliente recorrente
+
+### Como era antes (manualmente)
+
+Cliente liga reclamando na madrugada. Analista precisa:
+
+1. Abrir ServiceNow, buscar histórico do cliente — **5 min**
+2. Abrir sistema de suporte, buscar chamados antigos — **5 min**
+3. Intercalar manualmente num Excel pra entender a história — **5 min**
+
+**Total: ~15 minutos de garimpagem ANTES de começar a resolver.**
+
+### Como ficou com o motor
+
+Coordenador abre o painel de manhã. Cada cliente "barulhento" já
+está com o card pronto:
+
+```
+🌡️ Cliente: govonifelipe — RECORRÊNCIA ALTA
+11 incidentes em 6 meses · 25 tickets de suporte
+
+⏰ Linha do tempo já consolidada:
+🟢 Servidor fora — 2h atrás (P3)
+💬 Cliente abriu ticket — 3h atrás
+🟢 Mesmo erro — 8h atrás (P3)
+💬 Outro ticket — 2 dias atrás
+🟢 Painel travado — 1 mês atrás (P2)
+```
+
+**Tempo de leitura: 30 segundos** para os 11-13 clientes do dia.
+
+---
+
+## Painel Change Team — força-tarefa em 1 tela
+
+A Change Team tem **84 PRBs específicos** sob acompanhamento
+dedicado. Antes, acompanhar essa lista era abrir 84 fichas uma a
+uma no ServiceNow.
+
+Hoje, tem um **painel único no Superset** (sistema de relatórios da
+Locaweb) que mostra de uma vez:
+
+| Coluna | O que mostra |
+|---|---|
+| **PRB** | Número da ficha |
+| **Status** | Aberto / Resolvido / Reincidente |
+| **Dias em aberto** | Há quanto tempo está lá |
+| **Veredicto** | Para resolvidos: o fix segurou? Voltou o problema? |
+| **Times impactados** | Quais equipes internas estavam chamando antes do fix e pararam depois |
+
+### Achados reais (go-live de 09/06/2026)
+
+- ✅ **84 de 84 PRBs** no painel (depois de uma operação para trazer
+  PRBs antigos do banco)
+- ⚠️ **6 reincidências surfaceadas** — fixes que voltaram a dar
+  problema
+- 🚨 **Destaque: PRB0055284** — fechado há **726 dias**, mas continua
+  gerando ~6 incidentes/mês no Hospedagem Compartilhada. O painel
+  acendeu o alerta — sem ele, esse PRB ficaria invisível para
+  sempre.
+
+---
+
+## Times impactados — quem o PRB realmente afetou?
+
+Sinal novo entregue em 03/06/2026. Responde a pergunta da
+coordenação:
+
+> *"Esse PRB que a Change Team entregou — quais times internos da
+> Locaweb deixaram de chamar depois?"*
+
+Exemplo real:
+
+```
+PRB resolveu bug na ferramenta de cobrança
+Antes do fix → Depois do fix:
+
+  • Cobrança:       12 chamados → 0  ✅ zerou!
+  • Faturamento:    8  chamados → 1  ↓ caiu 87%
+  • Suporte Geral:  3  chamados → 2  (estável)
+```
+
+**Leitura operacional:** o fix foi excelente para Cobrança e bom para
+Faturamento. Discreto para Suporte Geral. A coordenação pode parabenizar
+quem entregou e investigar se os 2 chamados restantes do Suporte são
+da mesma natureza.
+
+---
+
+## O que muda para cada um de vocês
+
+### 👔 Liderança / Gestores
+
+- Métricas de "saúde do produto" sempre disponíveis no banco — consulta
+  SQL responde em segundos perguntas que antes exigiam horas de
+  análise.
+- Histórico de **30 dias** de execuções persistido — dá pra ver
+  tendência por semana, por produto, por servidor.
+- Visibilidade sobre **eficácia da Change Team** — quantos fixes
+  realmente seguraram, quantos voltaram.
+
+### 🎯 Coordenação
+
+- Painel pronto de manhã, sem preparar slides manualmente.
+- Alertas críticos no Slack — não precisa ficar abrindo sistemas para
+  monitorar.
+- Clientes ruidosos identificados automaticamente — proativo, não
+  reativo.
+
+### 🔧 Change Team
+
+- Cada PRB resolvido recebe **veredicto automático** após 7-14 dias:
+  - ✅ *Entrega Validada* — o fix segurou
+  - ⚠️ *Reincidência* — o problema voltou, reabrir
+  - 🤔 *Inconclusivo* — ainda cedo demais para decidir
+- Sinais ricos no Slack quando alguma coisa volta: quantos incidentes
+  novos, quantos clientes ligaram, quais times pararam de chamar.
+- **Painel Change Team** com os 84 PRBs prioritários sempre atualizado.
+
+### 🚨 Plantão
+
+- Slack só toca quando é **realmente crítico** (P1 ou cliente em
+  alerta). Sem ruído.
+- Quando toca, vem com **justificativa por escrito** — entende em 5
+  segundos o porquê.
+
+---
+
+## O que o motor decide sozinho — e o que NÃO
+
+Importante entender as fronteiras:
+
+### ✅ O motor faz sozinho
+
+- Lê milhares de chamados.
+- Agrupa por similaridade.
+- Aplica a régua P1-P5 da Locaweb.
+- **Sugere** abrir PRB, elevar prioridade, monitorar.
+- Avisa no Slack quando é grave.
+- Mantém o painel atualizado.
+
+### ❌ O motor NÃO faz (por princípio de segurança)
+
+- **Não abre PRB sozinho no ServiceNow.** Só sugere — humano confirma.
+- **Não rebaixa prioridade automaticamente.** Só sugere elevar.
+- **Não decide P5 sozinho** — exige confirmação do Coordenador/PO,
+  porque P5 é "decidimos não consertar agora", e isso é decisão de
+  produto, não de máquina.
+- **Não aprende com feedback.** As regras são as oficiais da Locaweb
+  — quem ajusta é a coordenação, não o motor.
+
+> 🎯 **Filosofia:** o motor é uma ferramenta de **apoio à decisão
+> humana**, não um substituto. Toda decisão importante passa por
+> alguém com nome e crachá.
+
+---
+
+## Como saber se ele está funcionando?
+
+Indicadores rápidos:
+
+| O que olhar | Como verificar | Bom sinal |
 |---|---|---|
-| Agrupar INCs por similaridade (não só por texto literal) | Jéssica | ✅ |
-| Detectar **mesmo CI** gerando INCs repetidas em dias diferentes | Victor | ✅ |
-| **Sugerir repriorização** de PRB existente (ex.: P3 → P2) | Jéssica | ✅ |
-| Cruzar com **volume de chamados** Locaweb + Kinghost | Jéssica | ✅ |
-| **Saúde do Cliente** — clientes com ≥3 INCs em 6 meses | Emerson/Bruno | ✅ |
-| Slack para crítico + Dashboard tabulado | Reunião | ✅ |
-| Antecipar com **5 INCs P3 idênticas** | Reunião | ✅ Gatilho proativo |
-| **Painel Change Team** — ~84 PRBs sob acompanhamento dedicado | Coordenação | ✅ Phase 1 PROD 2026-06-09 |
+| Motor preventivo está vivo? | Painel atualizou na última hora | ✅ sim |
+| Validador rodou hoje? | Painel Change Team com "snapshot < 7h" | ✅ sim |
+| Está achando coisas? | 5-10 prescrições por ciclo em média | ✅ esperado |
+| Reincidências detectadas | 6 surfaceadas no go-live | ✅ funcionando |
 
-**Todos os 7 requisitos do levantamento original + Painel Change Team (Phase 1
-GSD) implementados.**
+Se algo parecer parado, a coordenação tem queries SQL prontas para
+checar em segundos (documentadas em `docs/MANUAL.md`).
 
 ---
 
-## Exemplo concreto — Alerta crítico
+## Resultados reais — primeiro mês em produção
 
-**O que o time recebe no Slack quando o motor detecta crise:**
+Dados do banco real da Locaweb, atualizados em 09/06/2026:
 
-```
-🚨🆘 *Motor Prescritivo PRB — Alerta CRITICA*
-_Ação sugerida: *ABRIR_PRB* | Prioridade: *P1*_
-
-*Cluster:* checkout indisponivel contratacao
-*Produto:* CAL
-*Servidor/CI:* cal-frontend-03.locaweb.local
-*INCs no cluster:* 3
-*Score Criticidade:* 0.66 | *Ineficiência:* 0.38
-*Chamados (24h, produto):* 16
-*CIs recorrentes (15d):* cal-frontend-03.locaweb.local
-
-*Justificativas:*
-    • Contratação indisponível, sem solução de contorno total (P1).
-    • CI(s) com recorrência em 15 dias: cal-frontend-03.locaweb.local.
-    • 16 chamados no último dia para o produto CAL (impacto real).
-```
-
-**🆘 = abrir PRB novo. 🔧 = repriorizar PRB existente.** Identificação visual em 1 segundo.
-
----
-
-## Saúde do Cliente — antes vs. depois
-
-### Antes (manual)
-
-Cliente liga no plantão noturno. Analista precisa:
-1. Abrir ServiceNow, buscar INCs do cliente, exportar histórico (~5 min).
-2. Abrir Dynamics, buscar chamados, exportar (~5 min).
-3. Intercalar manualmente por data num Excel (~5 min).
-
-**Total: 10-15 min de garimpagem por cliente.**
-
-### Depois (motor)
-
-Coordenador abre dashboard. Card do cliente já mostra:
-
-```
-🌡️ govonifelipe — RECORRÊNCIA ALTA
-N INCs em 6 meses · M chamados · Severidade X.XX
-
-🟢 INC8846057  ServiceNow   2h atrás · P3
-💬 CAS-500023  Locaweb      3h atrás
-🟢 INC8846033  ServiceNow   8h atrás · P3
-💬 CAS-500012  Kinghost     2 dias atrás
-🟢 INC0900150  ServiceNow   1 mês atrás · P2
-                                            [...]
-```
-
-**Tempo: ~30 segundos para os 11-13 clientes recorrentes do dia.**
-
-*O login mostrado é o **canônico** após normalização — `govonifelipe`,
-`govonifelipe (Cód. 1100035861)` e até a URL do KingHost
-`https://intranet.kinghost.com.br/.../ficha=NNN` viram a mesma chave,
-evitando duplicatas no painel.*
-
----
-
-## Onde os dados vivem — 3 saídas em paralelo
-
-| Saída | Quem consome | Latência |
-|---|---|---|
-| **Slack** | Plantão (push de crítico) | Instantâneo |
-| **Dashboard JSON** | Coordenadores (front-end visual) | A cada 15 min |
-| **Postgres** | PO/Liderança (análise histórica via SQL) | A cada 15 min |
-
-**Por que 3 saídas:**
-- Cada audiência tem necessidade diferente.
-- Se Slack cair, dashboard ainda existe.
-- Se banco cair, JSON ainda existe.
-- **Resiliência** garantida.
-
----
-
-## Análises possíveis pelo histórico Postgres
-
-Queries SQL ricas habilitadas pelo histórico de 30 dias:
-
-**📈 Tendência semanal:**
-> "Quantos alertas críticos por dia na última semana?"
-
-**👥 Clientes piorando:**
-> "Quais clientes tiveram severidade média subindo nos últimos 30 dias?"
-
-**🖥️ CIs crônicos:**
-> "Quais servidores aparecem em mais de 50 ciclos do motor (recorrência sistêmica)?"
-
-**⏱️ Saúde do motor:**
-> "Tempo médio de cada ciclo nas últimas 24h? Algum pico?"
-
-**Sem o motor:** essas perguntas exigiriam horas de análise manual.
-
----
-
-## Resultados em produção (DB real, atualizado 2026-06-09)
-
-**Dataset real do DW Locaweb (~280-400 INCs / 500-700 chamados por ciclo):**
-
-| Métrica | Valor após calibração completa |
+| O que mede | Valor |
 |---|---|
-| INCs processadas (24h) | 280-400 |
-| Chamados (24h) | 500-700 |
-| Clusters identificados | 70-95 (27-44 persistidos, demais singletons omitidos) |
-| Fusão por (produto, servidor) | 8-12 INCs agrupadas em 4-5 clusters novos |
-| Prescrições geradas | 70-95 (1-2 críticas/ciclo) |
-| **Clientes Nominais únicos (30 dias, Locaweb)** | **~1.270** |
-| **Recorrência alta (≥3 INCs em 30d)** | **9-12 clientes** com logins canônicos limpos |
-| Validações de entrega (6h) | 10 PRBs (~3 reincidências, ~5 validadas, ~2 inconclusivos) com 4 sinais: veredicto + volumetria pré + Δ chamados vinculados + PRBs novos |
-| Alertas Slack | 7-8 por ciclo (desligado por default em 2026-06-02 — preparados e loggados, não enviados) |
-| **Tempo total do ciclo (preventivo, 1h)** | **22-31 segundos** ⚡ |
-| **Tempo total do ciclo (validador+Change Team, 6h)** | **~143 segundos** (51 candidatos V3.1 + 84 PRBs Change Team em 2026-06-09) |
-| **Painel Change Team (go-live 2026-06-09)** | **84/84 PRBs no painel** após backfill SNow; **6 reincidências** surfaceadas; **PRB0055284** com 726 dias pós-resolução em destaque |
-| Erros | 0 |
+| Incidentes processados por ciclo | **280-400** |
+| Tickets de suporte cruzados | **500-700** |
+| Grupos de incidentes parecidos identificados | **70-95** por ciclo |
+| Clientes ruidosos detectados | **9-12 por ciclo** |
+| PRBs com fix validado (avaliados a cada 6h) | **~10 por ciclo** |
+| **Achado de destaque** | **PRB0055284 — 726 dias pós-resolução ainda gerando incidentes** |
+| Tempo total do ciclo preventivo | **22-31 segundos** |
+| Tempo do ciclo validador + Change Team | **~143 segundos** |
+| Erros no período | **0** |
 
-**Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 22-30s:**
-
-1. **Filtro `tipo_usuario = Nominal`** — descarta ~92% de INCs de monitoração
-   (Zabbix/Nagios) que não têm cliente associado.
-2. **Janela ampliada de 30 dias** pra identificar candidatos (24h era curto demais).
-3. **Normalização de `login_cliente`** — unifica `username (Cód. NNN)`,
-   `ficha=NNN`, dígitos puros como mesma chave.
-4. **Bulk + slim queries** — substituiu N×2 queries seriais por 3 totais.
-5. **Índices no DW** — `data_abertura`, `datacriacao`, `(data_abertura, tipo_usuario)`,
-   e o novo `dynamics.chamados(inc)`.
-6. **Filtro `ORGANIZACOES_ATIVAS = ("Locaweb",)`** — motor focado no escopo
-   atual; KingHost fica de fora até segunda ordem.
-7. **Filtro `LOGIN_CLIENTE_PADROES_EXCLUIDOS = ("kinghost",)`** — captura
-   URLs `intranet.kinghost.com.br/.../ficha=NNN` mal classificadas como Locaweb.
-8. **Enriquecimento via `dynamics.chamados`** — quando uma INC tem chamado
-   correspondente, o motor usa o `logincliente` da Dynamics (login limpo)
-   em vez do `login_cliente` do SNow (que pode vir vazio ou com URL).
-   Identificou 5 clientes a mais com login real.
-9. **ValidadorEntrega V2** — além do veredicto, mede volumetria pré-resolução
-   (`60d`) e Δ de chamados pré/pós (`14d` simétrico).
-10. **ValidadorEntrega V3** — Δ chamados agora usa match **`chamados.prb = prb_id`
-    OR `chamados.inc IN (incs)`** em vez de match por produto. Captura `0/0`
-    honestos quando não há vínculo, e revela aumentos reais quando há (ex.: um
-    dos PRBs reincidentes mostrou +33% de chamados vinculados pós-fix).
-11. **Tagueamento de PRB resolvido + rastreio de PRBs novos pós-resolução** —
-    requisito da coordenação. Cada PRB validado carrega `qtd_prbs_novos_pos_resolucao`
-    e a lista `prbs_novos` com os `numero` dos PRBs abertos no mesmo
-    `(produto, servidor)` após a entrega.
-
-**Validação técnica:**
-
-- ✅ **116 testes automatizados** passando (suite Phase 1 incluída — `test_change_team.py`).
-- ✅ **Bug de regressão protegido** (caso "ra" / "fora" não pode voltar).
-- ✅ **Persistência funcional** em Postgres + JSON paralelo.
-- ✅ **Defense in Depth** (CON-012 LOCKED — falha do Change Team não afeta ValidadorEntrega V3.1).
+> 🚀 **Em produção desde:** maio/2026 (preventivo) | junho/2026
+> (Validador + Painel Change Team).
 
 ---
 
-## Decisões de produto preservadas
+## Quando o motor "ajustou" expectativas
 
-O que o motor **NÃO faz** — por princípio:
+Algumas coisas só viraram visíveis depois que ele entrou em operação:
 
-| O que NÃO faz | Por quê |
-|---|---|
-| Abrir PRB automaticamente no SNow | Motor **sugere**, humano decide |
-| Repriorizar PRB sem aprovação humana | Princípio de segurança operacional |
-| Rebaixar prioridade automaticamente | Conservadorismo — só sugere upgrade |
-| Decidir P5 sozinho | P5 exige confirmação de Coordenador/PO |
-| Aprender por feedback (ML) | Regras determinísticas auditáveis > caixa-preta |
+### Aprendizado 1 — PRBs antigos esquecidos
 
-**Auditabilidade é prioridade.** Toda decisão automatizada explica-se em texto livre (justificativas no Slack/dashboard).
+O **PRB0055284** estava fechado há 2 anos. Ninguém olhava mais para
+ele. Mas continuava gerando ~6 incidentes/mês no Hospedagem
+Compartilhada. **Sem o painel Change Team, ninguém perceberia.**
 
----
+### Aprendizado 2 — fixes que parecem ok mas voltam
 
-## O que falta para subir em produção
+Das **84 fichas** da Change Team, **6 viraram reincidências** depois
+do go-live. Isso não significa que a Change Team trabalhou mal —
+significa que algumas correções são complexas e merecem
+re-investigação. **Antes, isso só apareceria quando o cliente
+reclamasse no Reclame Aqui.**
 
-Pendências **não-técnicas** (apenas configuração):
+### Aprendizado 3 — times impactados sumindo
 
-- [ ] **Webhook Slack** real (env `SLACK_WEBHOOK_URL`).
-- [ ] **Canal Slack** criado (sugestão: `#prb-alertas` ou `#noc-alertas`).
-- [ ] **Conta de banco** com `SELECT` nos schemas relevantes + `INSERT` em `lwsa.motor_*`.
-- [ ] **Supervisor** (systemd/Docker) para restart automático.
-- [ ] **Monitoração externa** (Site24x7) com query "motor está vivo?".
-
-**Pendências técnicas:** zero. Código validado e pronto.
+Quando um PRB resolve um problema bem, dá pra **ver no chart**:
+*"Cobrança chamou 12 vezes antes do fix → 0 depois"*. Isso vira
+**reconhecimento concreto** da Change Team, com número.
 
 ---
 
-## Próximos passos sugeridos
+## O que vem pela frente
 
-### Curto prazo (0–4 semanas)
+### Em discussão (próximos 30 dias)
 
-1. ~~**Deploy em staging:**~~ ✅ feito — motor roda contra DW real desde 2026-06-02.
-2. ~~**Calibrar `DBSCAN_EPS`**~~ → calibração aplicada via fusão por (produto, servidor)
-   e filtragem de singletons da persistência.
-3. ~~**Habilitar Slack**~~ ✅ rodando — 7-8 mensagens por ciclo.
-4. Monitorar tempo de ciclo em produção (alvo: ≤2 min) — baseline atual ~30-45s.
+- **Ligar os alertas Slack** — hoje as 6 reincidências e 8 saúdes
+  altas estão sendo registradas, mas o disparo no Slack está
+  desligado por escolha (revisão antes de ativar).
+- **Frente de relatório semanal** — resumir automaticamente para
+  liderança "o que aconteceu essa semana".
 
-### Médio prazo (1–3 meses)
+### Em discussão (próximos 90 dias)
 
-4. **Front-end visual** consumindo o JSON/Postgres (dashboard de coordenadores).
-5. **Monitoração externa** integrada.
-6. **Cleanup TTL automático** após DBA conceder permissão DELETE.
+- **Painel visual para coordenação** — hoje a coordenação consulta
+  via Superset (técnico). Pode existir uma versão mais leve no
+  navegador.
+- **Análise de tendência** — comparar este mês com o anterior:
+  "Hospedagem está piorando? E-mail está estável?"
 
-### Longo prazo (3+ meses)
+### Fora de cogitação (por enquanto)
 
-7. **Análise de tendência** (motor stateful — comparar ciclos).
-8. **Integração bidirecional com SNow** (escrever PRBs) — somente após validação extensa.
-
----
-
-## Métricas de sucesso propostas
-
-Para acompanhar o ROI do motor após 30 dias em produção:
-
-| Métrica | Como medir |
-|---|---|
-| **Antecipação de PRBs** | Quantos PRBs foram abertos via sugestão proativa (5+ P3 idênticas)? |
-| **Repriorização correta** | Quantos PRBs subiram de P3 para P2 via sugestão do motor? |
-| **Redução de garimpagem** | Tempo médio de plantão por incidente complexo (antes vs. depois) |
-| **Saúde do Cliente** | Clientes com recorrência alta identificados / total de alertas P1 mensais |
-
-**Hipótese a validar:** motor identifica 60-80% das crises antes delas virarem P1, ganhando 24-72h de antecedência.
+- **Motor escrever no ServiceNow.** Continua sendo *"sugere, humano
+  decide"* — segurança operacional acima de tudo.
+- **Substituir analistas.** O motor é **apoio**, não substituição.
 
 ---
 
-## Resumo executivo
+## Quem está atrás disso
 
-**O que entregamos:**
-- ✅ **MVP em PROD** (Locaweb) — preventivo 1h + validador 6h via Task Scheduler em `\TarefasTrafego\`.
-- ✅ Atende **todos os 7 requisitos** do levantamento original + Painel Change Team (Phase 1 GSD, go-live 2026-06-09).
-- ✅ Lógica de negócio **auditável** (matriz P1-P5 + justificativas textuais).
-- ✅ **Resiliente** (Defense in Depth — 4 camadas + CON-012 LOCKED preserva V3.1 contra falha do Change Team).
-- ✅ **Documentado** (5 docs especializados: ARQUITETURA, MANUAL, REGRAS, VALIDADOR_ENTREGA, SAUDE_DO_CLIENTE, DASHBOARD_CHANGE_TEAM + GLOSSARIO).
-- ✅ **Testado** (116 testes automatizados, regressão protegida, suite Phase 1 incluída).
-- ✅ Compatível com infra atual (Postgres **9.2.19** confirmado em PROD 2026-06-09 — sem upgrade necessário).
+**Construção:** Emerson Ramos (Locaweb)
 
-**Próximo passo concreto:** decisão sobre subir staging.
+**Requisitos originais:** Jéssica, Victor, Bruno, Emerson — reunião
+de levantamento que deu origem ao projeto.
+
+**Em produção desde:** maio/2026.
+
+**Phase 1 (Painel Change Team) entregue:** 05/06/2026.
+**Go-live em PROD:** 09/06/2026.
 
 ---
 
-## Perguntas / discussão
+## Perguntas que costumam aparecer
 
-**Pontos para alinhar:**
+**"O motor erra?"**
+> Pode errar — qualquer ferramenta automática pode. Por isso ele
+> **sugere**, nunca decide sozinho. Cada decisão tem **justificativa
+> por escrito** auditável. Se algo parecer estranho, basta abrir a
+> justificativa.
 
-1. **Calibração:** os thresholds atuais (P2 = 5 sem contorno, gatilho = 5 P3, etc.) batem com a realidade operacional?
+**"E se ele cair?"**
+> O Windows Task Scheduler (sistema do Windows) dispara o motor de
+> hora em hora. Se um ciclo crashar, o próximo simplesmente roda. Não
+> há "motor caído" — há "ciclo que falhou", que se recupera no
+> próximo.
 
-2. **Canal Slack:** time prefere alertas individuais (atual) ou consolidados num resumo de 15 min?
+**"Posso desligar uma frente sem mexer no resto?"**
+> Sim. O Painel Change Team tem um interruptor próprio
+> (`CHANGE_TEAM_HABILITADO`). Se houver problema com ele, desliga
+> sem afetar o validador nem o motor preventivo.
 
-3. **Cleanup TTL:** vale solicitar GRANT DELETE para a conta do motor ou DBA cuida manualmente?
+**"Onde ficam os dados sensíveis?"**
+> No banco da própria Locaweb (Postgres `lwsa.*`). O motor não
+> manda nada para fora — só lê de dentro e devolve no Slack/painel
+> internos.
 
-4. **Próxima fase:** front-end visual ou expansão das regras P1-P5?
+**"Quem mexe nos limiares (P1, P2, etc.)?"**
+> Coordenação + PO. Os limiares vivem num arquivo de configuração
+> (`config.py`) — ajuste é 1 linha + reinício do motor.
 
-5. **Métricas de sucesso:** quais critérios para considerar o motor "validado"?
+---
+
+## Para se aprofundar (opcional)
+
+Se quiser ler mais sobre algum tópico específico, a documentação
+técnica está organizada em audiências:
+
+- **`docs/MANUAL.md`** — Para quem opera o motor no dia a dia
+- **`docs/REGRAS.md`** — Para PO/auditoria — matriz oficial P1-P5
+- **`docs/VALIDADOR_ENTREGA.md`** — Para Change Team — como ler
+  veredictos
+- **`docs/DASHBOARD_CHANGE_TEAM.md`** — Para quem mantém a lista
+  da força-tarefa
+- **`docs/SAUDE_DO_CLIENTE.md`** — Para coordenação — como funciona
+  o termômetro de cliente
+- **`docs/ARQUITETURA.md`** — Para quem quer mexer no código (técnico)
+- **`GLOSSARIO.md`** — Dicionário de termos
+
+---
+
+## Resumo de bolso
+
+🎯 **O motor é um vigia automático.**
+
+📥 **Lê** todos os incidentes e tickets de suporte.
+
+🔍 **Agrupa** o que é parecido.
+
+🚦 **Decide** a urgência usando a régua oficial da Locaweb.
+
+💡 **Sugere** o que fazer (mas não decide sozinho).
+
+📊 **Mostra** tudo num painel + avisa no Slack quando é crítico.
+
+🔁 **Acompanha** se o que a Change Team entregou realmente segurou.
+
+🎯 **84 PRBs prioritários** num painel único, sempre atualizado.
+
+⏰ **24/7**, sem cansar.
 
 ---
 
 ## Obrigado
 
-**Motor Prescritivo PRB** · Emerson Ramos · Maio/2026
+**Motor PRB-INC** · Locaweb · Junho/2026
 
-**Para detalhes técnicos:**
-- `docs/ARQUITETURA.md` — como o motor foi construído
-- `docs/MANUAL.md` — como usar
-- `docs/REGRAS.md` — matriz oficial P1-P5
-- `docs/VALIDADOR_ENTREGA.md` — V3.1 ponta a ponta (prisma retrospectivo)
-- `docs/SAUDE_DO_CLIENTE.md` — ponta a ponta do health score
-- `docs/DASHBOARD_CHANGE_TEAM.md` — Painel Change Team (Phase 1 GSD)
-- `GLOSSARIO.md` — termos técnicos
+Dúvidas, sugestões ou pedidos de evolução: **Emerson Ramos**.
 
-**Código:** `Motor PRB-INC/` (15 módulos Python)
-
-**Testes:** `python -m pytest tests/` (116 testes, <1s)
+> *"O motor faz o trabalho braçal de comparar, agrupar e cruzar.
+> Vocês fazem o trabalho que importa: decidir o que resolver primeiro
+> e como."*
