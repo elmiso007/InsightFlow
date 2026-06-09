@@ -856,12 +856,15 @@ FROM lwsa.motor_execucao;
 
 ### 7.3 Tendência de criticidade (últimos 7 dias)
 
+> ⚠️ Postgres 9.2.19 (Locaweb) não suporta `COUNT(*) FILTER (WHERE ...)`
+> — sintaxe introduzida em 9.4. Usamos `SUM(CASE WHEN ... THEN 1 ELSE 0 END)`.
+
 ```sql
 SELECT
     DATE_TRUNC('day', e.timestamp_utc) AS dia,
-    COUNT(*) FILTER (WHERE p.urgencia = 'CRITICA') AS qtd_criticos,
-    COUNT(*) FILTER (WHERE p.urgencia = 'ALTA') AS qtd_altas,
-    COUNT(*) FILTER (WHERE p.urgencia = 'MEDIA') AS qtd_medias
+    SUM(CASE WHEN p.urgencia = 'CRITICA' THEN 1 ELSE 0 END) AS qtd_criticos,
+    SUM(CASE WHEN p.urgencia = 'ALTA'    THEN 1 ELSE 0 END) AS qtd_altas,
+    SUM(CASE WHEN p.urgencia = 'MEDIA'   THEN 1 ELSE 0 END) AS qtd_medias
 FROM lwsa.motor_execucao e
 JOIN lwsa.motor_prescricao p ON p.execucao_id = e.id
 WHERE e.timestamp_utc >= NOW() - INTERVAL '7 days'

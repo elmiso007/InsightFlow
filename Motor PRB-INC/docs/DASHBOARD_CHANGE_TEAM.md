@@ -80,6 +80,52 @@ Superset corporativo.
 
 ---
 
+## 2.5. Pré-requisitos do banco PROD (aprendidos no go-live 2026-06-09)
+
+Antes de o painel funcionar contra Postgres real, **3 setups são obrigatórios**.
+Sem eles o try/except do Defense in Depth não quebra V3.1, mas o snapshot fica
+vazio (0 rows) indefinidamente.
+
+**1. Versão do Postgres confirmada: 9.2.19** (Locaweb). Compatível com o DO
+block PL/pgSQL do seed (`IF NOT EXISTS (SELECT 1 ...)`). ⚠️ Em 9.2, `COUNT(*)
+FILTER (WHERE ...)` e `ON CONFLICT` NÃO existem — usar `SUM(CASE WHEN ... THEN
+1 ELSE 0 END)`.
+
+**2. Ownership das tabelas:** quem rodar `sql/motor_tables.sql` (geralmente
+via DBeaver com conta admin tipo `a_report`) precisa **transferir ownership
+das 2 tabelas para a conta do motor** (`automatizacoes` na Locaweb), porque
+`TRUNCATE ... RESTART IDENTITY` exige owner da sequência (não basta GRANT).
+
+```sql
+ALTER TABLE lwsa.motor_change_team        OWNER TO automatizacoes;
+ALTER TABLE lwsa.motor_change_team_painel OWNER TO automatizacoes;
+```
+
+A sequence ligada à tabela acompanha o owner automaticamente — não tente
+`ALTER SEQUENCE ... OWNER TO` direto (Postgres bloqueia com "cannot change
+owner of sequence linked to table"). Sintoma se faltar este passo:
+`ERROR: must be owner of relation motor_change_team_painel_id_seq`.
+
+**3. PRBs históricos no espelho SNow:** `lwsa.service_now_problems` na Locaweb
+só replica PRBs recentes. Se a master Change Team referencia PRBs antigos
+(numeração baixa), eles **não aparecem no espelho** → `gerar_painel_change_team`
+loga `WARNING: PRBs Change Team na master mas nao no SNow: [...]` e o painel
+fica subdimensionado. Rodar **backfill** via `projetos/problemas/backfill.py`
+antes do primeiro disparo do validador resolve.
+
+Para diagnosticar quantos da master estão no espelho:
+
+```sql
+SELECT COUNT(*) AS no_snow
+FROM lwsa.service_now_problems p
+JOIN lwsa.motor_change_team m ON m.numero = p.numero
+WHERE m.ativo = true;
+```
+
+Esperado: igual ao `count` da master. Se < master, falta backfill.
+
+---
+
 ## 3. Como Construir o Chart "PRB Change Team" no Superset
 
 > ⚠️ **Setup manual** — D-07 explicitamente coloca a construção do chart
@@ -147,14 +193,28 @@ ORDER BY data_resolucao DESC;
 
 ### Query C — Big Number "X de Y resolvidos"
 
+> ⚠️ Postgres da Locaweb é **9.2.19** — `COUNT(*) FILTER (WHERE ...)` foi
+> introduzido em 9.4 e **dá `ERROR: syntax error at or near "("`** aqui.
+> Usar `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` no lugar.
+
 ```sql
 SELECT
-    COUNT(*) FILTER (WHERE veredicto IS NOT NULL) AS resolvidos,
-    COUNT(*) FILTER (WHERE veredicto IS NULL) AS abertos,
+    SUM(CASE WHEN veredicto IS NOT NULL THEN 1 ELSE 0 END) AS resolvidos,
+    SUM(CASE WHEN veredicto IS NULL     THEN 1 ELSE 0 END) AS abertos,
+    SUM(CASE WHEN veredicto = 'REINCIDENCIA' THEN 1 ELSE 0 END) AS reincidencias,
     COUNT(*) AS total,
-    ROUND(100.0 * COUNT(*) FILTER (WHERE veredicto IS NOT NULL) / NULLIF(COUNT(*), 0), 1) AS pct_resolvido
+    ROUND(
+        100.0 * SUM(CASE WHEN veredicto IS NOT NULL THEN 1 ELSE 0 END)
+        / NULLIF(COUNT(*), 0),
+        1
+    ) AS pct_resolvido
 FROM lwsa.motor_change_team_painel;
 ```
+
+Acrescentei `reincidencias` no mesmo big number — é o sinal mais acionável
+operacionalmente (PRBs marcados como resolvidos mas com problema voltando).
+No go-live de 2026-06-09: 6/84 reincidências, sendo PRB0055284 já há 726
+dias pós-resolução.
 
 ### Query D — Health check (snapshot fresco?)
 
@@ -301,15 +361,31 @@ No chart, considere usar `COALESCE(dias_em_aberto, -1)` ou um filtro `IS NOT NUL
 
 ## 7. Ações Abertas (Phase 2+)
 
-Checklist de melhorias ainda pendentes:
+**Concluído no go-live (2026-06-09):**
 
-- [ ] **Confirmar com Emerson** a estrutura exata das colunas do chart "PRB em Vigilância" existente no Superset, e ajustar colunas D-06 do `motor_change_team_painel` se necessário (ação aberta do CONTEXT §Specifics).
-- [ ] **Validar versão exata do Postgres** da Locaweb (`SELECT version()`) para confirmar compatibilidade do seed PL/pgSQL com fallback `IF NOT EXISTS`.
+- [x] ✅ **Versão do Postgres validada:** 9.2.19 (compatível com seed PL/pgSQL).
+- [x] ✅ **Chart "PRB Change Team"** no ar no Superset corporativo (D-08).
+- [x] ✅ **Ownership das tabelas** transferido para a conta do motor (`automatizacoes`)
+  via `ALTER TABLE ... OWNER TO automatizacoes` — gotcha documentado em §2.5.
+- [x] ✅ **Backfill dos PRBs históricos** no espelho `lwsa.service_now_problems`
+  via `projetos/problemas/backfill.py` — passou de 10/84 para 84/84 encontrados.
+- [x] ✅ **Tempo de ciclo medido em PROD:** ~143s para validador c/ Change Team
+  (51 candidatos V3.1 + 84 Change Team). Acima do TODO original "5s" — vale
+  re-medir conforme volume crescer.
+
+**Pendente:**
+
+- [ ] **Comparar com chart "PRB em Vigilância"** existente no Superset e ajustar
+  colunas D-06 do `motor_change_team_painel` se necessário (ação aberta do CONTEXT §Specifics).
 - [ ] **Decidir se vale criar CLI** `gerenciar_change_team.py add/remove PRB0XXXX` (Open Question 4 do RESEARCH — alternativa ao SQL manual).
-- [ ] **Decidir se vale alertas Slack dedicados** Change Team quando algum PRB da lista tem reincidência (CONTEXT §Specifics — diferido).
+- [ ] **Habilitar Slack pra reincidências** Change Team — go-live detectou **6 reincidências**
+  (PRB0055284 com 726 dias pós-resolução, 136 INCs novas; outros 5 PRBs com 11-32
+  dias) que ficaram apenas no painel porque `[Slack desabilitado/sem token nem webhook]`.
+  Configurar `SLACK_BOT_TOKEN` ou `SLACK_WEBHOOK_URL` no `config.ini` da VM.
 - [ ] **Avaliar sync automático** com SNow via etiqueta/campo custom (CONTEXT §Deferred).
 - [ ] **Adicionar coluna `ultima_atualizacao` real** — hoje sempre `NULL` por limitação do SNow (não há campo direto). Phase 2 pode investigar via `atualizacoes JSON`.
-- [ ] **Monitorar `duracao_ciclo_ms`** do validador em produção — o bloco Change Team adiciona ~1 query SNow + executemany por ciclo. Acompanhar se passa de 5s.
+- [ ] **Continuar monitorando `duracao_ciclo_ms`** — validador c/ Change Team está em ~143s;
+  se passar de 5min, investigar (provavelmente otimizar `_avaliar_prb` para PRBs Change Team).
 
 ---
 
