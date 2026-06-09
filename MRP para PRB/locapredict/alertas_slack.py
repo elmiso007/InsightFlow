@@ -114,12 +114,31 @@ def _emoji_sugestao(texto: str) -> str:
         return "🔍"
     if t.startswith("Monitorar"):
         return "👀"
+    if t.startswith("Solicitar"):
+        return "🔧"
     return "▶️"
 
 
 def _emoji_urgencia(urgencia: str) -> str:
     """Emoji visual da urgência PRB para o cabeçalho de cada insight."""
     return {"CRITICA": "🆘", "ALTA": "🔺", "MEDIA": "🔶", "BAIXA": "🔹"}.get(urgencia, "⚪")
+
+
+def _extrair_numero_evidencia(evidencias: List[str], chave: str) -> int:
+    """
+    Extrai o primeiro inteiro de uma evidência que contém a `chave`.
+
+    Usado pelo formato narrativo (C) para agregar contagens (clientes,
+    categorias) que vêm como bullets textuais em PrescricaoPRB.evidencias —
+    ex.: "Clientes impactados: 7" → 7. Retorna 0 quando a chave não aparece.
+    """
+    chave_lower = chave.lower()
+    for ev in evidencias:
+        if chave_lower in ev.lower():
+            for token in ev.replace(":", " ").split():
+                if token.isdigit():
+                    return int(token)
+    return 0
 
 
 def _extrair_prescricao(row: Sequence[Any]):
@@ -153,7 +172,7 @@ def _formatar_bloco_prescritivo(row: Sequence[Any]) -> str:
     grupo de destino, descrição rica e bullets de evidência.
     Caminho legado: formato anterior baseado só nas faixas de severidade/ineficiência.
     """
-    nome_ctx, qtd, produto, score_sev, score_inef, sugestao, numeros, _servidores = row[:8]
+    nome_ctx, qtd, produto, score_sev, score_inef, sugestao, numeros, servidores = row[:8]
     prescricao = _extrair_prescricao(row)
 
     faixa_s = _faixa_severidade(float(score_sev))
@@ -175,30 +194,38 @@ def _formatar_bloco_prescritivo(row: Sequence[Any]) -> str:
             f"  🎫 INC: `{texto_nums}`"
         )
 
-    # ----- Formato rico (com PrescricaoPRB) -----
+    # ----- Formato rico (com PrescricaoPRB) — estilo narrativo (formato C):
+    # cabeçalho compacto com prioridade + OLA, ação em destaque, descrição em
+    # quote markdown e métricas/impacto/INCs no rodapé. Lê como mini-relatório.
     urgencia = str(getattr(prescricao, "urgencia", "BAIXA"))
     emoji_u = _emoji_urgencia(urgencia)
-    abrir_prb = bool(getattr(prescricao, "deve_abrir_prb", False))
-    flag_prb = "✅ SIM" if abrir_prb else "❌ não"
     grupo = str(getattr(prescricao, "grupo_destino", "Nao informado")) or "Nao informado"
     composto = float(getattr(prescricao, "score_composto", 0.0))
+    prioridade = str(getattr(prescricao, "prioridade", "P4"))
+    ola_horas = int(getattr(prescricao, "ola_target_horas", 24))
     descricao_rica = str(getattr(prescricao, "descricao_rica", "")).strip()
+    upgrade = getattr(prescricao, "upgrade_aplicado", None)
     evidencias = list(getattr(prescricao, "evidencias", []) or [])
 
-    linhas_evidencia = "\n".join(f"  • {ev}" for ev in evidencias) if evidencias else ""
+    n_servidores = sum(1 for s in (servidores or []) if s)
+    n_clientes = _extrair_numero_evidencia(evidencias, "clientes")
+    n_categorias = _extrair_numero_evidencia(evidencias, "categorias distintas")
 
     bloco = (
-        f"• {emoji_u} *{produto}* — {_emoji_sev(faixa_s)} *SEV:{faixa_s}* · "
-        f"{_emoji_ops(faixa_o)} *OPS:{faixa_o}* · {emoji_u} *PRB:{urgencia}* — *{qtd}* inc.\n"
-        f"  {_emoji_sugestao(str(sugestao))} {sugestao} → grupo *{grupo}*\n"
-        f"  Abrir PRB? {flag_prb} · sev *{float(score_sev):.2f}* · "
-        f"inef *{float(score_inef):.2f}* · composto *{composto:.2f}*"
+        f"{emoji_u} *{prioridade}* (OLA {ola_horas}h) — *{produto}* · *{qtd}* INCs\n\n"
+        f"{_emoji_sugestao(str(sugestao))} *{sugestao}* → grupo *{grupo}*"
     )
+    if upgrade:
+        bloco += f"\n⚠ UPGRADE {upgrade}"
     if descricao_rica:
-        bloco += f"\n  _{descricao_rica}_"
-    if linhas_evidencia:
-        bloco += f"\n{linhas_evidencia}"
-    bloco += f"\n  📍 _{nome_ctx}_\n  🎫 INC: `{texto_nums}`"
+        bloco += f"\n\n> _{descricao_rica}_"
+    bloco += (
+        f"\n\nMétricas: sev *{float(score_sev):.2f}* · inef *{float(score_inef):.2f}* · "
+        f"composto *{composto:.2f}*\n"
+        f"Impacto: {n_servidores} servidores, {n_categorias} categorias, {n_clientes} clientes\n"
+        f"📍 _{nome_ctx}_\n"
+        f"🎫 INC: `{texto_nums}`"
+    )
     return bloco
 
 

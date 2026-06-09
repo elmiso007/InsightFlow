@@ -215,6 +215,10 @@ SELECT
     -- INC mais recente do par (login_normalizado, produto) — pareada com `ultimo_contato`.
     -- array_agg com ORDER BY funciona desde PG 9.0; em PG 10+ daria para usar (regexp_match...).
     (array_agg(numero ORDER BY data_abertura DESC))[1] AS ultima_inc,
+    -- Jornada de contato ("capivara do cliente"): até 100 INCs mais recentes do par,
+    -- do mais novo para o mais antigo. Persistido em inc_timeline TEXT[] para análise
+    -- temporal no Power BI / Superset sem precisar re-consultar o ServiceNow.
+    (array_agg(numero ORDER BY data_abertura DESC))[1:100] AS inc_timeline,
     ROUND(AVG(esforco_inc), 2) AS media_esforco_cliente
 FROM linhas_origem
 WHERE login_normalizado IS NOT NULL AND TRIM(login_normalizado) <> ''
@@ -273,8 +277,8 @@ def gravar_snapshots_historico_guardiao(conexao_banco, registros: list) -> None:
     sql = """
     INSERT INTO lwsa.guardiao_saude_cliente_snapshots
         (login_cliente, produto, total_inc_janela, diversidade_problemas,
-         ultimo_contato, ultima_inc, media_esforco_cliente)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
+         ultimo_contato, ultima_inc, media_esforco_cliente, inc_timeline)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
     valores = [
         (
@@ -285,6 +289,9 @@ def gravar_snapshots_historico_guardiao(conexao_banco, registros: list) -> None:
             r["ultimo_contato"],
             r.get("ultima_inc"),
             r["media_esforco_cliente"],
+            # psycopg2 mapeia list[str] -> TEXT[]; lista vazia se a coluna ainda não
+            # foi criada no banco, o tratamento de pgcode 42703 abaixo emite warning.
+            list(r.get("inc_timeline") or []),
         )
         for r in registros
     ]

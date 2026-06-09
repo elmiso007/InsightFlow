@@ -71,17 +71,40 @@ CREATE TABLE IF NOT EXISTS lwsa.locapredict_insights (
     servidores_afetados TEXT[] NOT NULL DEFAULT '{}' -- servidores distintos cobertos pelos incidentes do cluster
 );
 
--- Migração segura para ambientes onde a tabela já existe com menos colunas
-ALTER TABLE lwsa.locapredict_insights
-    ADD COLUMN IF NOT EXISTS data_geracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS cluster_nome TEXT,
-    ADD COLUMN IF NOT EXISTS quantidade_inc_afetados INT,
-    ADD COLUMN IF NOT EXISTS produto_afetado VARCHAR(100),
-    ADD COLUMN IF NOT EXISTS score_severidade FLOAT,
-    ADD COLUMN IF NOT EXISTS ineficiencia_score FLOAT DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS sugestao_acao TEXT,
-    ADD COLUMN IF NOT EXISTS incidentes_relacionados TEXT[],
-    ADD COLUMN IF NOT EXISTS servidores_afetados TEXT[];
+-- Migração segura para ambientes onde a tabela já existe com menos colunas.
+-- Nota: PostgreSQL 9.2 não suporta `ADD COLUMN IF NOT EXISTS`; o bloco DO $$ abaixo
+-- checa cada coluna via information_schema e só dispara o ALTER quando ausente.
+-- Idempotente: pode ser executado várias vezes sem erro.
+DO $$
+DECLARE
+    coluna RECORD;
+BEGIN
+    FOR coluna IN
+        SELECT * FROM (VALUES
+            ('data_geracao',            'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'),
+            ('cluster_nome',            'TEXT'),
+            ('quantidade_inc_afetados', 'INT'),
+            ('produto_afetado',         'VARCHAR(100)'),
+            ('score_severidade',        'FLOAT'),
+            ('ineficiencia_score',      'FLOAT DEFAULT 0'),
+            ('sugestao_acao',           'TEXT'),
+            ('incidentes_relacionados', 'TEXT[]'),
+            ('servidores_afetados',     'TEXT[]')
+        ) AS t(nome, tipo)
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'lwsa'
+              AND table_name   = 'locapredict_insights'
+              AND column_name  = coluna.nome
+        ) THEN
+            EXECUTE format(
+                'ALTER TABLE lwsa.locapredict_insights ADD COLUMN %I %s',
+                coluna.nome, coluna.tipo
+            );
+        END IF;
+    END LOOP;
+END $$;
 
 -- Índice GIN opcional para mapeamento por servidor (consultas com ANY/@>):
 -- CREATE INDEX IF NOT EXISTS idx_locapredict_insights_servidores
@@ -104,9 +127,33 @@ CREATE TABLE IF NOT EXISTS lwsa.guardiao_saude_cliente_snapshots (
     media_esforco_cliente NUMERIC(12, 2)
 );
 
--- Migração segura para ambientes onde a tabela já existe sem ultima_inc:
-ALTER TABLE lwsa.guardiao_saude_cliente_snapshots
-    ADD COLUMN IF NOT EXISTS ultima_inc TEXT;
+-- Migração segura — adiciona colunas se ausentes (compatível com PG 9.2+, idempotente):
+--   ultima_inc:   INC mais recente do par (login_cliente, produto).
+--   inc_timeline: jornada de contato — até 100 INCs mais recentes, do mais novo
+--                 para o mais antigo. Alimenta análise temporal nos dashboards.
+DO $$
+DECLARE
+    coluna RECORD;
+BEGIN
+    FOR coluna IN
+        SELECT * FROM (VALUES
+            ('ultima_inc',   'TEXT'),
+            ('inc_timeline', 'TEXT[]')
+        ) AS t(nome, tipo)
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'lwsa'
+              AND table_name   = 'guardiao_saude_cliente_snapshots'
+              AND column_name  = coluna.nome
+        ) THEN
+            EXECUTE format(
+                'ALTER TABLE lwsa.guardiao_saude_cliente_snapshots ADD COLUMN %I %s',
+                coluna.nome, coluna.tipo
+            );
+        END IF;
+    END LOOP;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_ch_guardian_data ON lwsa.guardiao_saude_cliente_snapshots (data_geracao DESC);
 CREATE INDEX IF NOT EXISTS idx_ch_guardian_login ON lwsa.guardiao_saude_cliente_snapshots (login_cliente);

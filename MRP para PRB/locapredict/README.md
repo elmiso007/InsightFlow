@@ -18,11 +18,11 @@ Motor de análise de incidentes do ServiceNow com NLP + clusterização para ide
 - Remove stop-words em português antes da vetorização para reduzir ruído.
 - Agrupa chamados com HDBSCAN (`min_cluster_size=3`).
 - Calcula dois indicadores (0 a 1):
-  - `score_severidade` — impacto técnico-operacional do cluster.
+  - `score_severidade` — impacto técnico-operacional do cluster (com bônus de **+0.15 quando há recorrência de servidor** intra-cluster).
   - `ineficiencia_score` — sinal de patinação (muitas interações + lentidão).
-- Aplica **motor prescritivo** (`prescrever_acao_prb()`) que combina os dois scores em **5 regras em cascata** e devolve uma `PrescricaoPRB` rica: urgência (CRITICA/ALTA/MEDIA/BAIXA), decisão `deve_abrir_prb`, grupo de destino, evidências, descrição em linguagem natural e `score_composto` (média 50/50 + bônus de volume).
-- Persiste insights em `lwsa.locapredict_insights` (schema não muda — apenas o texto de `sugestao_acao` reflete a nova ação prescritiva).
-- Envia alerta opcional no Slack quando `score_severidade` atinge o limiar `notify_min_score` em `[slack]` (padrão `0.7`; `pontuacao_minima_severidade` também é aceita). O alerta agora exibe **urgência PRB**, **flag "Abrir PRB? ✅ SIM / ❌ não"**, grupo destino, bullets de evidência e descrição rica; insights são ordenados por `score_composto` e o cabeçalho conta `📌 N PRB(s) recomendado(s)`.
+- Aplica **motor prescritivo** (`prescrever_acao_prb()`) com a **matriz oficial P1-P4 da Locaweb Varejo** — decide a prioridade combinando 4 sinais heurísticos do cluster (Reclame Aqui, sem solução de contorno, indisponibilidade, monitoração automática), o OLA estourado e a **volumetria histórica do produto nos últimos 30 dias** (consulta auxiliar). Devolve `PrescricaoPRB` rica: prioridade (P1..P5), OLA target em horas, decisão `deve_abrir_prb`, grupo destino, evidências, descrição, `score_composto` e flag `upgrade_aplicado` (sinaliza elevações P3 → P2 por volumetria).
+- Persiste insights em `lwsa.locapredict_insights` (schema do banco não muda — apenas o texto de `sugestao_acao` reflete a nova ação prescritiva).
+- Envia alerta opcional no Slack quando `score_severidade` atinge o limiar `notify_min_score` em `[slack]` (padrão `0.7`; `pontuacao_minima_severidade` também é aceita). O alerta exibe **prioridade + OLA target** (`P2 ⏱ OLA ≤ 4h`), urgência, decisão `Abrir PRB? ✅ SIM / ❌ não`, grupo destino, dois bullets-chave (Volume + Servidores) e linha `⚠ UPGRADE` quando houver elevação. Insights ordenados por `score_composto`; cabeçalho conta `📌 N PRB(s) recomendado(s)`.
 - **Guardião da Saúde do Cliente** (`guardiao_saude_cliente.py`): recorrência por `login_cliente` + `produto` em janela de meses, restrita aos clientes com INC nas últimas 24h; configuração em `[customer_health_guardian]` (chaves em português).
 
 ## Arquitetura — fluxo de alto nível
@@ -31,40 +31,44 @@ Motor de análise de incidentes do ServiceNow com NLP + clusterização para ide
 flowchart TD
     SN[(ServiceNow<br/>service_now_incidentes)]
 
-    subgraph LP[LocaPredict — pipeline NLP]
+    subgraph LP[LocaPredict — pipeline NLP + matriz P1-P4]
         direction TB
         A[Embeddings multilíngue PT-BR<br/>+ remoção de stop-words] --> B[HDBSCAN<br/>min_cluster_size=3]
-        B --> C[Scores<br/>severidade + ineficiência]
-        C --> D{prescrever_acao_prb<br/>5 regras em cascata}
+        B --> C[Scores<br/>severidade + ineficiência<br/>+ bônus servidor recorrente]
+        H[Detectores heurísticos<br/>Reclame Aqui / Sem Contorno /<br/>Indisponibilidade / Monitoração] --> D
+        VOL[Consulta histórica<br/>contagem com/sem contorno<br/>últimos 30d por produto] --> D
+        C --> D{prescrever_acao_prb<br/>matriz P1-P4 + upgrade}
     end
 
     subgraph GD[Guardião da Saúde do Cliente]
         direction TB
-        E[Normalização SQL<br/>de login_cliente] --> F[Agregação por<br/>login + produto<br/>HAVING dupla janela]
+        E[Normalização SQL<br/>de login_cliente] --> F[Agregação por<br/>login + produto +<br/>inc_timeline 100 INCs]
     end
 
     SN --> A
+    SN --> H
+    SN --> VOL
     SN --> E
 
-    D -->|CRITICA / ALTA| OUT1[✅ Abrir PRB]
-    D -->|MEDIA| OUT2[🔍 Investigar / 🔄 Revisar fluxo]
-    D -->|BAIXA| OUT3[👀 Monitorar]
+    D -->|P1 / P2| OUT1[✅ Abrir PRB]
+    D -->|P3| OUT2[🔍 Investigar candidato]
+    D -->|P4 / P5| OUT3[👀 Monitorar / 🔧 Análise de servidor]
 
     OUT1 --> DB1[(locapredict_insights)]
     OUT2 --> DB1
     OUT3 --> DB1
 
-    OUT1 --> SL1[📊 Slack rico — 📌 N PRB]
+    OUT1 --> SL1[📊 Slack — P-level + OLA<br/>+ ⚠ UPGRADE quando aplicável]
     OUT2 --> SL1
     OUT3 --> SL1
 
-    F --> DB2[(guardiao_saude_cliente_snapshots)]
+    F --> DB2[(guardiao_saude_cliente_snapshots<br/>com inc_timeline TEXT[])]
     F --> SL2[🛡️ Slack Guardião]
 
     classDef pipeline fill:#e1f5ff,stroke:#0366d6,color:#000
     classDef storage fill:#fff4d6,stroke:#b08800,color:#000
     classDef output fill:#d4f3d4,stroke:#22863a,color:#000
-    class A,B,C,D,E,F pipeline
+    class A,B,C,D,E,F,H,VOL pipeline
     class DB1,DB2,SN storage
     class OUT1,OUT2,OUT3,SL1,SL2 output
 ```
@@ -222,12 +226,14 @@ Na subida dos dados, o console imprime qual regra de **tempo** e qual coluna de 
 10. Descarta outliers (`label = -1`).
 11. Para cada cluster:
     - calcula `mean_sim` (coerência semântica),
-    - calcula `score_severidade`,
+    - calcula `score_severidade` (com **bônus +0.15 se algum servidor aparece em ≥ 2 INCs** do cluster — sinal de recorrência intra-cluster do Service Operation),
     - calcula `ineficiencia_score`,
     - gera `cluster_nome` (rótulo descritivo a partir das palavras-chave),
-    - **avalia `prescrever_acao_prb()`** (5 regras em cascata) e produz a `PrescricaoPRB` com urgência, decisão de PRB, grupo destino, evidências, descrição rica e `score_composto`.
+    - **consulta a volumetria histórica do produto** (`contar_incidentes_historicos_por_produto`) — INCs com/sem solução de contorno nos últimos 30 dias. Cacheada por produto na execução.
+    - **avalia `prescrever_acao_prb()`** com a **matriz P1-P4 da Locaweb Varejo** (ver seção dedicada). Produz `PrescricaoPRB` com prioridade, OLA target, decisão de PRB, grupo destino, evidências, `score_composto` e `upgrade_aplicado` (quando P3 → P2 por volumetria).
+    - **Sobrescrita por servidor concentrador**: se um único servidor concentra > 3 INCs do cluster, a `prescricao.acao` é trocada por `"Solicitar análise de desempenho/PRB para o servidor específico: <nome>"` (os outros campos da prescrição ficam intactos).
 12. Persiste em `lwsa.locapredict_insights` (o `PrescricaoPRB` viaja apenas em memória até o Slack — o INSERT usa `[row[:8]]` e mantém o schema do banco intacto).
-13. Envia resumo ao Slack (opcional), apenas insights com `score_severidade >= notify_min_score` configurada em `[slack]`. Insights elegíveis são **ordenados por `score_composto`** e o cabeçalho mostra `📌 N PRB(s) recomendado(s)`.
+13. Envia resumo ao Slack (opcional), apenas insights com `score_severidade >= notify_min_score` configurada em `[slack]`. Insights elegíveis são **ordenados por `score_composto`** e o cabeçalho mostra `📌 N PRB(s) recomendado(s)`. Cada insight exibe `P-level + OLA target` no cabeçalho e linha `⚠ UPGRADE` quando aplicável.
 
 ## Fórmulas de score
 
@@ -268,35 +274,79 @@ Usada na mensagem do Slack (e alinhada às faixas abaixo):
 | OPS:ATENCAO | 0,30 – 0,59 |
 | OPS:SAUDAVEL | abaixo de 0,30 |
 
-## Motor prescritivo (`prescrever_acao_prb`)
+## Motor prescritivo (`prescrever_acao_prb`) — matriz P1-P4 Locaweb Varejo
 
-Substitui a função antiga `suggest_action` (3 regras hardcoded). Reside em `prescricao_prb.py` e devolve uma `PrescricaoPRB` (dataclass) com 7 campos:
+Reside em `prescricao_prb.py`. Substitui a lógica anterior (que mapeava urgência → P-level via scores semânticos) pela matriz oficial da ata Locaweb Varejo, combinando heurísticas de texto, volumetria histórica e OLA.
+
+### Dataclass `PrescricaoPRB`
+
+10 campos viajam na tupla de insight até o Slack:
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `acao` | `str` | Texto curto (gravado em `sugestao_acao` no banco) |
-| `urgencia` | `str` | `CRITICA` / `ALTA` / `MEDIA` / `BAIXA` |
+| `urgencia` | `str` | `CRITICA` / `ALTA` / `MEDIA` / `BAIXA` (rotulação textual) |
 | `deve_abrir_prb` | `bool` | Decisão direta para o time de Problem Management |
 | `grupo_destino` | `str` | Grupo do ServiceNow mais frequente no cluster |
-| `evidencias` | `List[str]` | Bullets explicativos (até 7 sinais cruzados) |
-| `descricao_rica` | `str` | Parágrafo em linguagem natural para o Slack |
+| `evidencias` | `List[str]` | Bullets explicativos (sinais ativados) |
+| `descricao_rica` | `str` | Parágrafo em linguagem natural |
 | `score_composto` | `float` | 0–1, usado para ordenar clusters no alerta |
+| **`prioridade`** | `str` | **P1 / P2 / P3 / P4 / P5** — atribuído diretamente pela matriz |
+| **`ola_target_horas`** | `int` | Tempo de resolução máximo (horas) por diretriz oficial |
+| **`upgrade_aplicado`** | `Optional[str]` | `"P3->P2 por <razão>"` quando a regra de volumetria elevou P3 → P2; `None` caso contrário |
 
-### 5 regras em cascata
+### OLA targets por prioridade
 
-A primeira regra que casa decide (ordem da mais crítica para a menos):
+| Prioridade | OLA máximo |
+|---|---|
+| P1 | 4 horas |
+| P2 | 4 horas |
+| P3 | 12 horas |
+| P4 | 24 horas |
+| P5 | 96 horas |
 
-| # | Critério | Urgência | Abre PRB? | Ação |
-|---|----------|----------|-----------|------|
-| 1 | `inef ≥ 0.60` **e** `sev ≥ 0.50` | **CRITICA** | ✅ SIM | `Abrir PRB CRÍTICO para <produto>` |
-| 2 | `sev ≥ 0.75` (isolado) | **ALTA** | ✅ SIM | `Abrir PRB para <produto>` |
-| 3 | `sev ≥ 0.50` **e** `inef ≥ 0.30` | **MEDIA** | ❌ não | `Investigar candidato a PRB em <produto>` |
-| 4 | `inef ≥ 0.60` (isolado) | **MEDIA** | ❌ não | `Revisar fluxo de atendimento em <produto>` |
-| 5 | nenhuma | **BAIXA** | ❌ não | `Monitorar <produto>` |
+Constantes em `OLA_TARGETS_HORAS` (dict no topo de `prescricao_prb.py`). A urgência rotular continua existindo (CRITICA/ALTA/MEDIA/BAIXA) e mapeia 1-1 com P1/P2/P3/P4 — P5 fica reservado para a próxima fase (monitoração automática expandida).
 
-### Score composto
+### Matriz P1-P4 (a primeira regra que casa decide)
 
-Combina os dois scores com bônus de volume — clusters grandes sobem na ordenação mesmo com scores individuais parecidos:
+| Prioridade | Critério (qualquer um basta dentro do "OU") | Abre PRB? | Texto da ação |
+|---|---|---|---|
+| **P1 — CRITICA** | "Reclame Aqui" presente **E** "sem solução de contorno" presente **E** OLA P1 (4h) estourado por algum INC | ✅ SIM | `Abrir PRB P1 (Reclame Aqui sem contorno + OLA estourado) — <produto>` |
+| **P2 — ALTA** | Indisponibilidade detectada **OU** `n_sem_contorno_no_cluster ≥ 5` **OU** `total_historico_com_contorno_30d ≥ 1000` | ✅ SIM | `Abrir PRB P2 (<razões>) — <produto>` |
+| **P3 — MEDIA** | `severidade ≥ 0.5` **OU** `1 ≤ n_sem_contorno_no_cluster < 5` **OU** `100 ≤ total_historico_com_contorno_30d < 1000` | ❌ não | `Investigar candidato a PRB P3 em <produto>` |
+| **P4 — BAIXA** | Monitoração automática (todos os INCs com `grupo_designado` contendo `"monit"` OU `login_cliente` contendo `"monit"/"automat"/"alert"`) **OU** caso isolado sem demais sinais | ❌ não | `Monitorar <produto>` (com nota "origem: monitoração automática" quando aplicável) |
+
+### UPGRADE de prioridade (P3 → P2)
+
+Quando uma regra de volumetria (≥ 5 sem contorno no cluster ou ≥ 1000 com contorno no histórico) eleva um cluster que sem essas condições cairia em P3, o campo `upgrade_aplicado` é preenchido com o motivo. No Slack vira a linha `⚠ *UPGRADE*: P3->P2 por <razão>`. Indisponibilidade não dispara upgrade (P2 nativo).
+
+### Limiares calibrados (constantes no topo de `prescricao_prb.py`)
+
+```python
+LIMIAR_P2_HISTORICO_COM_CONTORNO     = 1000  # >= este número em 30d → P2
+LIMIAR_P3_HISTORICO_COM_CONTORNO_MIN = 100   # faixa P3 começa aqui
+LIMIAR_P3_HISTORICO_COM_CONTORNO_MAX = 1000  # exclusivo (igual ao P2)
+LIMIAR_P2_SEM_CONTORNO_NO_CLUSTER    = 5     # >= INCs sem contorno no cluster → P2
+LIMIAR_P3_SEVERIDADE_PERCEPTIVEL     = 0.5   # severidade >= → "falha perceptível"
+```
+
+A calibração inicial da ata (`>= 100 com contorno em 30d`) revelou-se permissiva — 5000+ INCs/mês em alguns produtos da Locaweb fazem o threshold ser estourado trivialmente. Valores atuais são calibração empírica após primeira execução.
+
+### Detectores heurísticos (substring case-insensitive em `desc_clean` + `descricao_curta`)
+
+| Sinal | Termos buscados |
+|---|---|
+| **Reclame Aqui** | `"reclame aqui"`, `"reclameaqui"`, `"reclame-aqui"` |
+| **Sem Contorno** | `"sem contorno"`, `"sem solucao"`, `"sem solução"`, `"nenhum contorno"`, `"no workaround"` |
+| **Indisponibilidade** | `"indisponivel"`, `"indisponível"`, `"fora do ar"`, `"ambiente fora"`, `"tudo fora"`, `"todos fora"` |
+| **Monitoração Automática** | `grupo_designado` contém `"monit"` **OU** `login_cliente` contém `"monit"`/`"automat"`/`"alert"` |
+| **OLA estourado** | `tempo_medio_resolucao` (em horas) > OLA target da prioridade base avaliada |
+
+Ajustes nos termos: editar as constantes `_TERMOS_*` no topo de `prescricao_prb.py`. Os mesmos termos de "sem contorno" são espelhados em `_TERMOS_SQL_SEM_CONTORNO` em `main.py` (consulta histórica) — alterações precisam ser feitas nos dois lugares.
+
+### Score composto (mantido como contexto)
+
+Os scores `severidade`/`ineficiencia`/`composto` continuam sendo calculados — não decidem mais a prioridade (a matriz P1-P4 decide), mas são exibidos no Slack como diagnóstico:
 
 ```
 score_composto = min(1, 0.5*score_severidade + 0.5*ineficiencia_score + bonus_volume)
@@ -307,19 +357,42 @@ bonus_volume   = +0.10 se n_incidentes >= 10
 
 ### Evidências automáticas
 
-`_coletar_evidencias()` cruza até **7 sinais** (cada um vira um bullet só se for relevante):
+`_coletar_evidencias()` adiciona bullets quando o sinal está ativo:
 
-1. Volume do cluster (sempre).
-2. Faixa de severidade + score (sempre).
-3. Faixa de ineficiência + score (sempre).
-4. Servidores afetados (se houver, mostra até 3 + indicador `(+N)`).
-5. INCs com prioridade crítica/alta (heurística por substring).
-6. Categorias distintas (só se > 1 — indica amplitude do problema).
-7. Clientes distintos impactados (`login_cliente`).
+- Volume do cluster (sempre).
+- Faixa de severidade + score (sempre).
+- Faixa de ineficiência + score (sempre).
+- Servidores afetados (se houver, mostra até 3 + `(+N)`).
+- INCs com prioridade crítica/alta (heurística por substring).
+- Categorias distintas (só se > 1).
+- Clientes distintos impactados (`login_cliente`).
+- **Reclame Aqui mencionado** (F3).
+- **N INC(s) sem contorno no cluster** (F3, quando > 0).
+- **Indisponibilidade detectada** (F3).
+- **Origem: monitoração automática** (F3).
+- **Histórico de 30d em `<produto>`: X com contorno · Y sem contorno** (F3, quando há dado).
 
 ### Texto que vai para o banco
 
-O campo `sugestao_acao` continua sendo a string curta da `PrescricaoPRB.acao`. **O schema do banco não muda** — apenas o conteúdo do campo passa a refletir a prescrição rica. O objeto `PrescricaoPRB` completo viaja apenas até o Slack.
+O campo `sugestao_acao` continua sendo a string curta da `PrescricaoPRB.acao`. **O schema do banco não muda** — só o conteúdo do campo reflete a nova prescrição. O objeto `PrescricaoPRB` completo viaja apenas até o Slack (banco persiste 8 colunas, Slack usa as 10 da dataclass).
+
+## Recorrência por servidor (sinal do Service Operation)
+
+Pedido do time de Service Operation para cruzar a análise de cluster com Item de Configuração / servidores específicos. Implementado em `main.py` (`_calcular_recorrencia_servidor`).
+
+| Gatilho | Efeito |
+|---|---|
+| **Servidor presente em ≥ 2 INCs do cluster** | Aplica bônus **+0.15 em `score_severidade`** (limitado pelo `min(1.0, ...)`) |
+| **Servidor presente em > 3 INCs do cluster** | Sobrescreve `prescricao.acao` para `"Solicitar análise de desempenho/PRB para o servidor específico: <nome>"` e troca o emoji para 🔧 |
+
+A sobrescrita atua **apenas no campo `acao`** — os demais campos da `PrescricaoPRB` (prioridade P-level, OLA target, decisão de PRB, evidências, descrição rica) ficam intactos. Resultado: o Slack mostra simultaneamente o contexto PRB (matriz P1-P4) e o direcionamento operacional ao servidor. O cluster log registra a sobrescrita para auditoria.
+
+Thresholds em constantes nomeadas no topo do `main.py`:
+```python
+_BONUS_SCORE_SERVIDOR_RECORRENTE = 0.15
+_MIN_INCS_PARA_BONUS_SERVIDOR    = 2
+_MIN_INCS_PARA_ACAO_SERVIDOR     = 3
+```
 
 ## Slack: formato e limitações
 
@@ -336,31 +409,46 @@ O Block Kit não aplica cores no texto; os emojis dão pista visual rápida. Map
 | **Urgência PRB**: CRITICA / ALTA / MEDIA / BAIXA | 🆘 / 🔺 / 🔶 / 🔹 |
 | Severidade ALTA / MÉDIA / BAIXA | 🔴 / 🟡 / 🟢 |
 | Operação CRÍTICO / ATENÇÃO / SAUDÁVEL | 🚨 / ⚠️ / ✅ |
-| Ação: Abrir PRB / Investigar / Revisar fluxo / Monitorar | 📌 / 🔍 / 🔄 / 👀 |
+| Ação: Abrir PRB / Investigar / Revisar fluxo / Monitorar / **Solicitar análise de servidor** | 📌 / 🔍 / 🔄 / 👀 / **🔧** |
 | Decisão "Abrir PRB?" SIM / não | ✅ / ❌ |
+| **UPGRADE de prioridade (P3 → P2)** | **⚠** |
+| **OLA target (Tempo de Resolução Máximo)** | **⏱** |
 | Cluster (contexto) | 📍 |
 | Lista de INCs | 🎫 |
 | Título do alerta + contagem | 📊 / 📌 |
 | Intro "Insights com score…" | 📋 |
 
-**Exemplo de mensagem completa renderizada no Slack** (dados ofuscados):
+### Formato do bloco (corte cirúrgico — F2)
+
+Para manter alertas "cirúrgicos" (coordenação consome análise densa via dashboards), o bloco rico foi enxugado:
+
+- **Remove** o parágrafo `descricao_rica` do bloco visual.
+- **Mantém** apenas dois bullets de evidência: Volume e Servidores afetados. Os demais sinais (severidade/ineficiência/categorias/clientes/Reclame Aqui/etc.) continuam no campo `evidencias` da `PrescricaoPRB`, disponíveis para outros consumidores (banco, dashboard).
+- **Adiciona** prioridade + OLA target no cabeçalho (`*P2* ⏱ OLA ≤ 4h`).
+- **Adiciona** linha `⚠ *UPGRADE*: ...` quando `upgrade_aplicado` está preenchido.
+
+**Exemplo de mensagem completa renderizada no Slack** (dados ofuscados, formato F2/F3 atual):
 
 > 📊 **LocaPredict — alerta PRB · 📌 1 PRB(s) recomendado(s)**
 >
 > 📋 Insights com score >= **0.70**:
 >
-> • 🔺 **Produto-Exemplo** — 🔴 **SEV:ALTA** · ✅ **OPS:SAUDAVEL** · 🔺 **PRB:ALTA** — **16** inc.
-> &nbsp;&nbsp;📌 Abrir PRB para Produto-Exemplo → grupo **Grupo Nivel 1**
+> • 🔺 **Produto-Exemplo** — **P2** ⏱ OLA ≤ 4h · 🔴 **SEV:ALTA** · ✅ **OPS:SAUDAVEL** · 🔺 **PRB:ALTA** — **16** inc.
+> &nbsp;&nbsp;📌 Abrir PRB P2 (>=1234 com contorno em 30d) — Produto-Exemplo → grupo **Grupo Nivel 1**
 > &nbsp;&nbsp;Abrir PRB? **✅ SIM** · sev **0.89** · inef **0.03** · composto **0.56**
-> &nbsp;&nbsp;*Cluster concentrado em Produto-Exemplo com 16 INC(s) semanticamente próximos (severidade 0.89). Coesão alta + volume indicam reincidência, mesmo sem ineficiência marcante.*
+> &nbsp;&nbsp;⚠ **UPGRADE**: P3->P2 por 1234 INCs com contorno em 30d
 > &nbsp;&nbsp;• Volume: 16 incidente(s) no cluster
-> &nbsp;&nbsp;• Severidade ALTA (score 0.89)
-> &nbsp;&nbsp;• Ineficiência SAUDAVEL (score 0.03)
 > &nbsp;&nbsp;• Servidores afetados: 1 — *srv-ofuscado*
 > &nbsp;&nbsp;📍 *Incidentes em Produto-Exemplo: problem nfs client*
 > &nbsp;&nbsp;🎫 INC: `INC*****73, INC*****72, INC*****71, … (+13)`
 
-> Substitua este bloco por um screenshot real assim que possível — adicione em `docs/imagens/slack-alerta.png` e referencie com `![Alerta Slack](docs/imagens/slack-alerta.png)`.
+E quando F1 dispara (servidor concentrando > 3 INCs do cluster), a `prescricao.acao` muda para a sugestão dedicada e o emoji vira 🔧:
+
+> &nbsp;&nbsp;🔧 Solicitar análise de desempenho/PRB para o servidor específico: *srv-ofuscado* → grupo **Grupo Nivel 1**
+
+**Screenshot real do alerta no Slack:**
+
+<img width="1194" height="326" alt="Alerta PRB renderizado no Slack" src="https://github.com/user-attachments/assets/cbd64a52-2c8e-4128-bdbe-54c5bd88eea6" />
 
 ### Retrocompatibilidade do alerta
 
@@ -393,9 +481,18 @@ Script independente do motor NLP — foco em **volume histórico** por cliente (
   - somente dígitos → mantém o código;
   - outras URLs `http(s)://` → tenta o último `=` com número no fim da string;
   - demais textos → minúsculas e apenas letras/números (ex.: `mzviagens`).
-- Consulta agrega direto com `GROUP BY login_normalizado, produto` + `HAVING COUNT(*) >= minimo_incidentes` na janela temporal, e calcula `diversidade_problemas` (categorias distintas), `ultimo_contato`, `ultima_inc` e `media_esforco_cliente` (média de atualizações por INC).
+- Consulta agrega direto com `GROUP BY login_normalizado, produto` + `HAVING COUNT(*) >= minimo_incidentes` na janela temporal, e calcula `diversidade_problemas` (categorias distintas), `ultimo_contato`, `ultima_inc`, `media_esforco_cliente` (média de atualizações por INC) e **`inc_timeline`** (array com até 100 INCs mais recentes do par, do mais novo para o mais antigo).
 - **Filtro de atividade recente (configurável, default 24h):** o `HAVING` exige também `MAX(data_abertura) >= NOW() - (INTERVAL '1 hour' * horas_inc_recente)`. Ou seja, só aparecem no resultado pares `login × produto` que (1) acumularam ≥ `minimo_incidentes` na janela de meses **e** (2) têm pelo menos uma INC aberta nas últimas N horas (N vem de `horas_inc_recente`, default 24, limites 1–720). Como o `MAX(data_abertura)` já é calculado para `ultimo_contato`, esse filtro tem custo desprezível.
 - Coluna de atualizações: mesmo mapeamento do LocaPredict (`total_atualizacoes` ou `atualizacoes`).
+
+### Jornada de contato do cliente (`inc_timeline`)
+
+Resolve a dor de "encontrar a capivara do cliente" — em vez de só saber **quantos** INCs ele abriu na janela, agora se sabe **quais** e **em que ordem**. Implementado em F1.
+
+- Coluna `inc_timeline TEXT[]` na tabela `lwsa.guardiao_saude_cliente_snapshots` (DDL atualizado em `queries.sql` com bloco `DO $$` idempotente compatível com PG 9.2).
+- Persiste **até 100 INCs mais recentes** do par `login_cliente × produto`, ordenados do mais novo para o mais antigo (`(array_agg(numero ORDER BY data_abertura DESC))[1:100]`).
+- Alimenta análise temporal nos dashboards (Power BI / Superset) sem precisar re-consultar o ServiceNow para reconstruir a linha do tempo.
+- Tratamento gracioso de DDL pendente: se a coluna ainda não existe no banco, o pgcode `42703` é capturado em `gravar_snapshots_historico_guardiao` e vira warning no log — o resto do pipeline continua normal.
 
 ### Configuração opcional (`config.ini`)
 

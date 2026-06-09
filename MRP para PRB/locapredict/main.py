@@ -106,6 +106,37 @@ def _mean_pairwise_similarity(embeddings_cluster: np.ndarray) -> float:
     return float((sim.sum() - n) / (n * n - n))
 
 
+# Recorrência por servidor (Service Operation): pesos e thresholds
+_BONUS_SCORE_SERVIDOR_RECORRENTE = 0.15
+_MIN_INCS_PARA_BONUS_SERVIDOR = 2
+_MIN_INCS_PARA_ACAO_SERVIDOR = 3
+
+
+def _calcular_recorrencia_servidor(cluster_data: list[dict]) -> tuple[float, Optional[str]]:
+    """
+    Analisa concentração de incidentes por servidor no cluster.
+
+    Retorna (bonus_severidade, servidor_concentrador):
+      - bonus = +0.15 se o servidor mais frequente aparece em >= 2 INCs do cluster
+        (sinal de recorrência intra-cluster — mesmo ativo físico afetado várias vezes).
+      - servidor_concentrador = nome do servidor com > 3 INCs (gatilho da sugestão
+        operacional dedicada), ou None se nenhum servidor concentra esse volume.
+
+    Incidentes sem `servidor` preenchido são ignorados.
+    """
+    servidores = [
+        str(inc.get("servidor")).strip()
+        for inc in cluster_data
+        if inc.get("servidor") and str(inc.get("servidor")).strip()
+    ]
+    if not servidores:
+        return 0.0, None
+    servidor_top, ocorrencias = Counter(servidores).most_common(1)[0]
+    bonus = _BONUS_SCORE_SERVIDOR_RECORRENTE if ocorrencias >= _MIN_INCS_PARA_BONUS_SERVIDOR else 0.0
+    concentrador = servidor_top if ocorrencias > _MIN_INCS_PARA_ACAO_SERVIDOR else None
+    return bonus, concentrador
+
+
 def score_cluster(
     cluster_data: list[dict],
     embeddings_cluster: np.ndarray,
@@ -114,8 +145,11 @@ def score_cluster(
     """
     Calcula score_severidade e ineficiencia_score conforme fórmulas do README.
 
-    score_severidade = min(1, 0.4*mean_sim + 0.3*(cluster_size/volume_produto) + 0.3*fator_esforco)
-        fator_esforco = min(1, log1p(soma_atualizacoes_cluster) / 5)
+    score_severidade = min(1, 0.4*mean_sim + 0.3*(cluster_size/volume_produto)
+                              + 0.3*fator_esforco + bonus_servidor)
+        fator_esforco   = min(1, log1p(soma_atualizacoes_cluster) / 5)
+        bonus_servidor  = +0.15 quando o mesmo servidor físico aparece em >= 2 INCs
+                          (recorrência intra-cluster sinalizada pelo Service Operation).
 
     ineficiencia_score = min(1, fator_interacoes * fator_lentidao)
         fator_interacoes = min(1, log1p(atualizacoes_medias) / 3)
@@ -131,7 +165,11 @@ def score_cluster(
     fator_esforco = min(1.0, float(np.log1p(soma_atualizacoes)) / 5.0)
     fator_volume = min(1.0, n / float(volume_produto)) if volume_produto and volume_produto > 0 else 0.0
 
-    score_severidade = min(1.0, 0.4 * mean_sim + 0.3 * fator_volume + 0.3 * fator_esforco)
+    bonus_servidor, _ = _calcular_recorrencia_servidor(cluster_data)
+    score_severidade = min(
+        1.0,
+        0.4 * mean_sim + 0.3 * fator_volume + 0.3 * fator_esforco + bonus_servidor,
+    )
 
     atualizacoes_medias = soma_atualizacoes / n if n else 0.0
     tempos = [float(inc.get("tempo_medio_resolucao") or 0) for inc in cluster_data]
@@ -172,6 +210,49 @@ def build_cluster_label(cluster_data: list[dict], produto: str) -> str:
     top_termos = [t for t, _ in freq.most_common(3)]
     produto_final = produto or "Desconhecido"
     return f"Incidentes em {produto_final}: {' '.join(top_termos)}".rstrip(": ").rstrip()
+
+
+# Termos para detecção de "sem contorno" no SQL histórico (espelham _TERMOS_SEM_CONTORNO
+# de prescricao_prb.py — se mudar lá, atualizar aqui também).
+_TERMOS_SQL_SEM_CONTORNO = [
+    "%sem contorno%",
+    "%sem solucao%",
+    "%sem solução%",
+    "%nenhum contorno%",
+    "%no workaround%",
+]
+
+
+def contar_incidentes_historicos_por_produto(
+    conexao_banco, produto: str, dias: int = 30
+) -> tuple[int, int]:
+    """
+    Conta INCs de um produto nos últimos N dias separando por presença de
+    indicação de ausência de solução de contorno.
+
+    Retorna (total_com_contorno, total_sem_contorno).
+
+    Heurística por substring em descricao_curta (case-insensitive) — pode ter
+    falsos positivos/negativos. Os termos devem ficar sincronizados com
+    _TERMOS_SEM_CONTORNO em prescricao_prb.py.
+
+    SQL compatível com PostgreSQL 9.2 (usa SUM(CASE) em vez de FILTER).
+    """
+    sql = """
+        SELECT
+            SUM(CASE WHEN LOWER(descricao_curta) LIKE ANY (%s) THEN 0 ELSE 1 END) AS com_contorno,
+            SUM(CASE WHEN LOWER(descricao_curta) LIKE ANY (%s) THEN 1 ELSE 0 END) AS sem_contorno
+        FROM lwsa.service_now_incidentes
+        WHERE data_abertura >= NOW() - (INTERVAL '1 day' * %s)
+          AND produto = %s
+          AND descricao_curta IS NOT NULL
+    """
+    with conexao_banco.cursor() as cur:
+        cur.execute(sql, (_TERMOS_SQL_SEM_CONTORNO, _TERMOS_SQL_SEM_CONTORNO, dias, produto))
+        row = cur.fetchone()
+        if not row:
+            return 0, 0
+        return int(row[0] or 0), int(row[1] or 0)
 
 
 def insert_insights(conexao_banco, tuplas: list):
@@ -402,6 +483,11 @@ def main():
             # Clusterizar (min_cluster_size=3, min_samples=1 — alinhado com README)
             labels, _ = cluster_incidentes(embeddings)
 
+            # Cache de contagem histórica por produto (F3) — várias clusters podem
+            # compartilhar o mesmo produto majoritário; evita consultas duplicadas.
+            JANELA_HISTORICA_DIAS = 30
+            cache_historico: dict[str, tuple[int, int]] = {}
+
             # Gerar insights por cluster
             insights = []
             for cluster_id in sorted({int(lbl) for lbl in labels}):
@@ -425,20 +511,61 @@ def main():
                     if inc.get("servidor") and str(inc.get("servidor")).strip()
                 })
 
+                # Volumetria histórica por produto (F3): conta INCs com/sem contorno
+                # nos últimos JANELA_HISTORICA_DIAS dias. Cacheada por produto.
+                if produto not in cache_historico:
+                    try:
+                        cache_historico[produto] = contar_incidentes_historicos_por_produto(
+                            conexao_banco, produto, dias=JANELA_HISTORICA_DIAS
+                        )
+                    except Exception:
+                        # Falha na consulta histórica não deve derrubar o pipeline;
+                        # cai em (0,0) e a regra P-level age sem esse sinal.
+                        registrador.exception(
+                            "Falha ao contar histórico de '%s' — usando (0,0).", produto
+                        )
+                        cache_historico[produto] = (0, 0)
+                total_com_contorno, total_sem_contorno = cache_historico[produto]
+
                 prescricao = prescrever_acao_prb(
                     cluster_data=cluster_data,
                     score_severidade=severidade,
                     ineficiencia_score=ineficiencia,
                     produto=produto,
                     servidores=servidores_afetados,
+                    total_historico_com_contorno=total_com_contorno,
+                    total_historico_sem_contorno=total_sem_contorno,
+                    janela_historica_dias=JANELA_HISTORICA_DIAS,
                 )
+
+                # Sinalização operacional do Service Operation: se um único servidor concentra
+                # > 3 INCs do cluster, a sugestão dedicada substitui o texto da prescrição PRB
+                # (urgência/decisão/evidências permanecem — o redirecionamento é só na ação).
+                _, servidor_concentrador = _calcular_recorrencia_servidor(cluster_data)
+                if servidor_concentrador:
+                    acao_anterior = prescricao.acao
+                    prescricao.acao = (
+                        f"Solicitar análise de desempenho/PRB para o servidor específico: "
+                        f"{servidor_concentrador}"
+                    )
+                    registrador.info(
+                        "Cluster %s — acao sobrescrita por concentração no servidor %s: %r -> %r",
+                        cluster_id,
+                        servidor_concentrador,
+                        acao_anterior,
+                        prescricao.acao,
+                    )
+
                 registrador.info(
-                    "Cluster %s — urgência=%s, abrir_prb=%s, score_composto=%.3f, grupo=%s",
+                    "Cluster %s — %s (urg=%s, OLA<=%sh) abrir_prb=%s composto=%.3f grupo=%s upgrade=%s",
                     cluster_id,
+                    prescricao.prioridade,
                     prescricao.urgencia,
+                    prescricao.ola_target_horas,
                     prescricao.deve_abrir_prb,
                     prescricao.score_composto,
                     prescricao.grupo_destino,
+                    prescricao.upgrade_aplicado or "—",
                 )
 
                 # 9 elementos: os 8 primeiros vão para o banco (insert_insights faz [:8]);
