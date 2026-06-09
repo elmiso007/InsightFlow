@@ -288,6 +288,38 @@ Organizado em 5 categorias. Termos em sigla incluem expansão; definições curt
   +tagueamento PRBs novos) e finalmente **24 (V3.1, +times impactados
   via equipeproprietaria)**. DDL idempotente em `sql/motor_tables.sql`.
 
+- **Painel Change Team (Phase 1)** — Force-task interdisciplinar Locaweb com
+  ~84 PRBs específicos sob acompanhamento dedicado. Phase 1 do GSD entregue
+  2026-06-05; **go-live PROD 2026-06-09**. Materializa snapshot em
+  `lwsa.motor_change_team_painel` a cada 6h via `validar_entregas.py` (3º
+  bloco try/except, Defense in Depth, CON-012 LOCKED preserva V3.1).
+  Consumo via chart "PRB Change Team" no Superset corporativo (D-08).
+  Implementado em `change_team.py`. Documentação operacional completa em
+  [docs/DASHBOARD_CHANGE_TEAM.md](docs/DASHBOARD_CHANGE_TEAM.md).
+
+- **`motor_change_team`** — Tabela `lwsa.motor_change_team` com lista master
+  dos PRBs Change Team. Coluna chave `numero` UNIQUE (PRB no SNow, ex.:
+  `PRB0072001`). Soft delete via `ativo` + `removido_em` — NUNCA usar
+  `DELETE`. Adicionar/remover é operação SQL manual via `INSERT` /
+  `UPDATE ativo=false` (D-01).
+
+- **`motor_change_team_painel`** — Tabela `lwsa.motor_change_team_painel`
+  reescrita a cada 6h via `TRUNCATE + INSERT` atômico (D-04). Snapshot tabular
+  do estado atual de cada PRB Change Team: PRBs abertos (9 campos de D-05) +
+  PRBs resolvidos (D-05 + 7 sinais V3.1 de D-06). 18 colunas totais.
+  Owner deve ser a conta do motor (`automatizacoes` na Locaweb) — `TRUNCATE
+  RESTART IDENTITY` exige owner da sequência, não basta GRANT.
+
+- **`CHANGE_TEAM_HABILITADO`** — Env var em `config.py` (default `"true"`)
+  que liga/desliga o bloco Change Team do `validar_entregas.py` sem deploy.
+  Set `"false"` para parar o snapshot sem afetar V3.1.
+
+- **CON-012 LOCKED** — Constraint do CONTEXT.md da Phase 1: a integração
+  Change Team **NÃO PODE** afetar o veredicto do ValidadorEntrega V3.1.
+  Implementação: try/except do Change Team é separado do try/except do V3.1
+  no entry-point. Falha do Change Team registra warning + zera o snapshot,
+  mas `motor_validacao_entrega` continua sendo populada normalmente.
+
 - **Thresholds do ValidadorEntrega** — Conjunto de configs em `config.py`
   que calibram o prisma retrospectivo:
   - `JANELA_VALIDACAO_ENTREGA_DIAS = 14` — quantos dias de PRBs encerrados

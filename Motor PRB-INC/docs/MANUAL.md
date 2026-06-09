@@ -88,7 +88,7 @@ Sem o `config.ini`, o motor falha em modo real. Pra rodar sem banco use
 
 ### 1.4 Executar a DDL no banco (1x)
 
-O motor persiste dados em 4 tabelas no schema `lwsa`. Criar essas tabelas:
+O motor persiste dados em **7 tabelas** no schema `lwsa`. Criar essas tabelas:
 
 **Opção A — via psql:**
 ```bash
@@ -105,6 +105,22 @@ Tabelas criadas:
 - `lwsa.motor_cluster` — clusters formados.
 - `lwsa.motor_prescricao` — saída do rules_engine.
 - `lwsa.motor_saude_cliente` — avaliações por cliente.
+- `lwsa.motor_validacao_entrega` — ValidadorEntrega V3.1 (24 colunas).
+- `lwsa.motor_validacao_entrega_equipe` — times impactados V3.1 (espelho relacional).
+- `lwsa.motor_change_team` — master da força-tarefa Change Team (soft delete).
+- `lwsa.motor_change_team_painel` — snapshot atômico do Painel Change Team (TRUNCATE+INSERT a cada 6h).
+
+> ⚠️ **Painel Change Team:** depois de criar `motor_change_team` e
+> `motor_change_team_painel` via DBeaver com conta admin (ex.: `a_report`),
+> transferir ownership para a conta do motor (`automatizacoes` na Locaweb).
+> `TRUNCATE ... RESTART IDENTITY` exige owner da sequência — só `GRANT` não basta.
+>
+> ```sql
+> ALTER TABLE lwsa.motor_change_team        OWNER TO automatizacoes;
+> ALTER TABLE lwsa.motor_change_team_painel OWNER TO automatizacoes;
+> ```
+>
+> Detalhes em [DASHBOARD_CHANGE_TEAM.md §2.5](DASHBOARD_CHANGE_TEAM.md#25-pré-requisitos-do-banco-prod-aprendidos-no-go-live-2026-06-09).
 
 ### 1.5 Permissões de banco necessárias
 
@@ -117,7 +133,7 @@ A conta usada pelo motor precisa de:
 | `dynamics.chamados` | `SELECT` |
 | `kinghost.chamados` | `SELECT` |
 | `lw_octadesk.classificacoes` | `SELECT` |
-| `lwsa.motor_*` (4 tabelas) | `INSERT, SELECT` (mínimo). `DELETE` se quiser cleanup TTL automático |
+| `lwsa.motor_*` (8 tabelas, inclui Change Team) | `INSERT, SELECT` (mínimo). `DELETE` se quiser cleanup TTL automático. `TRUNCATE` em `motor_change_team_painel` exige OWNERSHIP (ALTER TABLE OWNER, não basta GRANT). |
 | Sequências `lwsa.motor_*_id_seq` | `USAGE, SELECT` |
 
 **Comando SQL para conceder (executar como admin):**
@@ -197,8 +213,10 @@ lógica sem ter banco disponível.
 ### 2.3 Agendamento via Windows Task Scheduler (UI)
 
 Padrão recomendado em produção: o Task Scheduler dispara `Motor-PRB.bat` a cada
-15 min. Vantagem: se uma execução crashar, a próxima ainda roda intacta — o
-Task Scheduler faz o papel do supervisor.
+**1 hora** (cadência revista em 2026-06-09; antes era 15min). Vantagem: se uma
+execução crashar, a próxima ainda roda intacta — o Task Scheduler faz o papel
+do supervisor. **Em PROD as tasks vivem em** `\TarefasTrafego\` (`Motor PRB-INC`
+e `Motor-PRB-Validador`).
 
 **Pré-requisito:** o wrapper `Motor-PRB.bat` na raiz do projeto. Ele já vem
 com o repositório e contém:
@@ -221,8 +239,8 @@ Ajustar `VENV` se o seu virtualenv ficar em outro caminho.
 1. Painel direito → **Criar Tarefa...** (NÃO use "Criar Tarefa Básica" — não
    tem todas as opções que precisamos).
 2. Aba **Geral:**
-   - Nome: `Motor-PRB`
-   - Descrição: `Motor Prescritivo PRB - antecipa PRBs a partir de INCs (cada 15 min)`
+   - Nome: `Motor PRB-INC` (em `\TarefasTrafego\`)
+   - Descrição: `Motor Prescritivo PRB - antecipa PRBs a partir de INCs (cada 1h)`
    - Marcar **"Executar estando o usuário conectado ou não"** (vai pedir a
      senha do Windows ao salvar — gravada criptografada no SAM, não em arquivo).
    - Marcar **"Executar com privilégios mais altos"** (opcional, evita surpresas).
@@ -230,7 +248,7 @@ Ajustar `VENV` se o seu virtualenv ficar em outro caminho.
    - Iniciar a tarefa: `Em uma agenda`
    - `Diariamente`, começar hoje em `00:00:00`
    - **Configurações avançadas:**
-     - Marcar `Repetir a tarefa a cada:` **`15 minutos`**
+     - Marcar `Repetir a tarefa a cada:` **`1 hora`** (default PROD desde 2026-06-09; antes era `15 minutos`)
      - Pela duração de: **`Indefinidamente`**
      - Marcar `Habilitado`
 4. Aba **Ações → Nova...**
@@ -266,9 +284,9 @@ sumir — só para de ser agendado.
 
 ### 2.7 Agendamento do ValidadorEntrega (prisma retrospectivo)
 
-O `main.py` (preventivo, 15 min) e o `validar_entregas.py` (retrospectivo, 6 h)
+O `main.py` (preventivo, 1h em PROD) e o `validar_entregas.py` (retrospectivo, 6h)
 rodam em **entry-points separados**. Para ter os dois ativos, crie uma
-**segunda task** no Task Scheduler.
+**segunda task** no Task Scheduler. **Em PROD ambas vivem em** `\TarefasTrafego\`.
 
 **Wrapper já criado:** `Motor-PRB-Validador.bat` na raiz do projeto:
 
@@ -852,12 +870,16 @@ SELECT
 FROM lwsa.motor_execucao;
 ```
 
-**Se retornar > 20 min:** motor está parado ou lento.
+**Se retornar > 1h15min:** motor está parado ou lento (cadência PROD é 1h
+desde 2026-06-09 — antes o limiar era 20min com cadência de 15min).
 
 ### 7.3 Tendência de criticidade (últimos 7 dias)
 
-> ⚠️ Postgres 9.2.19 (Locaweb) não suporta `COUNT(*) FILTER (WHERE ...)`
-> — sintaxe introduzida em 9.4. Usamos `SUM(CASE WHEN ... THEN 1 ELSE 0 END)`.
+> ⚠️ Postgres **9.2.19** (Locaweb — confirmado no go-live 2026-06-09) não
+> suporta `COUNT(*) FILTER (WHERE ...)`, `ON CONFLICT`, `jsonb`, nem
+> `CREATE INDEX IF NOT EXISTS`. Sintaxes introduzidas em 9.4+. Usamos
+> `SUM(CASE WHEN ... THEN 1 ELSE 0 END)` no lugar de COUNT FILTER, e
+> DO block PL/pgSQL com checagem `IF NOT EXISTS` para idempotência.
 
 ```sql
 SELECT
@@ -962,11 +984,14 @@ python -m pytest tests/test_rules_engine.py::TestP1Crise::test_contratacao_indis
 
 | Arquivo | Cobertura |
 |---|---|
-| `tests/test_extractor.py` | Parsers (`_parse_datetime`, `_parse_prioridade`, `_contar_atualizacoes`, `_detectar_contorno`) |
+| `tests/test_extractor.py` | Parsers + queries SNow/Dynamics (`_parse_datetime`, `_parse_prioridade`, `_contar_atualizacoes`, `_detectar_contorno`, `listar_prbs_por_numero` para Change Team) |
 | `tests/test_analyzer.py` | Scores (`_score_criticidade`, `_score_ineficiencia`, `_termos_dominantes`) |
 | `tests/test_rules_engine.py` | Matriz P1-P5, gatilho proativo, repriorização, ação final |
+| `tests/test_customer_monitor.py` | Bulk + slim queries, login canônico, anti alert-fatigue |
+| `tests/test_validador_entrega.py` | V3.1 (veredicto, volumetria pré, Δ chamados, PRBs novos, times impactados) |
+| `tests/test_change_team.py` | Phase 1 — snapshot atômico do Painel Change Team |
 
-**Total:** 54 testes, ~0.14s de execução.
+**Total:** ~116 testes, <1s de execução.
 
 ### 8.3 Quando rodar
 
@@ -1168,8 +1193,22 @@ Se não há processo, motor caiu. Verificar logs do supervisor.
       persistência do `validar_entregas.py` falha com `column "grupo_designado"
       does not exist`.
 - [ ] **2ª tarefa no Task Scheduler para o ValidadorEntrega** apontando para
-      `Motor-PRB-Validador.bat` (cadência 6h). Sem isso o validador nunca roda
+      `Motor-PRB-Validador.bat` (cadência 6h, em `\TarefasTrafego\`). Sem isso o validador nunca roda
       automaticamente — apenas o `main.py` (preventivo) é agendado por default.
+- [ ] **DDL do Painel Change Team executada** — `motor_change_team` (master com
+      `numero` UNIQUE + soft delete) e `motor_change_team_painel` (snapshot com
+      18 colunas). Ambas em `sql/motor_tables.sql`. Sem isso o 3º bloco
+      try/except do `validar_entregas.py` falha silenciosamente.
+- [ ] **Ownership das tabelas Change Team transferido** para a conta do motor
+      via `ALTER TABLE ... OWNER TO <conta>` (na Locaweb: `automatizacoes`).
+      `TRUNCATE+RESTART IDENTITY` exige owner da sequência — só `GRANT` não basta.
+      Erro típico se faltar: `must be owner of relation motor_change_team_painel_id_seq`.
+- [ ] **Seed inicial dos 84 PRBs Change Team** via `sql/seed_change_team.sql`
+      (DO block PL/pgSQL idempotente compatível com Postgres 9.2.19).
+- [ ] **Backfill do espelho SNow para PRBs históricos** via
+      `projetos/problemas/backfill.py`. `lwsa.service_now_problems` na Locaweb
+      só replica PRBs recentes — sem o backfill, painel Change Team fica
+      subdimensionado (ex.: 10/84 em vez de 84/84).
 
 ### Validação antes de agendar no Task Scheduler
 
@@ -1228,10 +1267,10 @@ Configurar alerta externo (Site24x7, Datadog, etc.) que verifica:
 3. **Sem erros recorrentes:**
    ```sql
    SELECT COUNT(*) FROM lwsa.motor_execucao
-   WHERE timestamp_utc > NOW() - INTERVAL '1 hour'
+   WHERE timestamp_utc > NOW() - INTERVAL '6 hours'
      AND jsonb_array_length(erros::jsonb) > 0;
    ```
-   Alerta se > 4 (mais de 1 erro/15min).
+   Alerta se > 2 (cadência PROD 1h preventivo → ~6 ciclos por janela; mais que 2 com erro = padrão sistêmico).
 
 ---
 
@@ -1246,4 +1285,5 @@ Configurar alerta externo (Site24x7, Datadog, etc.) que verifica:
 ---
 
 _Documento mantido sob responsabilidade dos contribuidores do motor. Última
-atualização: 2026-05-27._
+atualização: 2026-06-09 (refactor single-run + Task Scheduler 1h preventivo
+e 6h validador + Painel Change Team em PROD)._

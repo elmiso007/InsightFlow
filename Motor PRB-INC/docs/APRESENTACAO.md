@@ -14,7 +14,7 @@ Para gerar PDF (opcional):
 
 ### Antecipação de problemas via análise semântica de incidentes
 
-**Apresentação executiva** · Maio/2026
+**Apresentação executiva** · Junho/2026 (atualizada 2026-06-09 após go-live Phase 1)
 **Audiência:** Jéssica, Victor, Bruno + Coordenação
 
 ---
@@ -39,7 +39,7 @@ Para gerar PDF (opcional):
 
 ## A solução em 1 minuto
 
-A cada **15 minutos**, o motor:
+A cada **1 hora** (cadência PROD revista em 2026-06-09; antes era 15min), o motor:
 
 1. 📥 Lê todas as INCs/chamados das últimas 24h (Postgres).
 2. 🧩 **Agrupa por similaridade semântica** — INCs do "mesmo assunto" viram um cluster.
@@ -59,7 +59,7 @@ A cada **15 minutos**, o motor:
 ┌──────────────────────────────────────────────────────┐
 │  POSTGRES (lwsa.* + dynamics.* + kinghost.*)         │
 └──────────────────────┬───────────────────────────────┘
-                       ↓ (a cada 15 min)
+                       ↓ (a cada 1h preventivo · 6h validador+Change Team)
 ┌──────────────────────────────────────────────────────┐
 │  MOTOR PRB-INC                                       │
 │                                                      │
@@ -92,8 +92,10 @@ Levantados na reunião original:
 | **Saúde do Cliente** — clientes com ≥3 INCs em 6 meses | Emerson/Bruno | ✅ |
 | Slack para crítico + Dashboard tabulado | Reunião | ✅ |
 | Antecipar com **5 INCs P3 idênticas** | Reunião | ✅ Gatilho proativo |
+| **Painel Change Team** — ~84 PRBs sob acompanhamento dedicado | Coordenação | ✅ Phase 1 PROD 2026-06-09 |
 
-**Todos os 7 requisitos do levantamento original implementados.**
+**Todos os 7 requisitos do levantamento original + Painel Change Team (Phase 1
+GSD) implementados.**
 
 ---
 
@@ -195,7 +197,7 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 
 ---
 
-## Resultados em produção (DB real, 2026-06-02)
+## Resultados em produção (DB real, atualizado 2026-06-09)
 
 **Dataset real do DW Locaweb (~280-400 INCs / 500-700 chamados por ciclo):**
 
@@ -210,7 +212,9 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 | **Recorrência alta (≥3 INCs em 30d)** | **9-12 clientes** com logins canônicos limpos |
 | Validações de entrega (6h) | 10 PRBs (~3 reincidências, ~5 validadas, ~2 inconclusivos) com 4 sinais: veredicto + volumetria pré + Δ chamados vinculados + PRBs novos |
 | Alertas Slack | 7-8 por ciclo (desligado por default em 2026-06-02 — preparados e loggados, não enviados) |
-| **Tempo total do ciclo** | **22-31 segundos** ⚡ |
+| **Tempo total do ciclo (preventivo, 1h)** | **22-31 segundos** ⚡ |
+| **Tempo total do ciclo (validador+Change Team, 6h)** | **~143 segundos** (51 candidatos V3.1 + 84 PRBs Change Team em 2026-06-09) |
+| **Painel Change Team (go-live 2026-06-09)** | **84/84 PRBs no painel** após backfill SNow; **6 reincidências** surfaceadas; **PRB0055284** com 726 dias pós-resolução em destaque |
 | Erros | 0 |
 
 **Calibração aplicada (2026-06-02) — reduziu ciclo de 84min → 22-30s:**
@@ -244,9 +248,10 @@ Queries SQL ricas habilitadas pelo histórico de 30 dias:
 
 **Validação técnica:**
 
-- ✅ **104 testes automatizados** passando.
+- ✅ **116 testes automatizados** passando (suite Phase 1 incluída — `test_change_team.py`).
 - ✅ **Bug de regressão protegido** (caso "ra" / "fora" não pode voltar).
 - ✅ **Persistência funcional** em Postgres + JSON paralelo.
+- ✅ **Defense in Depth** (CON-012 LOCKED — falha do Change Team não afeta ValidadorEntrega V3.1).
 
 ---
 
@@ -321,13 +326,13 @@ Para acompanhar o ROI do motor após 30 dias em produção:
 ## Resumo executivo
 
 **O que entregamos:**
-- ✅ MVP funcional rodando localmente.
-- ✅ Atende **todos os 7 requisitos** do levantamento original.
+- ✅ **MVP em PROD** (Locaweb) — preventivo 1h + validador 6h via Task Scheduler em `\TarefasTrafego\`.
+- ✅ Atende **todos os 7 requisitos** do levantamento original + Painel Change Team (Phase 1 GSD, go-live 2026-06-09).
 - ✅ Lógica de negócio **auditável** (matriz P1-P5 + justificativas textuais).
-- ✅ **Resiliente** (defesa em 4 camadas, motor sempre funciona).
-- ✅ **Documentado** (3 docs separadas para 3 audiências + glossário).
-- ✅ **Testado** (54 testes automatizados, regressão protegida).
-- ✅ Compatível com infra atual (Postgres 9.2/9.3, sem upgrade necessário).
+- ✅ **Resiliente** (Defense in Depth — 4 camadas + CON-012 LOCKED preserva V3.1 contra falha do Change Team).
+- ✅ **Documentado** (5 docs especializados: ARQUITETURA, MANUAL, REGRAS, VALIDADOR_ENTREGA, SAUDE_DO_CLIENTE, DASHBOARD_CHANGE_TEAM + GLOSSARIO).
+- ✅ **Testado** (116 testes automatizados, regressão protegida, suite Phase 1 incluída).
+- ✅ Compatível com infra atual (Postgres **9.2.19** confirmado em PROD 2026-06-09 — sem upgrade necessário).
 
 **Próximo passo concreto:** decisão sobre subir staging.
 
@@ -357,8 +362,11 @@ Para acompanhar o ROI do motor após 30 dias em produção:
 - `docs/ARQUITETURA.md` — como o motor foi construído
 - `docs/MANUAL.md` — como usar
 - `docs/REGRAS.md` — matriz oficial P1-P5
+- `docs/VALIDADOR_ENTREGA.md` — V3.1 ponta a ponta (prisma retrospectivo)
+- `docs/SAUDE_DO_CLIENTE.md` — ponta a ponta do health score
+- `docs/DASHBOARD_CHANGE_TEAM.md` — Painel Change Team (Phase 1 GSD)
 - `GLOSSARIO.md` — termos técnicos
 
-**Código:** `Motor PRB-INC/` (12 módulos Python, 3.205 linhas)
+**Código:** `Motor PRB-INC/` (15 módulos Python)
 
-**Testes:** `python -m pytest tests/` (54 testes, 0.13s)
+**Testes:** `python -m pytest tests/` (116 testes, <1s)

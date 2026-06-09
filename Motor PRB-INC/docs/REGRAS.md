@@ -31,6 +31,7 @@ Jéssica, Victor e Bruno.
 12. [Clusterização — regras de agrupamento](#12-clusterização--regras-de-agrupamento)
 13. [Filtros de organização e login](#13-filtros-de-organização-e-login)
 14. [ValidadorEntrega — prisma retrospectivo](#14-validadorentrega--prisma-retrospectivo)
+15. [Painel Change Team — força-tarefa](#15-painel-change-team--força-tarefa)
 
 ---
 
@@ -1088,18 +1089,83 @@ auto-referência).
 
 ---
 
+## 15. Painel Change Team — força-tarefa
+
+A **Change Team** é uma força-tarefa interdisciplinar da Locaweb dedicada à
+resolução de **84 PRBs específicos** (lista deduplicada da onda inicial de
+2026-06-05). O Painel Change Team materializa o estado atual desses PRBs num
+snapshot Postgres atualizado **a cada 6h**, consumido via chart **"PRB Change
+Team"** no Superset corporativo. Phase 1 do GSD concluída 2026-06-05; **go-live
+PROD 2026-06-09** (6 reincidências surfaceadas, PRB0055284 com 726 dias
+pós-resolução em destaque).
+
+### Decisões locked (Phase 1, CONTEXT.md)
+
+| ID | Decisão |
+|---|---|
+| D-01 | Lista master em tabela dedicada `lwsa.motor_change_team` (coluna `numero`) com **soft delete** (`ativo` + `removido_em`) — nunca usar `DELETE`. |
+| D-02 | Entry-point é o **ValidadorEntrega** (cadência 6h, `validar_entregas.py`, 3º bloco try/except). |
+| D-03 | Query SEM janela temporal — captura PRBs antigos que o V3.1 normal (14d) jamais pegaria. |
+| D-04 | Persistência **TRUNCATE+INSERT atômico** em `lwsa.motor_change_team_painel`. |
+| D-05 | Colunas para PRBs abertos: status SNow, idade, prioridade, grupo designado, última atualização. |
+| D-06 | Colunas para PRBs resolvidos: D-05 + 7 sinais V3.1 (reusa `validador_entrega._avaliar_prb`, CON-012 LOCKED). |
+| D-07 | Consumo via Superset corporativo (chart manual, fora do escopo automatizado). |
+| D-08 | Feature key = `change_team`; Chart name = "PRB Change Team". |
+
+### CON-012 LOCKED — preservar V3.1 do ValidadorEntrega
+
+A integração Change Team **NÃO PODE** afetar o veredicto do ValidadorEntrega V3.1.
+Implementação: try/except do Change Team é **separado** do try/except do V3.1
+no `validar_entregas.py`. Falha do Change Team registra warning + zera o
+snapshot, mas `motor_validacao_entrega` continua sendo populada normalmente.
+
+### Veredicto reusado (PRBs resolvidos)
+
+Para PRBs Change Team **já resolvidos** (`data_encerrado IS NOT NULL`), o
+painel reusa o `validador_entrega._avaliar_prb` — herda automaticamente
+`REINCIDENCIA / ENTREGA_VALIDADA / INCONCLUSIVO` (§14) + os 5 sinais V3.1
+(volumetria pré, Δ chamados, PRBs novos pós, times impactados). Sem
+duplicação de lógica.
+
+### Critério de seleção dos 84 PRBs
+
+Lista **manual e curada** pela coordenação Change Team, persistida em
+`lwsa.motor_change_team` com `ativo = true`. **NÃO** há regra automática —
+adicionar/remover PRB é operação SQL explícita (ver [DASHBOARD_CHANGE_TEAM.md §5](DASHBOARD_CHANGE_TEAM.md#5-gestão-da-lista-master)).
+
+### Toggle de runtime
+
+Env var `CHANGE_TEAM_HABILITADO` (default `"true"`). Set `"false"` desliga o
+painel sem deploy. O ValidadorEntrega V3.1 continua rodando independente.
+
+### Como ajustar
+
+- **Adicionar/remover PRB:** SQL `INSERT` / `UPDATE ativo=false` em
+  `lwsa.motor_change_team` (ver DASHBOARD_CHANGE_TEAM.md §5).
+- **Mudar cadência:** ajustar Task Scheduler do `Motor-PRB-Validador.bat`
+  (mesma task que dispara V3.1 + Change Team).
+- **Mudar Top N de PRBs no chart:** ajustar query do chart no Superset (não
+  toca código).
+
+Detalhes operacionais completos em [DASHBOARD_CHANGE_TEAM.md](DASHBOARD_CHANGE_TEAM.md).
+
+---
+
 ## Referências cruzadas
 
 - **[ARQUITETURA.md](ARQUITETURA.md):** como o motor implementa essas regras.
 - **[MANUAL.md](MANUAL.md):** como usar o motor.
 - **[SAUDE_DO_CLIENTE.md](SAUDE_DO_CLIENTE.md):** processo completo do prisma de Saúde do Cliente (ponta a ponta).
 - **[VALIDADOR_ENTREGA.md](VALIDADOR_ENTREGA.md):** processo completo do prisma retrospectivo (ponta a ponta).
+- **[DASHBOARD_CHANGE_TEAM.md](DASHBOARD_CHANGE_TEAM.md):** guia operacional do Painel Change Team (Phase 1 GSD).
 - **[../GLOSSARIO.md](../GLOSSARIO.md):** termos técnicos (CI, PRB, INC, OLA, etc.).
 - **`config.py`:** todos os thresholds e termos heurísticos.
 - **`rules_engine.py`:** implementação da cascata P1-P5.
+- **`change_team.py`:** orquestrador do Painel Change Team.
 - **`tests/test_rules_engine.py`:** testes que validam cada regra.
 
 ---
 
 _Documento mantido sob responsabilidade do PO + contribuidores do motor.
-Reflete a matriz oficial vigente. Última atualização: 2026-06-02 (ValidadorEntrega V2 + filtros Locaweb)._
+Reflete a matriz oficial vigente. Última atualização: 2026-06-09 (Painel
+Change Team em PROD — Phase 1 GSD concluída; ValidadorEntrega V3.1)._

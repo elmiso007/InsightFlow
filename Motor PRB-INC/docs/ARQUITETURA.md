@@ -16,7 +16,7 @@ documentação técnica para quem precisa **entender o motor por dentro**.
 1. [Visão de uma página](#1-visão-de-uma-página)
 2. [Arquitetura em camadas](#2-arquitetura-em-camadas)
 3. [Fluxo de dados end-to-end](#3-fluxo-de-dados-end-to-end)
-4. [Os 12 módulos abertos](#4-os-12-módulos-abertos)
+4. [Os 15 módulos abertos](#4-os-15-módulos-abertos)
 5. [Os 7 princípios transversais](#5-os-7-princípios-transversais)
 6. [Decisões importantes (e por quê)](#6-decisões-importantes-e-por-quê)
 7. [Pontos de extensão](#7-pontos-de-extensão)
@@ -29,7 +29,7 @@ documentação técnica para quem precisa **entender o motor por dentro**.
 
 ### O que o motor faz
 
-A cada 15 minutos, **automaticamente**:
+**Prisma preventivo** — a cada 1 hora (Windows Task Scheduler, single-run):
 
 1. **Lê do PostgreSQL:** todas as INCs abertas nas últimas 24h, todos os PRBs
    ativos, todos os chamados de suporte das últimas 24h (Locaweb + Kinghost).
@@ -72,8 +72,8 @@ O motor é organizado em **4 níveis** de dependência. Imports só vão "para b
 ```
 ┌─────────────────────────────────────────────────┐
 │  Nível 4 — ORQUESTRAÇÃO                         │
-│  main.py, scheduler.py                          │
-│  (entry points, loop, signal handling)          │
+│  main.py, validar_entregas.py, scheduler.py     │
+│  (entry points single-run, sem loop interno)    │
 └────────────────────┬────────────────────────────┘
                      │ depende de
 ┌────────────────────┴────────────────────────────┐
@@ -122,7 +122,8 @@ de Nível 3 ou 4 em Níveis 1-2.
 
 ## 3. Fluxo de dados end-to-end
 
-Trajeto completo dos dados em um ciclo de 15 min, com volumes reais do mock.
+Trajeto completo dos dados em um ciclo do prisma preventivo (cadência 1h em
+PROD), com volumes reais do mock.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -279,7 +280,7 @@ as anteriores já gravaram tudo.
 
 ---
 
-## 4. Os 12 módulos abertos
+## 4. Os 15 módulos abertos
 
 Resumo do papel de cada um. Para detalhes técnicos profundos, consulte o código
 (citações `arquivo.py:linhas` para referência).
@@ -580,9 +581,9 @@ consumidores Python (Streamlit, Jupyter).
 
 ### Nível 4 — Orquestração
 
-#### `scheduler.py` (~210 linhas)
+#### `scheduler.py` (~130 linhas)
 
-**Papel:** pipeline de execução single-run.
+**Papel:** pipeline de execução single-run do prisma preventivo.
 
 **Função core:** `executar_ciclo(fonte_inc, fonte_chamados)` — executa pipeline
 de 5 fases, com defesa em camadas. Retorna `ExecucaoMotor` sempre (mesmo em
@@ -596,7 +597,7 @@ faz o papel do supervisor.
 **Métrica:** `duracao_ciclo_ms` populada antes da persistência Postgres (não
 inclui Slack que é variável).
 
-#### `main.py` (~75 linhas, entry point preventivo)
+#### `main.py` (~65 linhas, entry point preventivo)
 
 **Papel:** setup de logging + chamada do pipeline do prisma preventivo.
 
@@ -604,23 +605,63 @@ inclui Slack que é variável).
   rotacionado por dia (`motor-prb-{data}.log`).
 - `main()` — chama `executar_ciclo()` uma vez e sai. Exit code 0/1.
 
-**Agendado:** Windows Task Scheduler → cada 15 min (via `Motor-PRB.bat`).
+**Agendado em PROD:** Windows Task Scheduler → cada **1 hora** (via
+`Motor-PRB.bat`, em `\TarefasTrafego\` desde 2026-06-09). Cadência original
+de 15 min foi revista no go-live do Painel Change Team — 1h é suficiente para
+o volume atual da Locaweb e reduz custo de execução.
 
-#### `validar_entregas.py` (~120 linhas, entry point retrospectivo)
+#### `validar_entregas.py` (~115 linhas, entry point retrospectivo)
 
 **Papel:** entry-point do ValidadorEntrega — separado do `main.py` por design.
+Em PROD desde 2026-06-09 também executa o **Painel Change Team** num 3º
+bloco try/except (Defense in Depth, CON-012 LOCKED).
 
-- `executar_validacao()` — cria `ExecucaoMotor`, popula
-  `validacoes_entrega` via `gerar_validacoes_entrega(fonte_inc, fonte_chamados)`,
-  persiste em Postgres + JSON, dispara Slack para reincidências.
+- `executar_validacao()` — cria `ExecucaoMotor`, popula 3 saídas:
+  1. **V3.1 do ValidadorEntrega** via `gerar_validacoes_entrega(fonte_inc, fonte_chamados)` (try/except 1).
+  2. **Painel Change Team** via `change_team.gerar_painel_change_team(...)` (try/except 2, condicional em `config.CHANGE_TEAM_HABILITADO`).
+  3. **Persistência + Slack** das 2 saídas anteriores (try/except 3).
 - `main()` — chama `executar_validacao()` uma vez e sai.
 
-**Por que entry-point separado:**
-- Cadência diferente (15min vs 6h) — não faz sentido bundlear no mesmo loop.
+**Por que entry-point separado do `main.py`:**
+- Cadência diferente (1h preventivo vs 6h retrospectivo) — não faz sentido bundlear no mesmo loop.
 - Escopo distinto (INCs abertas hoje vs PRBs encerrados nos últimos 14d).
 - Logs separados (`validador-entrega-{data}.log`) para facilitar auditoria.
 
-**Agendado:** opcional — pode rodar via Task Scheduler (cada 6h) ou manual.
+**Agendado em PROD:** Windows Task Scheduler → cada **6 horas** (via
+`Motor-PRB-Validador.bat`, em `\TarefasTrafego\` desde 2026-06-09).
+
+#### `change_team.py` (~180 linhas) — Painel Change Team
+
+**Papel:** materializa snapshot dos ~84 PRBs da força-tarefa **Change Team** numa
+tabela Postgres `lwsa.motor_change_team_painel`, atualizada a cada 6h via o
+mesmo entry-point do ValidadorEntrega (`validar_entregas.py`, 3º bloco
+try/except). Phase 1 do GSD entregue 2026-06-05; go-live PROD 2026-06-09.
+
+**Estratégia:**
+
+1. **Lê a master** `lwsa.motor_change_team` com `WHERE ativo = true` (soft
+   delete via `ativo` + `removido_em`).
+2. **Cruza com SNow espelho** via `extractor.listar_prbs_por_numero(numeros)`
+   — query **sem janela temporal** (D-03), captura PRBs antigos que o
+   ValidadorEntrega normal (14d) jamais pegaria.
+3. **Para PRBs resolvidos**, reusa `validador_entrega._avaliar_prb` —
+   CON-012 LOCKED preserva V3.1 do validador. Falha do Change Team NÃO
+   afeta `motor_validacao_entrega`.
+4. **Persiste TRUNCATE+INSERT atômico** (D-04) via
+   `notifier_db.persistir_painel_change_team`.
+
+**Toggle:** env var `CHANGE_TEAM_HABILITADO` (default `"true"`). Set
+`"false"` para desligar sem deploy.
+
+**Pré-requisito de banco** (aprendido no go-live):
+- Owner das 2 tabelas deve ser a conta do motor (`automatizacoes` na Locaweb)
+  via `ALTER TABLE ... OWNER TO automatizacoes` — `TRUNCATE+RESTART IDENTITY`
+  exige owner da sequência.
+- PRBs históricos precisam estar replicados em `lwsa.service_now_problems`
+  (rodar `projetos/problemas/backfill.py` se faltar).
+
+**Consumo:** chart "PRB Change Team" no Superset corporativo (D-07).
+Documentação operacional completa em [DASHBOARD_CHANGE_TEAM.md](DASHBOARD_CHANGE_TEAM.md).
 
 ---
 
@@ -658,11 +699,13 @@ exceções **devem** propagar para defesa externa capturar.
 |---|---|
 | `extractor.py` | Trazer dados de fora para Python |
 | `analyzer.py` | Clusterizar + calcular scores |
-| `rules_engine.py` | Aplicar matriz P1-P5 |
+| `rules_engine.py` | Aplicar matriz P1-P5 (prisma preventivo) |
+| `validador_entrega.py` | Avaliar PRBs entregues pelo Change Team (prisma retrospectivo) |
+| `change_team.py` | Materializar snapshot do Painel Change Team (Phase 1, 2026-06-05) |
 | `customer_monitor.py` | Avaliar saúde de clientes |
 | `notifier.py` | Comunicação push (Slack, JSON) |
 | `notifier_db.py` | Persistência Postgres |
-| `scheduler.py` | Orquestrar |
+| `scheduler.py` | Orquestrar pipeline single-run |
 | `config.py` | Decisões de produto |
 | `db.py` | Conexão SQL |
 | `time_utils.py` | Conversão de fuso |
@@ -788,18 +831,24 @@ fez nada".
 
 Decisões arquiteturais que vale registrar com a justificativa de cada uma.
 
-### Por que `schedule` em vez de APScheduler/Celery/asyncio
+### Por que Windows Task Scheduler externo em vez de loop interno
 
-| Lib | Por que descartada |
+A primeira versão usava a lib `schedule` (Python) num loop interno em
+`scheduler.py:rodar_loop` com `signal` handlers para SIGTERM/SIGINT. **Removido
+em 2026-06-05** em favor de execução single-run (`python main.py` roda 1 ciclo
+e sai com exit code 0/1; cadência delegada ao Windows Task Scheduler).
+
+| Opção | Por que descartada/escolhida |
 |---|---|
 | **APScheduler** | Overkill. ~20 deps transitivas. Persistência que não precisamos. |
 | **Celery** | Distributed task queue. Requer broker (Redis/RabbitMQ). Complexidade desproporcional. |
 | **asyncio** | Motor é síncrono. Trocar quebraria psycopg2 (não-async). |
-| **cron do sistema** | Adicional ao motor. Mais um lugar para manter. |
-| **`schedule`** ✅ | Zero deps. Sintaxe declarativa. Síncrono. Suficiente. |
+| **`schedule`** | Funcionou no MVP, mas exigia processo Python sempre vivo + signal handling — se ciclo crashar de modo não-recuperável, o processo morria e ninguém percebia. |
+| **Windows Task Scheduler externo** ✅ | Zero código de loop/signal. Crash de um ciclo não afeta o próximo. Retry/timeout configurável na UI. Supervisor de fato. |
 
-**Princípio:** simplicidade > flexibilidade quando flexibilidade não é
-exigida.
+**Vantagem operacional do Task Scheduler externo:** o supervisor (Windows)
+sabe restartar, sabe matar processo travado por timeout, e o log de execução
+é auditável via aba **Histórico** sem precisar parsear logs Python.
 
 ### Por que TF-IDF + DBSCAN em vez de sentence-transformers
 
@@ -1013,7 +1062,7 @@ caminho para o futuro. Detalhes em [../GLOSSARIO.md](../GLOSSARIO.md) seção
 |---|---|---|
 | Motor stateless | Aceito | Persistência histórica em Postgres permite análise temporal via SQL |
 | Repetição de alertas Slack PRB | Aceito | Slack pode silenciar similares manualmente |
-| Sem retry/backoff | Aceito | Próximo ciclo (15 min) tenta de novo |
+| Sem retry/backoff | Aceito | Próximo ciclo (1h em PROD) tenta de novo |
 | Sem health check HTTP | Aceito | Monitorar timestamp do JSON ou MAX(timestamp_utc) no Postgres |
 | Limiar de Saúde único por porte | Aceito | Pendente dado de "porte do cliente" no banco |
 | Sem ML aprendendo com feedback | Decidido | Regras determinísticas auditáveis vencem ML opaco no MVP |
@@ -1063,7 +1112,7 @@ Diretrizes para devs que vão evoluir o motor.
 
 ### Antes de fazer commit
 
-1. **Rode `python -m pytest tests/ -v`.** Todos os 54+ testes devem passar.
+1. **Rode `python -m pytest tests/ -v`.** Todos os 116 testes devem passar.
 2. **Rode `python main.py`.** Pipeline completo sem erros.
 3. **Verifique o JSON de output** (`output/dashboard_state.json`). Sanity check.
 4. **Se mudou regra de negócio:** atualize [REGRAS.md](REGRAS.md).
@@ -1107,7 +1156,8 @@ Diretrizes para devs que vão evoluir o motor.
 - **[MANUAL.md](MANUAL.md):** como usar o motor (operadores).
 - **[REGRAS.md](REGRAS.md):** matriz oficial P1-P5 e critérios de negócio.
 - **[SAUDE_DO_CLIENTE.md](SAUDE_DO_CLIENTE.md):** processo completo do prisma de Saúde do Cliente.
-- **[VALIDADOR_ENTREGA.md](VALIDADOR_ENTREGA.md):** processo completo do prisma retrospectivo (V3).
+- **[VALIDADOR_ENTREGA.md](VALIDADOR_ENTREGA.md):** processo completo do prisma retrospectivo (V3.1).
+- **[DASHBOARD_CHANGE_TEAM.md](DASHBOARD_CHANGE_TEAM.md):** guia operacional do Painel Change Team (Phase 1 GSD, PROD desde 2026-06-09).
 - **[../GLOSSARIO.md](../GLOSSARIO.md):** termos técnicos.
 - **`sql/motor_tables.sql`:** DDL das tabelas de persistência.
 - **`config.py`:** todas as decisões de produto centralizadas.
@@ -1116,4 +1166,5 @@ Diretrizes para devs que vão evoluir o motor.
 ---
 
 _Documento mantido sob responsabilidade dos contribuidores do motor. Última
-atualização: 2026-06-02._
+atualização: 2026-06-09 (Phase 1 Painel Change Team em PROD + refactor
+single-run + cadências revisadas para 1h motor / 6h validador)._

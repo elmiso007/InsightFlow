@@ -65,11 +65,18 @@ O motor opera em **2 prismas independentes**:
 
 **Por que separar:** se o CT fecha um PRB hoje, é cedo demais pra saber se
 o fix segurou. Olhar uma vez ao dia (na verdade, a cada 6h) basta. Já o
-preventivo precisa rodar de 15 em 15 min pra capturar escaladas.
+preventivo precisa rodar com cadência menor (1h em PROD desde 2026-06-09)
+pra capturar escaladas em janela ainda útil.
 
 **Requisito original:** a Diretoria/PO queria saber "**dos PRBs que abrimos,
 quantos realmente resolveram o problema?**" Essa pergunta é o coração do
 ValidadorEntrega.
+
+> **Nota (2026-06-09):** o entry-point `validar_entregas.py` também executa
+> o **Painel Change Team** (Phase 1 GSD) em um 3º bloco try/except — Defense
+> in Depth. Falha do Change Team **não afeta** este V3.1 (CON-012 LOCKED).
+> Detalhes em [DASHBOARD_CHANGE_TEAM.md](DASHBOARD_CHANGE_TEAM.md) e
+> [REGRAS.md §15](REGRAS.md#15-painel-change-team--força-tarefa).
 
 ---
 
@@ -837,4 +844,6 @@ saber.
 
 ---
 
-_Documento mantido por contribuidores do motor. Última atualização: 2026-06-02 (V3)._
+_Documento mantido por contribuidores do motor. Última atualização: 2026-06-09
+(V3.1 + integração Painel Change Team no entry-point, CON-012 LOCKED preserva
+veredicto)._

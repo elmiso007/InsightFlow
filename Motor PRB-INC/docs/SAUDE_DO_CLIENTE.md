@@ -29,10 +29,10 @@ plantão e a coordenação.
 
 ## 1. O que é
 
-Módulo automático que, **a cada ciclo de 15 min do motor**, identifica
-clientes Locaweb que estão **abrindo muitos incidentes** e consolida o
-histórico de cada um (INCs do ServiceNow + chamados Dynamics/KingHost) numa
-linha do tempo cronológica.
+Módulo automático que, **a cada ciclo do motor preventivo** (cadência 1h em
+PROD desde 2026-06-09), identifica clientes Locaweb que estão **abrindo muitos
+incidentes** e consolida o histórico de cada um (INCs do ServiceNow + chamados
+Dynamics/KingHost) numa linha do tempo cronológica.
 
 **Output principal:** uma tabela `lwsa.motor_saude_cliente` (e o JSON do
 dashboard) com 1 linha por cliente em alerta. Quando o cliente bate critério
@@ -468,4 +468,6 @@ comparando ciclos (`SELECT ... GROUP BY DATE_TRUNC('week', timestamp_utc)`).
 
 ---
 
-_Documento mantido por contribuidores do motor. Última atualização: 2026-06-02._
+_Documento mantido por contribuidores do motor. Última atualização: 2026-06-09
+(cadência do motor preventivo revista para 1h em PROD; comportamento da
+Saúde do Cliente inalterado)._
