@@ -1,0 +1,68 @@
+--CRIAÇÃO DO INSERT NA TABELA FINAL
+INSERT INTO lwsa.service_now_problems (
+numero,
+organizacao,
+task_for,
+servidor,
+grupo_designado,
+designado_para,
+prioridade,
+produto,
+categoria,
+subcategoria,
+status,
+origem,
+data_abertura,
+aberto_por,
+data_encerrado,
+fechado_por,
+codigo_encerramento,
+chamado_externo,
+prb_revisado,
+descricao_curta,
+descricao,
+solucao_alternativa,
+fechamento,
+atualizacoes,
+id_departamento,
+tipo_usuario,
+fonte_de_dados,
+data_insercao,
+data_modificacao)
+SELECT
+numero,
+organizacao,
+task_for,
+servidor,
+grupo_designado,
+designado_para,
+prioridade,
+produto,
+categoria,
+subcategoria,
+status,
+origem,
+data_abertura,
+aberto_por,
+data_encerrado,
+fechado_por,
+codigo_encerramento,
+chamado_externo,
+prb_revisado,
+descricao_curta,
+descricao,
+solucao_alternativa,
+fechamento,
+atualizacoes,
+id_departamento,
+tipo_usuario,
+fonte_de_dados,
+data_insercao,
+data_modificacao
+FROM lwsa.stg_service_now_problems SI
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM lwsa.service_now_problems AS I
+    WHERE
+	SI.numero = I.numero
+);

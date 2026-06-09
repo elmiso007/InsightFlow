@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "timestamp": "2026-06-05T21:19:02.460463+00:00",
+    "total_incs_lidas": 0,
+    "total_chamados": 0,
+    "total_clusters": 0,
+    "total_prescricoes": 0,
+    "total_saude_clientes": 0,
+    "total_validacoes_entrega": 3,
+    "erros": []
+  },
+  "clusters": [],
+  "prescricoes": [],
+  "saude_clientes": [],
+  "validacoes_entrega": [
+    {
+      "prb_id": "PRB0000790",
+      "descricao_curta": "DNS lento em consultas externas",
+      "produto": "DNS",
+      "servidor": "dnsfirewallb0005",
+      "status_prb": "Encerrado Automaticamente",
+      "data_resolucao": "2026-05-31T21:19:02.460477+00:00",
+      "dias_pos_resolucao": 5,
+      "qtd_incs_pos_resolucao": 4,
+      "veredicto": "REINCIDENCIA",
+      "incs_reincidentes": [
+        {
+          "inc_id": "INC_REINC_000",
+          "prioridade": "P3",
+          "abertura": "2026-06-01T21:19:02.460477+00:00",
+          "descricao_curta": "Latência DNS reincidiu após resolução"
+        },
+        {
+          "inc_id": "INC_REINC_001",
+          "prioridade": "P3",
+          "abertura": "2026-06-01T22:19:02.460477+00:00",
+          "descricao_curta": "Latência DNS reincidiu após resolução"
+        },
+        {
+          "inc_id": "INC_REINC_002",
+          "prioridade": "P3",
+          "abertura": "2026-06-01T23:19:02.460477+00:00",
+          "descricao_curta": "Latência DNS reincidiu após resolução"
+        },
+        {
+          "inc_id": "INC_REINC_003",
+          "prioridade": "P3",
+          "abertura": "2026-06-02T00:19:02.460477+00:00",
+          "descricao_curta": "Latência DNS reincidiu após resolução"
+        }
+      ],
+      "grupo_designado": "NOC",
+      "data_abertura_prb": "2026-05-24T21:19:02.460477+00:00",
+      "qtd_incs_pre_resolucao": 0,
+      "clientes_unicos_pre": 0,
+      "categorias_pre": 0,
+      "chamados_pre": 0,
+      "chamados_pos": 0,
+      "delta_chamados_pct": 0.0,
+      "qtd_prbs_novos_pos_resolucao": 0,
+      "prbs_novos": [],
+      "equipes_impactadas_pre": {},
+      "equipes_impactadas_pos": {},
+      "equipes_delta_pct": {}
+    },
+    {
+      "prb_id": "PRB0000791",
+      "descricao_curta": "Erro 500 em upload de arquivos grandes",
+      "produto": "Hospedagem Compartilhada",
+      "servidor": "hm-shared-09.locaweb.local",
+      "status_prb": "Concluído",
+      "data_resolucao": "2026-06-03T21:19:02.460477+00:00",
+      "dias_pos_resolucao": 2,
+      "qtd_incs_pos_resolucao": 0,
+      "veredicto": "INCONCLUSIVO",
+      "incs_reincidentes": [],
+      "grupo_designado": "Web Hosting",
+      "data_abertura_prb": "2026-05-30T21:19:02.460477+00:00",
+      "qtd_incs_pre_resolucao": 0,
+      "clientes_unicos_pre": 0,
+      "categorias_pre": 0,
+      "chamados_pre": 0,
+      "chamados_pos": 0,
+      "delta_chamados_pct": 0.0,
+      "qtd_prbs_novos_pos_resolucao": 0,
+      "prbs_novos": [],
+      "equipes_impactadas_pre": {},
+      "equipes_impactadas_pos": {},
+      "equipes_delta_pct": {}
+    },
+    {
+      "prb_id": "PRB0000789",
+      "descricao_curta": "Falha intermitente no agendador de backups",
+      "produto": "Backup",
+      "servidor": "bkp-cluster-02.locaweb.local",
+      "status_prb": "Concluído",
+      "data_resolucao": "2026-05-26T21:19:02.460477+00:00",
+      "dias_pos_resolucao": 10,
+      "qtd_incs_pos_resolucao": 0,
+      "veredicto": "ENTREGA_VALIDADA",
+      "incs_reincidentes": [],
+      "grupo_designado": "Infra Cloud",
+      "data_abertura_prb": "2026-05-16T21:19:02.460477+00:00",
+      "qtd_incs_pre_resolucao": 0,
+      "clientes_unicos_pre": 0,
+      "categorias_pre": 0,
+      "chamados_pre": 0,
+      "chamados_pos": 0,
+      "delta_chamados_pct": 0.0,
+      "qtd_prbs_novos_pos_resolucao": 0,
+      "prbs_novos": [],
+      "equipes_impactadas_pre": {},
+      "equipes_impactadas_pos": {},
+      "equipes_delta_pct": {}
+    }
+  ],
+  "incidentes": []
+}
