@@ -6,8 +6,10 @@
 # Arquivos de Configuração Sensíveis
 # ======================================================================
 .env
+.env.*
 *.env
 !.env.example
+!.env.sample
 
 # ======================================================================
 # Credenciais e Chaves
@@ -66,12 +68,15 @@ venv.bak/
 .DS_Store
 
 # ======================================================================
-# Logs
+# Logs e saídas geradas
 # ======================================================================
+logs/
 logs/*.log
 logs/*.log.*
 *.log
 *.log.*
+output/
+analistas_criticos/
 
 # ======================================================================
 # Arquivos de Saída da Aplicação
@@ -80,18 +85,24 @@ atendimentos_nps_baixo*.txt
 resposta_nps_gemini*.md
 resposta_nps_gemini*.html
 *.backup
+*.json
+*.csv
 
-# Arquivos HTML gerados em analistas_criticos (exceto index.html)
-analistas_criticos/*.html
-!analistas_criticos/index.html
+# Arquivos HTML/relatórios gerados em analistas_criticos
+analistas_criticos/
 
 # ======================================================================
-# Dados Temporários
+# Dados Temporários e artefatos de saída
 # ======================================================================
 tmp/
 temp/
 *.tmp
 *.cache
+*.pdf
+*.zip
+*.xlsx
+*.csv
+*.json
 
 # ======================================================================
 # Jupyter Notebooks

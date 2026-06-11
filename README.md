@@ -35,6 +35,7 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 - ✅ **Relatórios Estruturados** em Markdown e TXT
 - ✅ **Logging Profissional** com rotação automática
 - ✅ **Configuração via .env** (seguro e flexível)
+- ✅ **Push seguro** com `.env` e saídas ignoradas no Git
 - ✅ **Salvamento em PostgreSQL** com dados estruturados
 
 ---
@@ -111,12 +112,14 @@ pip install -r requirements.txt
 
 ### 4. Configure o .env
 
+> Importante: o arquivo real `.env` nunca deve ser enviado ao GitHub. Use o modelo `.env.example` como referência.
+
 ```bash
-# Renomeie o arquivo de exemplo
-mv env.production .env
+# Copie o exemplo para o arquivo local real
+copy .env.example .env
 
 # Edite com suas credenciais
-nano .env  # ou notepad .env no Windows
+notepad .env
 ```
 
 **⚠️ IMPORTANTE:** Configure estas variáveis:
