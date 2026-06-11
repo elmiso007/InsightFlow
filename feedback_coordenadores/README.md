@@ -1,8 +1,26 @@
 # 📊 Sistema de Análise NPS de Analistas
 
-Sistema inteligente de monitoramento e análise de NPS (Net Promoter Score) para analistas de atendimento, com análise automática via Google Gemini AI.
+Sistema inteligente de monitoramento e análise de NPS (Net Promoter Score) para analistas de atendimento, com análise automática via Google Gemini AI. O projeto foi estruturado para apoiar a rotina de suporte e gestão de qualidade, convertendo avaliações, comentários e histórico de atendimento em relatórios acionáveis para liderança e analistas.
 
-## 🎯 Objetivo
+## 🎯 Objetivo do projeto
+
+Este fluxo foi desenhado para:
+- calcular o NPS por analista e por dimensão (Velocidade, Solução e Relacionamento);
+- detectar analistas com desempenho abaixo da meta configurada;
+- buscar o histórico de atendimentos e conversas relacionadas;
+- anonimizar dados sensíveis antes de enviar conteúdo para IA;
+- gerar relatórios estruturados que ajudam a priorizar intervenção, coaching ou revisão de processo.
+
+## 🧭 Visão rápida da documentação
+
+A documentação foi organizada em três camadas para facilitar manutenção e uso:
+- Manual operacional: como instalar, configurar e executar a aplicação;
+- Regras de negócio: critérios, limiares, políticas e decisões do fluxo;
+- Arquitetura: módulos, fluxo de dados, dependências e pontos de extensão.
+
+> Recomendação de leitura: comece pelo README, depois siga para os documentos em docs/ conforme a necessidade.
+
+## 📚 Documentação detalhada
 
 Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e gerar insights acionáveis usando IA para melhorar a qualidade do atendimento.
 
@@ -256,7 +274,11 @@ feedback_coordenadores/
 ├── insereDadosAnaliseNPS.sql     # Processamento dos dados
 │
 ├── README.md                     # Este arquivo
-├── GUIA_INSTALACAO.md           # Guia detalhado
+├── GUIA_INSTALACAO.md           # Guia detalhado de instalação
+├── docs/                        # Documentação distribuída (manual, regras e arquitetura)
+│   ├── MANUAL.md                # Guia operacional completo
+│   ├── REGRAS.md                # Regras de negócio, limiares e políticas
+│   └── ARQUITETURA.md            # Fluxo, módulos e dependências
 ├── README_ALTERACOES.md         # Histórico de mudanças
 └── README_LOGGING.md            # Documentação do logging
 │
