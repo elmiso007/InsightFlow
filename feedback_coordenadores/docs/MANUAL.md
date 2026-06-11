@@ -39,12 +39,12 @@ pip install -r requirements.txt
 Crie ou edite o arquivo `.env` na raiz do projeto com as variáveis essenciais:
 
 ```env
-DB_HOST=10.30.138.28
+DB_HOST=seu_host
 DB_PORT=5432
-DB_NAME=report_requesttracker
-DB_USER=automatizacoes
+DB_NAME=seu_banco
+DB_USER=seu_usuario
 DB_PASSWORD=sua_senha
-DB_SCHEMA=kinghost_octadesk
+DB_SCHEMA=seu_schema
 GEMINI_API_KEY=sua_chave
 GEMINI_MODEL=gemini-flash-latest
 NPS_META=70.0

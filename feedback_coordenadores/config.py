@@ -11,12 +11,60 @@ Uso:
 """
 
 import os
+import configparser
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Carregar variáveis do arquivo .env
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
+
+# Caminho do arquivo config.ini na raiz do workspace
+WORKSPACE_CONFIG_PATH = Path(__file__).resolve().parent.parent / 'config.ini'
+
+
+def _read_ini_config(path: Path):
+    """Lê as chaves do config.ini do workspace, se existir."""
+    parser = configparser.ConfigParser()
+    if not path.exists():
+        return {}
+
+    try:
+        parser.read(path, encoding='utf-8')
+        return {
+            section: dict(parser.items(section))
+            for section in parser.sections()
+        }
+    except Exception:
+        return {}
+
+
+INI_CONFIG = _read_ini_config(WORKSPACE_CONFIG_PATH)
+
+
+def _get_config_value(section: str, key: str, default=None):
+    """Retorna valor do config.ini quando existir, senão usa o .env/valor padrão."""
+    ini_section = INI_CONFIG.get(section, {})
+    if key in ini_section and ini_section[key] not in (None, ''):
+        return ini_section[key]
+
+    env_key = {
+        'database': {
+            'server': 'DB_HOST',
+            'port': 'DB_PORT',
+            'database': 'DB_NAME',
+            'uid': 'DB_USER',
+            'pwd': 'DB_PASSWORD',
+        },
+        'gemini': {
+            'api_key': 'GEMINI_API_KEY',
+            'model': 'GEMINI_MODEL',
+        },
+    }.get(section, {}).get(key)
+
+    if env_key:
+        return os.getenv(env_key, default)
+    return default
 
 
 class Config:
@@ -25,18 +73,18 @@ class Config:
     # ======================================================================
     # BANCO DE DADOS
     # ======================================================================
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    DB_PORT = int(os.getenv('DB_PORT', '5432'))
-    DB_NAME = os.getenv('DB_NAME', 'report_requesttracker')
-    DB_USER = os.getenv('DB_USER', 'postgres')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+    DB_HOST = _get_config_value('database', 'server', os.getenv('DB_HOST', 'localhost'))
+    DB_PORT = int(_get_config_value('database', 'port', os.getenv('DB_PORT', '5432')))
+    DB_NAME = _get_config_value('database', 'database', os.getenv('DB_NAME', 'report_requesttracker'))
+    DB_USER = _get_config_value('database', 'uid', os.getenv('DB_USER', 'postgres'))
+    DB_PASSWORD = _get_config_value('database', 'pwd', os.getenv('DB_PASSWORD', ''))
     DB_SCHEMA = os.getenv('DB_SCHEMA', 'kinghost_octadesk')
     
     # ======================================================================
     # API GEMINI
     # ======================================================================
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-flash-latest')
+    GEMINI_API_KEY = _get_config_value('gemini', 'api_key', os.getenv('GEMINI_API_KEY'))
+    GEMINI_MODEL = _get_config_value('gemini', 'model', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
     
     # ======================================================================
     # CONFIGURAÇÕES DE NPS

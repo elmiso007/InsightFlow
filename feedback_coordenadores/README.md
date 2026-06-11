@@ -35,6 +35,7 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 - ✅ **Relatórios Estruturados** em Markdown e TXT
 - ✅ **Logging Profissional** com rotação automática
 - ✅ **Configuração via .env** (seguro e flexível)
+- ✅ **Push seguro** com `.env` e saídas ignoradas no Git
 - ✅ **Salvamento em PostgreSQL** com dados estruturados
 
 ---
@@ -111,12 +112,14 @@ pip install -r requirements.txt
 
 ### 4. Configure o .env
 
+> Importante: o arquivo real `.env` nunca deve ser enviado ao GitHub. Use o modelo `.env.example` como referência.
+
 ```bash
-# Renomeie o arquivo de exemplo
-mv env.production .env
+# Copie o exemplo para o arquivo local real
+copy .env.example .env
 
 # Edite com suas credenciais
-nano .env  # ou notepad .env no Windows
+notepad .env
 ```
 
 **⚠️ IMPORTANTE:** Configure estas variáveis:
@@ -159,12 +162,12 @@ Todas as configurações são feitas via `.env`:
 
 ```env
 # Banco de Dados
-DB_HOST=10.30.138.28
+DB_HOST=seu_host
 DB_PORT=5432
-DB_NAME=report_requesttracker
-DB_USER=automatizacoes
+DB_NAME=seu_banco
+DB_USER=seu_usuario
 DB_PASSWORD=sua_senha
-DB_SCHEMA=kinghost_octadesk
+DB_SCHEMA=seu_schema
 
 # API Gemini
 GEMINI_API_KEY=sua_chave

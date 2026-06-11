@@ -77,8 +77,8 @@ nano .env
 # ⚠️  IMPORTANTE: Configure estas variáveis obrigatórias
 
 # Banco de Dados
-DB_HOST=10.30.138.28          # ✅ Já preenchido
-DB_PASSWORD=sua_senha_real    # ❌ ALTERE AQUI
+DB_HOST=seu_host             # configure seu ambiente
+DB_PASSWORD=sua_senha_real    # configure sua senha local
 
 # API Gemini (CRÍTICO!)
 GEMINI_API_KEY=sua_nova_chave_aqui  # ❌ GERE NOVA CHAVE!
@@ -108,8 +108,8 @@ python config.py
 ⚙️  CONFIGURAÇÕES DO SISTEMA
 ======================================================================
 📊 Banco de Dados:
-  Host: 10.30.138.28:5432
-  Database: report_requesttracker
+  Host: SEU_HOST:5432
+  Database: SEU_BANCO
   ...
 ```
 
