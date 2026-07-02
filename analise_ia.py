@@ -2,6 +2,7 @@ import pandas as pd
 import google.generativeai as genai
 from conecta_banco import *
 import time
+import uuid
 from datetime import datetime
 import json
 import logging
@@ -283,6 +284,57 @@ def criar_indice_analistas(dir_analistas):
     except Exception as e:
         logger.error(f"Erro ao criar índice de analistas: {str(e)}")
 
+def analise_ja_existe(analista_nome, data_inicio, data_fim):
+    """
+    Verifica se já existe análise gravada para o analista no período informado.
+    Evita chamadas redundantes ao Gemini em re-execuções do mesmo mês.
+    """
+    from conecta_banco import get_psycopg2_connection
+    conn = None
+    try:
+        conn = get_psycopg2_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """SELECT COUNT(*) FROM kinghost_octadesk.rawdata_analise_nps_analistas
+                   WHERE analistas_criticos = %s
+                   AND dados_de = %s
+                   AND dados_ate = %s""",
+                (analista_nome, data_inicio, data_fim)
+            )
+            count = cursor.fetchone()[0]
+        return count > 0
+    except Exception as e:
+        logger.warning(f"Não foi possível verificar análise existente para {analista_nome}: {str(e)}")
+        return False
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+def limpar_rawdata_antigos(conn):
+    """Remove registros de rawdata mais antigos que ANALISE_RETENTION_DAYS dias."""
+    from config import config
+    retention_days = config.ANALISE_RETENTION_DAYS
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM kinghost_octadesk.rawdata_analise_nps_analistas WHERE request < (CURRENT_DATE - INTERVAL %s)",
+                (f"{retention_days} days",)
+            )
+            deleted = cursor.rowcount
+            conn.commit()
+        logger.info(f"✅ Limpeza rawdata: {deleted} registro(s) removido(s) (> {retention_days} dias)")
+    except Exception as e:
+        logger.error(f"Erro na limpeza de rawdata antigos: {str(e)}")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+
+
 @lru_cache(maxsize=128)
 def converter_tabela_markdown_para_html_cached(linhas_tabela_tuple):
     """
@@ -534,12 +586,12 @@ def extrair_secoes_analise(texto_completo):
     try:
         # Definir delimitadores das seções
         delimitadores = [
-            (r'\*Resumo Geral\*', r'\*Problemas Identificados por Dimensão NPS\*'),
-            (r'\*Problemas Identificados por Dimensão NPS\*', r'\*Padrões Comportamentais dos Analistas\*'),
-            (r'\*Padrões Comportamentais dos Analistas\*', r'\*Comentários NPS vs Conversas\*'),
-            (r'\*Comentários NPS vs Conversas\*', r'\*Recomendações de Melhoria\*'),
-            (r'\*Recomendações de Melhoria\*', r'\*Casos Críticos\*'),
-            (r'\*Casos Críticos\*', r'$')  # Até o final do texto
+            (r'\*{1,2}Resumo Geral\*{1,2}', r'\*{1,2}Problemas Identificados por Dimensão NPS\*{1,2}'),
+            (r'\*{1,2}Problemas Identificados por Dimensão NPS\*{1,2}', r'\*{1,2}Padrões Comportamentais dos Analistas\*{1,2}'),
+            (r'\*{1,2}Padrões Comportamentais dos Analistas\*{1,2}', r'\*{1,2}Comentários NPS vs Conversas\*{1,2}'),
+            (r'\*{1,2}Comentários NPS vs Conversas\*{1,2}', r'\*{1,2}Recomendações de Melhoria\*{1,2}'),
+            (r'\*{1,2}Recomendações de Melhoria\*{1,2}', r'\*{1,2}Casos Críticos\*{1,2}'),
+            (r'\*{1,2}Casos Críticos\*{1,2}', r'$')  # Até o final do texto
         ]
         
         chaves_secoes = list(secoes.keys())
@@ -801,14 +853,14 @@ AGORA ANALISE OS DADOS ABAIXO:
                     continue  # Volta para o início do loop de tentativas
                 
                 # Para compatibilidade com o banco de dados existente
-                request_id = f"gemini-nps-{int(current_time.timestamp())}"
+                request_id = str(uuid.uuid4())
                 model_name = config.GEMINI_MODEL
                 
                 # Estimativas de tokens (Gemini não fornece contagem exata como OpenAI)
                 token_prompt = len(prompt_mensagem.split()) * 1.3  # Estimativa
                 token_completion = len(resposta_conteudo.split()) * 1.3  # Estimativa
                 
-                time.sleep(2)  # Delay menor que OpenAI
+                time.sleep(config.ANALISE_DELAY_TENTATIVA)
 
                 # Preparar conteúdo markdown
                 conteudo_markdown = f"# Análise de NPS - {data_inicial} a {data_fim}\n\n"
@@ -1308,7 +1360,7 @@ AGORA ANALISE OS DADOS ABAIXO:
                 
                 # Log final do status da extração
                 if secoes_validas < 4:
-                    logger.warning(f"⚠️  ATENÇÃO: Salvando análise com apenas {secoes_validas}/6 seções extraídas após {tentativa + 1} tentativas")
+                    logger.error(f"❌ ATENÇÃO: Salvando análise com apenas {secoes_validas}/6 seções extraídas após {tentativa + 1} tentativas")
                 else:
                     logger.info(f"✅ Análise com {secoes_validas}/6 seções extraídas com sucesso")
                 
@@ -1416,19 +1468,8 @@ AGORA ANALISE OS DADOS ABAIXO:
                         except Exception as rollback_error:
                             logger.warning(f"Erro ao fazer rollback: {str(rollback_error)}")
 
-                try:
-                    conn.close()
-                    engine.dispose()
-                    logger.debug("Conexões fechadas com sucesso")
-                except Exception as close_error:
-                    logger.error(f"Erro ao fechar conexões: {str(close_error)}")
-                
-                    return resposta_conteudo
-                    
-                else:
-                    logger.warning(f"Tentativa {tentativa + 1}: Resposta vazia do Gemini")
-                    time.sleep(5)
-            
+                return resposta_conteudo
+
             except genai.types.generation_types.StopCandidateException as e:
                 logger.warning(f"Tentativa {tentativa + 1}: Conteúdo bloqueado por filtros de segurança")
                 time.sleep(config.ANALISE_DELAY_TENTATIVA)
@@ -1504,57 +1545,77 @@ def analise_comparativa_nps(analistas_criticos_dados, periodo_dias=30):
         
         # Buscar dados gerais de NPS para comparação
         query_comparativa = f"""
-        SELECT 
+        SELECT
             "Analista",
-            AVG(CAST("Velocidade" AS FLOAT)) as media_velocidade,
-            AVG(CAST("Solução" AS FLOAT)) as media_solucao,
-            AVG(CAST("Relacionamento" AS FLOAT)) as media_relacionamento,
+            ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Velocidade" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Velocidade" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Velocidade" IS NOT NULL THEN 1 END), 0), 2) AS nps_velocidade,
+            ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Solução" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Solução" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Solução" IS NOT NULL THEN 1 END), 0), 2) AS nps_solucao,
+            ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Relacionamento" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Relacionamento" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Relacionamento" IS NOT NULL THEN 1 END), 0), 2) AS nps_relacionamento,
             COUNT(*) as total_avaliacoes
         FROM kinghost_octadesk.vw_report_diario
         WHERE "Data Encerramento" >= (CURRENT_DATE - INTERVAL '{periodo_dias} days')
-        AND "Velocidade" IS NOT NULL
+        AND ("Velocidade" IS NOT NULL OR "Solução" IS NOT NULL OR "Relacionamento" IS NOT NULL)
         GROUP BY "Analista"
         HAVING COUNT(*) >= 3
-        ORDER BY 
-            (AVG(CAST("Velocidade" AS FLOAT)) + AVG(CAST("Solução" AS FLOAT)) + AVG(CAST("Relacionamento" AS FLOAT))) / 3 DESC
+        ORDER BY
+            (COALESCE(ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Velocidade" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Velocidade" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Velocidade" IS NOT NULL THEN 1 END), 0), 2), 0) +
+            COALESCE(ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Solução" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Solução" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Solução" IS NOT NULL THEN 1 END), 0), 2), 0) +
+            COALESCE(ROUND(100.0 * (
+                SUM(CASE WHEN CAST("Relacionamento" AS INT) >= 9 THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN CAST("Relacionamento" AS INT) <= 6 THEN 1 ELSE 0 END)
+            ) / NULLIF(COUNT(CASE WHEN "Relacionamento" IS NOT NULL THEN 1 END), 0), 2), 0)) / 3 DESC
         """
         
         df_geral = pd.read_sql(query_comparativa, conn)
         
         if not df_geral.empty:
-            # Calcular médias gerais
-            media_geral_velocidade = df_geral['media_velocidade'].mean()
-            media_geral_solucao = df_geral['media_solucao'].mean()
-            media_geral_relacionamento = df_geral['media_relacionamento'].mean()
-            
+            # Calcular NPS médio geral da empresa (ignora nulos)
+            nps_geral_velocidade = df_geral['nps_velocidade'].mean()
+            nps_geral_solucao = df_geral['nps_solucao'].mean()
+            nps_geral_relacionamento = df_geral['nps_relacionamento'].mean()
+
             # Preparar relatório comparativo
             relatorio = f"""
-            
-*Análise Comparativa - NPS Críticos vs Média Geral*
+
+*Análise Comparativa - NPS Críticos vs NPS Geral*
 
 *Período de Comparação:* Últimos {periodo_dias} dias
 
-*Média Geral da Empresa:*
-• Velocidade: {media_geral_velocidade:.1f}
-• Solução: {media_geral_solucao:.1f}  
-• Relacionamento: {media_geral_relacionamento:.1f}
+*NPS Médio da Empresa:*
+• Velocidade: {nps_geral_velocidade:.1f}
+• Solução: {nps_geral_solucao:.1f}
+• Relacionamento: {nps_geral_relacionamento:.1f}
 
-*Analistas Críticos vs Média:*
+*Analistas Críticos vs NPS Geral:*
 """
-            
+
             for analista in analistas_criticos_dados.index:
                 if analista in df_geral['Analista'].values:
                     dados_analista = df_geral[df_geral['Analista'] == analista].iloc[0]
-                    
-                    diff_vel = dados_analista['media_velocidade'] - media_geral_velocidade
-                    diff_sol = dados_analista['media_solucao'] - media_geral_solucao
-                    diff_rel = dados_analista['media_relacionamento'] - media_geral_relacionamento
-                    
+
+                    diff_vel = dados_analista['nps_velocidade'] - nps_geral_velocidade
+                    diff_sol = dados_analista['nps_solucao'] - nps_geral_solucao
+                    diff_rel = dados_analista['nps_relacionamento'] - nps_geral_relacionamento
+
                     relatorio += f"""
 • *{analista}*:
-  - Velocidade: {dados_analista['media_velocidade']:.1f} ({diff_vel:+.1f} vs média)
-  - Solução: {dados_analista['media_solucao']:.1f} ({diff_sol:+.1f} vs média)
-  - Relacionamento: {dados_analista['media_relacionamento']:.1f} ({diff_rel:+.1f} vs média)
+  - Velocidade: {dados_analista['nps_velocidade']:.1f} ({diff_vel:+.1f} vs NPS geral)
+  - Solução: {dados_analista['nps_solucao']:.1f} ({diff_sol:+.1f} vs NPS geral)
+  - Relacionamento: {dados_analista['nps_relacionamento']:.1f} ({diff_rel:+.1f} vs NPS geral)
 """
             
             return relatorio

@@ -53,6 +53,7 @@ NPS_PERIODO_TIPO=mes_anterior
 ANALISE_MAX_DATASET_SIZE=12000
 ANALISE_MAX_TENTATIVAS=5
 ANALISE_DELAY_TENTATIVA=5
+ANALISE_RETENTION_DAYS=90
 LOG_FILE_LEVEL=DEBUG
 LOG_CONSOLE_LEVEL=INFO
 LOG_MAX_SIZE_MB=10
@@ -97,8 +98,9 @@ python verifica_nps.py
 
 - `logs/nps_verificacao.log` — log detalhado do processo
 - `atendimentos_nps_baixo.txt` — conversas e atendimento dos analistas críticos
-- `resposta_nps_gemini.md` — relatório da IA em markdown
-- registros nas tabelas de análise no banco
+- `analistas_criticos/{analista}.html` — relatório HTML individual por analista
+- `analistas_criticos/index.html` — índice de todos os analistas analisados
+- registros nas tabelas de análise no banco (`rawdata_analise_nps_analistas` e `analise_nps_analistas`)
 
 ## 7. Solução de problemas
 
@@ -124,6 +126,7 @@ pip install -r requirements.txt
 
 - não versionar o arquivo `.env`;
 - manter as chaves de API protegidas;
-- revisar logs após cada execução;
+- revisar logs após cada execução — erros na extração das 6 seções da IA aparecem como `ERROR`;
 - usar o período configurado com atenção para não gerar relatórios incompletos;
+- ajustar `ANALISE_RETENTION_DAYS` conforme a política de retenção da empresa (padrão: 90 dias);
 - manter o `requirements.txt` atualizado quando adicionar dependências.

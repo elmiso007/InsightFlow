@@ -328,12 +328,26 @@ NPS_META=75.0              # Altere para sua meta
 NPS_MIN_AVALIACOES=5       # Mínimo de avaliações
 ```
 
-### Ajustar Tamanho de Análise
+### Ajustar Tamanho de Análise e Retenção
 
 ```env
-ANALISE_MAX_DATASET_SIZE=15000  # Aumentar para mais contexto
-ANALISE_MAX_TENTATIVAS=10       # Mais tentativas
+ANALISE_MAX_DATASET_SIZE=15000  # Aumentar para mais contexto enviado ao Gemini
+ANALISE_MAX_TENTATIVAS=10       # Mais tentativas em caso de falha da API
+ANALISE_RETENTION_DAYS=180      # Aumentar para manter histórico mais longo no rawdata
 ```
+
+### Processamento Paralelo e Limite de Atendimentos
+
+```env
+# Quantos analistas processar em paralelo (depende do plano da API Gemini)
+# Free tier: use 1 | Paid tier: até 4 ou mais
+PARALELO_MAX_WORKERS=4
+
+# Máximo de atendimentos buscados por analista (limita o tamanho do prompt)
+ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA=30
+```
+
+> **Idempotência:** se a execução for interrompida no meio, basta rodar novamente. Analistas já analisados no banco são detectados e pulados automaticamente — o ciclo continua do ponto exato onde parou.
 
 ### Mudar Nível de Logging
 
@@ -371,6 +385,6 @@ Em caso de problemas:
 
 ---
 
-**Última Atualização:** Outubro 2025  
-**Versão:** 2.0 (com suporte a .env)
+**Última Atualização:** Julho 2026  
+**Versão:** 2.1
 

@@ -99,6 +99,8 @@ class Config:
     ANALISE_MAX_DATASET_SIZE = int(os.getenv('ANALISE_MAX_DATASET_SIZE', '12000'))
     ANALISE_MAX_TENTATIVAS = int(os.getenv('ANALISE_MAX_TENTATIVAS', '5'))
     ANALISE_DELAY_TENTATIVA = int(os.getenv('ANALISE_DELAY_TENTATIVA', '5'))
+    ANALISE_RETENTION_DAYS = int(os.getenv('ANALISE_RETENTION_DAYS', '90'))
+    ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA = int(os.getenv('ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA', '30'))
     
     # Processamento Paralelo
     # Para plano FREE: use 1 (sequencial) ou 2 (semi-paralelo)
@@ -171,6 +173,7 @@ class Config:
         
         print("\n🔍 Análise IA:")
         print(f"  Max Dataset Size: {cls.ANALISE_MAX_DATASET_SIZE} chars")
+        print(f"  Max Atendimentos por Analista: {cls.ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA}")
         print(f"  Max Tentativas: {cls.ANALISE_MAX_TENTATIVAS}")
         print(f"  Delay: {cls.ANALISE_DELAY_TENTATIVA}s")
         

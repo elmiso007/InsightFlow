@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, timedelta
 import locale
 from sqlalchemy import text
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import holidays
 import uuid
@@ -15,9 +16,8 @@ from pathlib import Path
 import psycopg2
 from config import config
 from conecta_banco import *
-from analise_ia import analise_ia_nps, analise_comparativa_nps
-from get_atendimentos_nps import get_atendimentos_nps, get_estatisticas_analistas
-# from processamento_paralelo import processar_com_retry_paralelo  # Desabilitado - usando loop sequencial
+from analise_ia import analise_ia_nps, analise_comparativa_nps, limpar_rawdata_antigos, analise_ja_existe
+from get_atendimentos_nps import get_atendimentos_analista_individual, get_estatisticas_analistas
 
 sql_path = Path(__file__).parent
 
@@ -125,6 +125,57 @@ def notifica(mensagem, analistas_criticos, total_analistas):
 
 def gerar_chave_unica():
     return str(uuid.uuid4())
+
+def processar_analista_individual(analista_nome, comentarios_criticos, data_inicio, data_fim, setores_analistas, idx, total):
+    """Thread-safe: busca dados de UM analista e executa análise de IA."""
+    logger.info(f"[{idx}/{total}] Iniciando {analista_nome}...")
+
+    comentarios_analista = comentarios_criticos[
+        comentarios_criticos['Analista'] == analista_nome
+    ].copy()
+
+    if comentarios_analista.empty:
+        logger.warning(f"[{idx}/{total}] {analista_nome}: nenhum comentário NPS")
+        return analista_nome, None, []
+
+    if analise_ja_existe(analista_nome, data_inicio, data_fim):
+        logger.info(f"[{idx}/{total}] ⏭ {analista_nome}: análise já existe para {data_inicio}~{data_fim}, pulando")
+        return analista_nome, "PULADO", []
+
+    atendimentos_txt, protocolos_analista = get_atendimentos_analista_individual(
+        analista_nome, data_inicio, data_fim
+    )
+
+    texto_analista = f"=== ANÁLISE ESPECÍFICA: {analista_nome.upper()} ===\n"
+    texto_analista += f"Período: {data_inicio} até {data_fim}\n"
+    texto_analista += f"Total de comentários NPS: {len(comentarios_analista)}\n\n"
+
+    for _, row in comentarios_analista.iterrows():
+        texto_analista += f"Protocolo: {row['Protocolo']}\n"
+        texto_analista += f"Notas NPS: Velocidade={row['Velocidade']}, Solução={row['Solução']}, Relacionamento={row['Relacionamento']}\n"
+        texto_analista += f"Comentário: {row['Comentários']}\n"
+        texto_analista += "-" * 80 + "\n"
+
+    if atendimentos_txt:
+        texto_analista += "\n=== CONVERSAS COMPLETAS ===\n"
+        texto_analista += "".join(atendimentos_txt[:5000])
+
+    setor = setores_analistas.get(analista_nome, 'Não identificado')
+    if not protocolos_analista:
+        protocolos_analista = list(comentarios_analista['Protocolo'].dropna().unique())
+
+    analise = analise_ia_nps(
+        texto_analista, data_inicio, data_fim,
+        [analista_nome], protocolos_analista, setor
+    )
+
+    if analise and not analise.startswith("Erro:"):
+        logger.info(f"[{idx}/{total}] ✓ {analista_nome} concluído")
+    else:
+        logger.error(f"[{idx}/{total}] ✗ {analista_nome} falhou")
+
+    return analista_nome, analise, protocolos_analista
+
 
 def extrair_setores_analistas(df):
     """Extrai os setores dos analistas do DataFrame"""
@@ -310,124 +361,69 @@ try:
         # Analisar comentários dos analistas críticos
         comentarios_criticos = analisar_comentarios_negativos(df, analistas_criticos)
         
-        # Buscar atendimentos dos analistas críticos
-        logger.info("=== BUSCANDO ATENDIMENTOS DOS ANALISTAS CRÍTICOS ===")
-        atendimentos_txt, protocolos_analistas = get_atendimentos_nps(analistas_criticos, data_inicio_analise, data_fim_analise)
-        
-        # Obter estatísticas dos analistas
+        # Obter estatísticas dos analistas (query de agregação — permanece em bulk)
         stats_analistas = get_estatisticas_analistas(analistas_criticos, data_inicio_analise, data_fim_analise)
-        
+
         if not stats_analistas.empty:
             logger.info(f"=== ESTATÍSTICAS DOS ANALISTAS CRÍTICOS === Total: {len(stats_analistas)} analistas processados")
-        
+
         if not comentarios_criticos.empty:
             logger.info("=== COMENTÁRIOS DOS ANALISTAS COM NPS BAIXO ===")
             logger.info(f"Encontrados {len(comentarios_criticos)} comentários para análise")
-            
-            # Preparar dados para análise de IA
-            comentarios_texto = ""
-            for _, row in comentarios_criticos.iterrows():
-                comentarios_texto += f"\nAnalista: {row['Analista']}\n"
-                comentarios_texto += f"Protocolo: {row['Protocolo']}\n"
-                comentarios_texto += f"Notas - Velocidade: {row['Velocidade']}, Solução: {row['Solução']}, Relacionamento: {row['Relacionamento']}\n"
-                comentarios_texto += f"Comentário: {row['Comentários']}\n"
-                comentarios_texto += f"Data: {row['Data Encerramento']}\n"
-                comentarios_texto += "-" * 50 + "\n"
-            
-            logger.info("=== INICIANDO ANÁLISE POR ANALISTA (SEQUENCIAL) ===")
-            
-            # Processar analistas sequencialmente
-            content = ""
-            fila_processamento = list(analistas_criticos.index)
-            total_analistas = len(fila_processamento)
-            analistas_processados = 0
-            
+
+            fila_analistas = list(analistas_criticos.index)
+            total_analistas = len(fila_analistas)
+            logger.info(f"=== INICIANDO ANÁLISE POR ANALISTA ({config.PARALELO_MAX_WORKERS} worker(s) paralelo(s)) ===")
             logger.info(f"Total de analistas na fila: {total_analistas}")
-            
-            while fila_processamento:
-                analista_nome = fila_processamento.pop(0)
-                analistas_processados += 1
-                
-                logger.info(f"Processando analista {analistas_processados}/{total_analistas}: {analista_nome}")
-                
-                # Filtrar comentários do analista atual
-                comentarios_analista = comentarios_criticos[
-                    comentarios_criticos['Analista'] == analista_nome
-                ].copy()
-                
-                if comentarios_analista.empty:
-                    logger.warning(f"Nenhum comentário encontrado para {analista_nome}")
-                    continue
-                
-                # Preparar texto para análise individual
-                texto_analista = f"=== ANÁLISE ESPECÍFICA: {analista_nome.upper()} ===\n"
-                texto_analista += f"Período: {data_inicio_analise} até {data_fim_analise}\n"
-                texto_analista += f"Total de comentários NPS: {len(comentarios_analista)}\n\n"
-                
-                # Adicionar comentários e notas
-                for _, row in comentarios_analista.iterrows():
-                    protocolo = row['Protocolo']
-                    velocidade = row['Velocidade']
-                    solucao = row['Solução']
-                    relacionamento = row['Relacionamento']
-                    comentario = row['Comentários']
-                    
-                    texto_analista += f"Protocolo: {protocolo}\n"
-                    texto_analista += f"Notas NPS: Velocidade={velocidade}, Solução={solucao}, Relacionamento={relacionamento}\n"
-                    texto_analista += f"Comentário: {comentario}\n"
-                    texto_analista += "-" * 80 + "\n"
-                
-                # Adicionar conversas completas se disponíveis
-                if atendimentos_txt:
-                    conversas_analista = []
-                    capturando_analista = False
-                    
-                    for linha in atendimentos_txt:
-                        if f"👤 ANALISTA: {analista_nome.upper()}" in linha:
-                            capturando_analista = True
-                            conversas_analista.append(linha)
-                        elif capturando_analista and ("👤 ANALISTA:" in linha or "✅ FIM DOS ATENDIMENTOS" in linha):
-                            capturando_analista = False
-                            break
-                        elif capturando_analista:
-                            conversas_analista.append(linha)
-                    
-                    if conversas_analista:
-                        texto_analista += "\n=== CONVERSAS COMPLETAS ===\n"
-                        texto_analista += "".join(conversas_analista[:5000])  # Limitar tamanho
-                
-                # Limitar tamanho total do texto
-                if len(texto_analista) > 20000:
-                    texto_analista = texto_analista[:20000] + "\n[TEXTO TRUNCADO PARA ANÁLISE]"
-                
-                # Buscar setor do analista
-                setor_analista = setores_analistas.get(analista_nome, 'Não identificado')
-                
-                # Buscar protocolos do analista
-                protocolos_analista = list(comentarios_analista['Protocolo'].unique())
-                
-                # Chamar análise de IA
-                logger.info(f"Analisando {analista_nome} com IA ({len(comentarios_analista)} comentários)...")
-                analise_individual = analise_ia_nps(
-                    texto_analista, 
-                    data_inicio_analise, 
-                    data_fim_analise,
-                    [analista_nome],
-                    protocolos_analista,
-                    setor_analista
-                )
-                
-                if analise_individual and not analise_individual.startswith("Erro:"):
+
+            content = ""
+            resultados_analistas = {}
+            protocolos_analistas = []
+            analistas_processados = 0
+
+            with ThreadPoolExecutor(max_workers=config.PARALELO_MAX_WORKERS) as executor:
+                futures = {
+                    executor.submit(
+                        processar_analista_individual,
+                        nome,
+                        comentarios_criticos,
+                        data_inicio_analise,
+                        data_fim_analise,
+                        setores_analistas,
+                        idx + 1,
+                        total_analistas
+                    ): nome
+                    for idx, nome in enumerate(fila_analistas)
+                }
+
+                for future in as_completed(futures):
+                    nome = futures[future]
+                    try:
+                        nome_ret, analise, protocolos_ret = future.result()
+                        analistas_processados += 1
+                        protocolos_analistas.extend(protocolos_ret)
+                        if analise == "PULADO":
+                            pass  # análise existente, nenhuma ação necessária
+                        elif analise and not analise.startswith("Erro:"):
+                            resultados_analistas[nome_ret] = analise
+                        else:
+                            logger.error(f"✗ Falha na análise de {nome_ret}")
+                    except Exception as e:
+                        analistas_processados += 1
+                        logger.error(f"Erro no processamento de {nome}: {str(e)}")
+
+            # Montar content na ordem original dos analistas
+            for nome in fila_analistas:
+                if nome in resultados_analistas:
+                    analise = resultados_analistas[nome]
+                    comentarios_analista = comentarios_criticos[comentarios_criticos['Analista'] == nome]
                     content += f"\n{'='*80}\n"
-                    content += f"ANÁLISE INDIVIDUAL - {analista_nome.upper()}\n"
+                    content += f"ANÁLISE INDIVIDUAL - {nome.upper()}\n"
                     content += f"Data: {data_inicio_analise} a {data_fim_analise}\n"
                     content += f"Comentários analisados: {len(comentarios_analista)}\n"
                     content += f"{'='*80}\n"
-                    content += analise_individual + "\n\n"
-                    logger.info(f"✓ Análise de {analista_nome} concluída com sucesso")
-                else:
-                    logger.error(f"✗ Falha na análise de {analista_nome}: {analise_individual}")
-            
+                    content += analise + "\n\n"
+
             logger.info(f"=== PROCESSAMENTO CONCLUÍDO ===")
             logger.info(f"Total de analistas processados: {analistas_processados}/{total_analistas}")
             
@@ -514,33 +510,7 @@ try:
     
     # SALVAR DADOS DA VERIFICAÇÃO
     
-    chave = gerar_chave_unica()
-    
-    # Criar DataFrame para salvar o log da verificação
-    df_log = pd.DataFrame({
-        'id': [chave],
-        'data_verificacao': [current_time],
-        'total_avaliacoes': [len(df)],
-        'total_analistas': [len(df_nps_analistas)],
-        'analistas_abaixo_meta': [len(analistas_criticos)],
-        'notificou': [notificou],
-        'dia_util': [dia_util]
-    })
-    
-    logger.info('Salvando log da verificação no banco...')
-    
-    # Salvar na tabela de log
-    tabela_log = 'log_verificacao_nps'
-    schema = 'kinghost_octadesk'
-    
-    try:
-        # Log da verificação temporariamente desabilitado (tabela não existe ainda)
-        # Focando no salvamento principal da análise de IA que é o mais importante
-        logger.info("✓ Log da verificação mantido apenas em arquivo (tabela não existe no banco ainda)")
-    except Exception as log_error:
-        logger.error(f"Erro ao salvar log no banco: {str(log_error)}")
-        logger.info("✓ Log mantido apenas em arquivo")
-    
+    limpar_rawdata_antigos(conn)
     logger.info("✓ Verificação de NPS concluída com sucesso!")
     
 except psycopg2.OperationalError as e:
