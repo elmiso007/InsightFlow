@@ -38,7 +38,9 @@ $$
 
 - os resultados são escritos em tabelas de análise no banco;
 - os relatórios gerados servem como auditoria e histórico de acompanhamento;
-- o processo deve manter o histórico para comparação entre ciclos.
+- o processo deve manter o histórico para comparação entre ciclos;
+- registros na tabela `rawdata_analise_nps_analistas` mais antigos que `ANALISE_RETENTION_DAYS` (padrão 90 dias) são removidos automaticamente a cada execução;
+- a tabela `analise_nps_analistas` (dados processados) não é afetada pela limpeza automática.
 
 ## 6. Regras de operação
 

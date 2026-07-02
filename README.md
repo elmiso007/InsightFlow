@@ -32,6 +32,9 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 - ✅ **Análise de IA (Google Gemini)** de conversas e comentários
 - ✅ **Anonimização de Dados Sensíveis** (CPF, email, senhas, etc.)
 - ✅ **Análise Individual por Analista** com insights específicos
+- ✅ **Processamento Paralelo** — até N analistas processados simultaneamente (configurável)
+- ✅ **Idempotência** — re-execução segura: analistas já analisados são pulados automaticamente
+- ✅ **Deduplicação de Conversas** — protocolos duplicados removidos antes da análise
 - ✅ **Relatórios Estruturados** em Markdown e TXT
 - ✅ **Logging Profissional** com rotação automática
 - ✅ **Configuração via .env** (seguro e flexível)
@@ -179,9 +182,14 @@ NPS_MIN_AVALIACOES=3            # Mínimo de avaliações
 NPS_PERIODO_TIPO=mes_anterior   # ou ultimos_30_dias
 
 # Análise IA
-ANALISE_MAX_DATASET_SIZE=12000  # Tamanho máximo do contexto
-ANALISE_MAX_TENTATIVAS=5        # Tentativas em caso de erro
-ANALISE_DELAY_TENTATIVA=5       # Delay entre tentativas (seg)
+ANALISE_MAX_DATASET_SIZE=12000              # Tamanho máximo do contexto enviado ao Gemini
+ANALISE_MAX_TENTATIVAS=5                    # Tentativas em caso de erro
+ANALISE_DELAY_TENTATIVA=5                   # Delay entre tentativas (seg)
+ANALISE_RETENTION_DAYS=90                   # Dias de retenção do rawdata
+ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA=30    # Limite de conversas por analista (controla tamanho do prompt)
+
+# Processamento paralelo
+PARALELO_MAX_WORKERS=4          # Analistas processados simultaneamente (free tier: 1, paid: até 4+)
 
 # Logging
 LOG_FILE_LEVEL=DEBUG            # DEBUG, INFO, WARNING, ERROR
@@ -213,12 +221,13 @@ Mostra todas as configurações e valida se estão corretas.
    └─> Analistas com NPS < 70 (configurável)
    └─> Mínimo de 3 avaliações (configurável)
 
-3. BUSCA DE CONVERSAS
-   └─> Obtém conversas completas dos críticos
+3. BUSCA DE CONVERSAS (por analista, em paralelo)
+   └─> Query individual por analista com LIMIT configurável
+   └─> Deduplicação de protocolos duplicados
    └─> Anonimiza dados sensíveis (CPF, email, etc.)
-   └─> Gera arquivo: atendimentos_nps_baixo.txt
 
-4. ANÁLISE DE IA
+4. ANÁLISE DE IA (ThreadPoolExecutor — N workers simultâneos)
+   └─> Verifica idempotência: pula analistas já analisados no período
    └─> Envia para Google Gemini
    └─> Extrai 6 seções estruturadas:
        • Resumo Geral
@@ -230,14 +239,17 @@ Mostra todas as configurações e valida se estão corretas.
 
 5. SALVAMENTO
    └─> Banco: rawdata_analise_nps_analistas
-   └─> Markdown: resposta_nps_gemini.md
+   └─> HTML: analistas_criticos/{analista}.html
    └─> Logs: logs/nps_verificacao.log
 
-6. PROCESSAMENTO FINAL
+6. LIMPEZA AUTOMÁTICA
+   └─> Remove registros do rawdata mais antigos que ANALISE_RETENTION_DAYS
+
+7. PROCESSAMENTO FINAL
    └─> SQL: insereDadosAnaliseNPS.sql
    └─> Copia para: analise_nps_analistas (tabela final)
 
-7. NOTIFICAÇÃO
+8. NOTIFICAÇÃO
    └─> Alertas ou boas notícias
 ```
 
@@ -476,5 +488,5 @@ python verifica_nps.py   # Executa análise
 
 ---
 
-*Última atualização: Outubro 2025 | Versão 2.0*
+*Última atualização: Julho 2026 | Versão 2.1*
 
