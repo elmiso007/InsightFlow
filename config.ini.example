@@ -1,0 +1,70 @@
+[database]
+# PostgreSQL — usado por scripts como MRP para PRB/locapredict (main.py: server→host, database→dbname, uid→user, pwd→password).
+# Ajuste a porta se o servidor não usar o padrão 5432.
+server = SEU_HOST
+port = 5432
+database = SEU_BANCO
+uid = SEU_USUARIO
+pwd = SUA_SENHA
+
+[slack]
+# LocaPredict — WebClient + chat_postMessage (C... canal, U... DM). Preferir SLACK_BOT_TOKEN no ambiente em produção.
+bot_token = xoxb-SEU-TOKEN-SLACK
+channels = SEU_CANAL_ID
+notify_min_score = 0.7
+
+[gemini]
+# Locaweb/Monitoramento/PromptGemini.py — chave da API Google Gemini. Preferir GEMINI_API_KEY no ambiente em produção.
+# IMPORTANTE: use uma chave paga para processar 34+ analistas sem atingir cota diária.
+api_key = SUA_CHAVE_GEMINI
+model = gemini-2.5-flash
+
+[openai]
+# Locaweb/report_semanal/openai.py — chave da API OpenAI usada nas análises semanais. Preferir OPENAI_API_KEY no ambiente em produção.
+api_key = sk-proj-SUA_CHAVE_OPENAI
+model = gpt-4o-mini
+
+[report_semanal]
+# Locaweb/report_semanal/app.py — destinatarios, canal Slack e schemas usados no relatorio.
+# Listas separadas por virgula. Schemas sao os nomes das views/tabelas no Postgres.
+destinatarios_email = usuario@empresa.com.br, outro@empresa.com.br
+destinatarios_bcc = bcc@empresa.com.br
+slack_channel = SEU_CANAL_ID
+schema_octadesk = lw_octadesk
+schema_servicenow = lwsa
+
+[customer_health_guardian]
+habilitado = true
+meses_janela = 6
+minimo_incidentes = 3
+gravar_snapshots = true
+alertas_slack = true
+apenas_incidentes_abertos = false
+max_linhas_slack = 25
+
+[gmail]
+EMAIL_ACCOUNT = seu_email@gmail.com
+EMAIL_PASSWORD = xxxx xxxx xxxx xxxx
+IMAP_SERVER = imap.gmail.com
+
+[service_now]
+tipo = Basic Auth
+username = seu_usuario_servicenow
+pwd = SUA_SENHA_SERVICENOW
+instance = SEU_INSTANCE
+pwd_old =
+instance_old =
+timeout = 90
+max_retries = 3
+
+[tray]
+DDL_URL = https://SEU_SUBDOMINIO.api001.octadesk.services
+TOKEN = SEU_TOKEN_TRAY
+# true = valida certificado SSL; false = necessário em alguns ambientes com proxy/cert interno
+verify_ssl = false
+
+[cplug]
+DDL_URL = https://SEU_SUBDOMINIO.api004.octadesk.services
+TOKEN = SEU_TOKEN_CPLUG
+# true = valida certificado SSL; false = necessário em alguns ambientes com proxy/cert interno
+verify_ssl = false

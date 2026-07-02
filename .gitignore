@@ -21,6 +21,11 @@ token.json
 *.p12
 # Lista de credenciais antigas consumida por tools/limpar_historico.ps1
 tools/replacements.txt
+# Arquivo temporário de mapeamento de credenciais reais → placeholders
+remove-secrets.txt
+
+# --- Outputs de runtime (não versionar) ---
+output/
 # Backups gerados pelo script de limpeza de histórico
 .git.backup-*/
 

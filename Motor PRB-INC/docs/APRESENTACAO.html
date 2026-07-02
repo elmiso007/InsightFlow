@@ -185,384 +185,562 @@ hr { display: none; }
 </head>
 <body>
 <div class="slide slide-capa">
-<h1>Motor Prescritivo PRB</h1>
-<h3>Antecipação de problemas via análise semântica de incidentes</h3>
-<p><strong>Apresentação executiva</strong> · Maio/2026</p>
-<p><strong>Audiência:</strong> Jéssica, Victor, Bruno + Coordenação</p>
+<h1>Motor PRB-INC</h1>
+<h3>O vigia automático que enxerga o que ninguém vê</h3>
+<p><strong>Apresentação executiva</strong> · Junho/2026</p>
+<p><strong>Audiência:</strong> Liderança, Coordenação e Change Team</p>
+<p><strong>Linguagem:</strong> direta, sem jargão técnico</p>
 </div>
 <div class="slide">
-<h2>O problema (antes do motor)</h2>
-<p><strong>Cenário operacional típico:</strong></p>
-<ul>
-<li>Analista A pega INC: "VPS-01 não pinga" → reinicia → fecha em 30 min.</li>
-<li>8h depois, Analista B (plantão noite): mesma INC, mesmo servidor → reinicia → fecha.</li>
-<li>36h depois, Analista C: idem.</li>
-<li><strong>Sábado, madrugada:</strong> servidor cai de vez. Crise P1.</li>
-</ul>
-<p><strong>Cada analista tratou um evento isolado.</strong> Ninguém viu o padrão.</p>
-<p><strong>Custo:</strong></p>
-<ul>
-<li>🔥 Crise inevitável.</li>
-<li>⏰ Tempo desperdiçado em ações repetitivas.</li>
-<li>📉 Cliente impactado várias vezes antes da resolução real.</li>
-</ul>
+<h2>Em uma frase</h2>
+<blockquote>*O Motor PRB-INC é um robô que lê o tempo todo as reclamações dos</blockquote>
+<blockquote>clientes e os chamados internos, percebe quando várias delas falam</blockquote>
+<blockquote>da mesma coisa, e avisa o time antes do problema virar uma crise.*</blockquote>
+<p>Pense nele como um <strong>vigia 24h que nunca cansa</strong> e que consegue ler</p>
+<p>centenas de incidentes por dia, encontrar padrões que humanos</p>
+<p>demorariam horas para enxergar — e cutucar a gente no Slack quando</p>
+<p>algo cheira mal.</p>
 </div>
 <div class="slide">
-<h2>A solução em 1 minuto</h2>
-<p>A cada <strong>15 minutos</strong>, o motor:</p>
+<h2>O problema que ele resolve</h2>
+<h3>Antes do motor — um dia ruim típico</h3>
+<ul>
+<li>🕘 <strong>Terça, 10h:</strong> Analista A pega um chamado: *"servidor VPS-01</li>
+</ul>
+<p>não responde"*. Reinicia, fecha em 30 min.</p>
+<ul>
+<li>🕡 <strong>Terça, 18h:</strong> Outro analista, plantão da tarde, pega o **mesmo</li>
+</ul>
+<p>servidor** com problema parecido. Reinicia de novo. Fecha.</p>
+<ul>
+<li>🌙 <strong>Quarta, 02h:</strong> Plantão da madrugada — terceira vez. Reinicia,</li>
+</ul>
+<p>fecha.</p>
+<ul>
+<li>🔥 <strong>Sábado, 03h:</strong> Servidor cai de vez. Crise no Reclame Aqui.</li>
+</ul>
+<p>Cliente perdido.</p>
+<p><strong>O que aconteceu?</strong> Cada analista tratou um chamado isolado.</p>
+<p><strong>Ninguém viu o padrão.</strong> Esse é o erro que o motor evita.</p>
+</div>
+<div class="slide">
+<h2>O que o motor faz, no dia a dia</h2>
+<p>A cada <strong>1 hora</strong>, automaticamente:</p>
 <ol>
-<li>📥 Lê todas as INCs/chamados das últimas 24h (Postgres).</li>
-<li>🧩 <strong>Agrupa por similaridade semântica</strong> — INCs do "mesmo assunto" viram um cluster.</li>
-<li>📊 Calcula <strong>scores</strong> (criticidade, ineficiência do time).</li>
-<li>⚖️ Aplica a <strong>matriz oficial P1-P5</strong> automaticamente.</li>
-<li>💡 <strong>Sugere ação:</strong> abrir PRB / repriorizar PRB existente / monitorar.</li>
-<li>🌡️ <strong>Avalia saúde dos clientes recorrentes</strong> (≥3 INCs em 6 meses).</li>
-<li>📤 Notifica: <strong>Slack</strong> (críticos) + <strong>Dashboard</strong> (todos) + <strong>Postgres</strong> (histórico).</li>
+<li>📥 <strong>Lê tudo o que entrou</strong> — chamados do ServiceNow (sistema oficial</li>
 </ul>
-<p><strong>Resultado operacional:</strong> plantão recebe alerta proativo <strong>antes</strong> do problema escalar.</p>
+<p>de incidentes da Locaweb) e tickets do suporte ao cliente.</p>
+<ol>
+<li>🔍 <strong>Procura padrões</strong> — agrupa incidentes que falam da mesma coisa,</li>
+</ul>
+<p>mesmo que estejam escritos com palavras diferentes.</p>
+<ol>
+<li>🚦 <strong>Decide a urgência</strong> — aplica a régua oficial da Locaweb</li>
+</ul>
+<p>(P1 = crise, P2 = alta, P3 = média, P4/P5 = baixa) com base no que</p>
+<p>ele encontrou.</p>
+<ol>
+<li>💬 <strong>Sugere o que fazer</strong> — abrir uma ficha de problema (PRB), elevar</li>
+</ul>
+<p>a prioridade de uma ficha existente, ou só monitorar.</p>
+<ol>
+<li>🌡️ <strong>Vigia clientes ruidosos</strong> — quando um cliente abre 3 ou mais</li>
+</ul>
+<p>incidentes em 6 meses, ele avisa a coordenação.</p>
+<ol>
+<li>📤 <strong>Conta pra gente</strong> — pelo Slack (quando é crítico) e por um</li>
+</ul>
+<p>painel visual atualizado.</p>
 </div>
 <div class="slide">
-<h2>Como funciona — visão geral</h2>
-<pre><code>┌──────────────────────────────────────────────────────┐
-│  POSTGRES (lwsa.* + dynamics.* + kinghost.*)         │
-└──────────────────────┬───────────────────────────────┘
-                       ↓ (a cada 15 min)
-┌──────────────────────────────────────────────────────┐
-│  MOTOR PRB-INC                                       │
-│                                                      │
-│  ① Lê INCs + chamados + PRBs                         │
-│  ② Agrupa INCs similares (NLP)                       │
-│  ③ Calcula scores                                    │
-│  ④ Aplica matriz P1-P5                               │
-│  ⑤ Avalia Saúde do Cliente                           │
-│                                                      │
-└────────┬──────────────┬──────────────┬───────────────┘
-         ↓              ↓              ↓
-    ┌────────┐    ┌──────────┐    ┌─────────┐
-    │ Slack  │    │Dashboard │    │Postgres │
-    │(crítico)│   │  (JSON)  │    │(histórico)│
-    └────────┘    └──────────┘    └─────────┘</code></pre>
-</div>
-<div class="slide">
-<h2>Requisitos atendidos</h2>
-<p>Levantados na reunião original:</p>
+<h2>O que é "incidente" e "PRB"?</h2>
+<p>Dois termos que vão aparecer muito. Vamos descomplicar:</p>
 <table>
 <thead><tr>
-<th>Requisito</th>
-<th>Quem pediu</th>
-<th>Status</th>
+<th>Termo</th>
+<th>O que é, em linguagem simples</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Agrupar INCs por similaridade (não só por texto literal)</td>
-<td>Jéssica</td>
-<td>✅</td>
+<td><strong>Incidente (INC)</strong></td>
+<td>Um chamado de algo que está dando errado <strong>agora</strong>. <em>"Servidor caiu"</em>, <em>"meu painel não abre"</em>. Resolve-se reiniciando, restaurando, etc. — foco em <strong>voltar a funcionar</strong>.</td>
 </tr>
 <tr>
-<td>Detectar <strong>mesmo CI</strong> gerando INCs repetidas em dias diferentes</td>
-<td>Victor</td>
-<td>✅</td>
+<td><strong>PRB (Problema)</strong></td>
+<td>A <strong>causa raiz</strong> que está gerando vários incidentes. Se 5 INCs vêm do mesmo servidor caindo todo dia, abre-se 1 PRB para investigar o motivo de fundo. <strong>Resolve-se o problema, não só o sintoma.</strong></td>
 </tr>
 <tr>
-<td><strong>Sugerir repriorização</strong> de PRB existente (ex.: P3 → P2)</td>
-<td>Jéssica</td>
-<td>✅</td>
+<td><strong>Change Team</strong></td>
+<td>Time interdisciplinar da Locaweb que <strong>entrega a solução</strong> dos PRBs. Quando um PRB sai como "concluído", foi a Change Team que fez.</td>
 </tr>
 <tr>
-<td>Cruzar com <strong>volume de chamados</strong> Locaweb + Kinghost</td>
-<td>Jéssica</td>
-<td>✅</td>
-</tr>
-<tr>
-<td><strong>Saúde do Cliente</strong> — clientes com ≥3 INCs em 6 meses</td>
-<td>Emerson/Bruno</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>Slack para crítico + Dashboard tabulado</td>
-<td>Reunião</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>Antecipar com <strong>5 INCs P3 idênticas</strong></td>
-<td>Reunião</td>
-<td>✅ Gatilho proativo</td>
+<td><strong>OLA</strong></td>
+<td>Acordo de prazo interno entre times (ex.: "time A entrega para o time B em até 4h").</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Todos os 7 requisitos do levantamento original implementados.</strong></p>
+<blockquote>💡 <strong>Resumo:</strong> INC é o sintoma. PRB é a doença. Change Team é o</blockquote>
+<blockquote>médico que cura.</blockquote>
 </div>
 <div class="slide">
-<h2>Exemplo concreto — Alerta crítico</h2>
-<p><strong>O que o time recebe no Slack quando o motor detecta crise:</strong></p>
-<pre><code>🚨🆘 *Motor Prescritivo PRB — Alerta CRITICA*
-_Ação sugerida: *ABRIR_PRB* | Prioridade: *P1*_
-
-*Cluster:* checkout indisponivel contratacao
-*Produto:* CAL
-*Servidor/CI:* cal-frontend-03.locaweb.local
-*INCs no cluster:* 3
-*Score Criticidade:* 0.66 | *Ineficiência:* 0.38
-*Chamados (24h, produto):* 16
-*CIs recorrentes (15d):* cal-frontend-03.locaweb.local
-
-*Justificativas:*
-    • Contratação indisponível, sem solução de contorno total (P1).
-    • CI(s) com recorrência em 15 dias: cal-frontend-03.locaweb.local.
-    • 16 chamados no último dia para o produto CAL (impacto real).</code></pre>
-<p><strong>🆘 = abrir PRB novo. 🔧 = repriorizar PRB existente.</strong> Identificação visual em 1 segundo.</p>
+<h2>O motor olha por 3 ângulos diferentes</h2>
+<p>Hoje ele faz três trabalhos complementares:</p>
+<h3>1️⃣ Olha pra frente — <em>"o que pode dar problema?"</em></h3>
+<p>A cada 1 hora, lê todos os incidentes ativos e identifica padrões.</p>
+<p>Se 5 chamados parecidos surgem no mesmo servidor, ele avisa <strong>antes</strong></p>
+<p>de virar crise.</p>
+<h3>2️⃣ Olha pra trás — <em>"o que a gente entregou realmente funcionou?"</em></h3>
+<p>A cada 6 horas, pega os PRBs que a Change Team marcou como</p>
+<p>"concluídos" nos últimos 14 dias e checa: <strong>o problema voltou?</strong></p>
+<p>Se voltou (3+ incidentes novos no mesmo lugar), avisa que o fix</p>
+<p>não pegou de verdade.</p>
+<h3>3️⃣ Olha pra força-tarefa — <em>"como estão os 84 PRBs prioritários?"</em></h3>
+<p>A Change Team mantém uma lista de <strong>84 PRBs específicos</strong> que precisam</p>
+<p>acompanhamento dedicado. O motor materializa essa lista num painel</p>
+<p>sempre atualizado — quem ainda está aberto, quem foi resolvido, quem</p>
+<p>voltou a dar problema.</p>
 </div>
 <div class="slide">
-<h2>Saúde do Cliente — antes vs. depois</h2>
-<h3>Antes (manual)</h3>
-<p>Cliente liga no plantão noturno. Analista precisa:</p>
-<ol>
-<li>Abrir ServiceNow, buscar INCs do cliente, exportar histórico (~5 min).</li>
-<li>Abrir Dynamics, buscar chamados, exportar (~5 min).</li>
-<li>Intercalar manualmente por data num Excel (~5 min).</li>
+<h2>Como o motor "entende" os incidentes?</h2>
+<p>Sem entrar em detalhe técnico — o motor lê o texto livre de cada</p>
+<p>chamado e <strong>percebe similaridade semântica</strong>. Exemplo:</p>
+<pre><code>INC 1: &quot;Servidor caiu - kernel panic no VPS-01&quot;
+INC 2: &quot;VPS-01 não está respondendo, parece travado&quot;
+INC 3: &quot;Cliente reportando que servidor 01 fora do ar&quot;</code></pre>
+<p>Para um humano, os três parecem assuntos diferentes. **Para o motor,</p>
+<p>é o mesmo problema** — mesmo servidor, mesma natureza. Ele agrupa os</p>
+<p>três como <strong>um único caso</strong> e dá uma só recomendação.</p>
+<p>Isso é o que permite ele perceber padrões que escapam à leitura</p>
+<p>incidente-a-incidente.</p>
+</div>
+<div class="slide">
+<h2>Onde a informação chega para você</h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  Sistema de chamados (ServiceNow + suporte ao cliente)  │
+│                  Banco central da Locaweb               │
+└──────────────────────────┬──────────────────────────────┘
+                           │ a cada 1h (preventivo)
+                           │ a cada 6h (validador + Change Team)
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    MOTOR PRB-INC                         │
+│                                                          │
+│   Lê → Agrupa → Avalia → Recomenda → Avisa              │
+└──────┬──────────────┬───────────────────┬───────────────┘
+       │              │                   │
+       ▼              ▼                   ▼
+   ┌───────┐    ┌───────────┐       ┌──────────────┐
+   │ Slack │    │  Painel   │       │  Histórico   │
+   │ 🚨    │    │  visual   │       │  pra consulta│
+   │ urgente│    │ (Superset)│       │  (Postgres)  │
+   └───────┘    └───────────┘       └──────────────┘</code></pre>
+<p><strong>Cada saída atende uma audiência diferente:</strong></p>
+<ul>
+<li><strong>Slack</strong> → plantão recebe avisos críticos no momento que acontecem</li>
+<li><strong>Painel</strong> → coordenação abre de manhã e vê tudo organizado</li>
+<li><strong>Histórico</strong> → liderança e PO consultam tendências mensais</li>
 </ul>
-<p><strong>Total: 10-15 min de garimpagem por cliente.</strong></p>
-<h3>Depois (motor)</h3>
-<p>Coordenador abre dashboard. Card do cliente já mostra:</p>
-<pre><code>🌡️ cliente005 — RECORRÊNCIA ALTA
-22 INCs em 6 meses · 18 chamados · Severidade 0.48
-
-🟢 INC1000050  ServiceNow   2h atrás · P3
-💬 CAS-500023  Locaweb      3h atrás
-🟢 INC1000047  ServiceNow   8h atrás · P3
-💬 CAS-500012  Kinghost     2 dias atrás
-🟢 INC0900150  ServiceNow   1 mês atrás · P2
-                                            [...]</code></pre>
-<p><strong>Tempo: 5 segundos.</strong></p>
 </div>
 <div class="slide">
-<h2>Onde os dados vivem — 3 saídas em paralelo</h2>
+<h2>Exemplo concreto — alerta crítico no Slack</h2>
+<p>Quando o motor detecta uma crise, o time recebe assim:</p>
+<pre><code>🚨🆘 Motor PRB-INC — Alerta CRÍTICO
+Sugestão: ABRIR PRB | Prioridade: P1
+
+📦 Produto: CAL
+🖥️ Servidor: cal-frontend-03
+📈 6 incidentes parecidos nas últimas horas
+💬 16 clientes ligaram falando do mesmo problema hoje
+🔁 Esse servidor já apareceu 4x esta quinzena
+
+Justificativas (por que P1):
+• Contratação indisponível, sem solução temporária (P1).
+• Mesmo servidor reaparecendo repetidamente.
+• Volume alto de chamados de clientes.</code></pre>
+<blockquote>🎯 <strong>A vantagem:</strong> o coordenador entende em 5 segundos *o que está</blockquote>
+<blockquote>acontecendo<em> e </em>por que é grave*. Sem precisar abrir 6 sistemas</blockquote>
+<blockquote>diferentes para confirmar.</blockquote>
+</div>
+<div class="slide">
+<h2>Saúde do Cliente — o "termômetro" do cliente recorrente</h2>
+<h3>Como era antes (manualmente)</h3>
+<p>Cliente liga reclamando na madrugada. Analista precisa:</p>
+<ol>
+<li>Abrir ServiceNow, buscar histórico do cliente — <strong>5 min</strong></li>
+<li>Abrir sistema de suporte, buscar chamados antigos — <strong>5 min</strong></li>
+<li>Intercalar manualmente num Excel pra entender a história — <strong>5 min</strong></li>
+</ul>
+<p><strong>Total: ~15 minutos de garimpagem ANTES de começar a resolver.</strong></p>
+<h3>Como ficou com o motor</h3>
+<p>Coordenador abre o painel de manhã. Cada cliente "barulhento" já</p>
+<p>está com o card pronto:</p>
+<pre><code>🌡️ Cliente: govonifelipe — RECORRÊNCIA ALTA
+11 incidentes em 6 meses · 25 tickets de suporte
+
+⏰ Linha do tempo já consolidada:
+🟢 Servidor fora — 2h atrás (P3)
+💬 Cliente abriu ticket — 3h atrás
+🟢 Mesmo erro — 8h atrás (P3)
+💬 Outro ticket — 2 dias atrás
+🟢 Painel travado — 1 mês atrás (P2)</code></pre>
+<p><strong>Tempo de leitura: 30 segundos</strong> para os 11-13 clientes do dia.</p>
+</div>
+<div class="slide">
+<h2>Painel Change Team — força-tarefa em 1 tela</h2>
+<p>A Change Team tem <strong>84 PRBs específicos</strong> sob acompanhamento</p>
+<p>dedicado. Antes, acompanhar essa lista era abrir 84 fichas uma a</p>
+<p>uma no ServiceNow.</p>
+<p>Hoje, tem um <strong>painel único no Superset</strong> (sistema de relatórios da</p>
+<p>Locaweb) que mostra de uma vez:</p>
 <table>
 <thead><tr>
-<th>Saída</th>
-<th>Quem consome</th>
-<th>Latência</th>
+<th>Coluna</th>
+<th>O que mostra</th>
 </tr></thead>
 <tbody>
 <tr>
-<td><strong>Slack</strong></td>
-<td>Plantão (push de crítico)</td>
-<td>Instantâneo</td>
+<td><strong>PRB</strong></td>
+<td>Número da ficha</td>
 </tr>
 <tr>
-<td><strong>Dashboard JSON</strong></td>
-<td>Coordenadores (front-end visual)</td>
-<td>A cada 15 min</td>
+<td><strong>Status</strong></td>
+<td>Aberto / Resolvido / Reincidente</td>
 </tr>
 <tr>
-<td><strong>Postgres</strong></td>
-<td>PO/Liderança (análise histórica via SQL)</td>
-<td>A cada 15 min</td>
+<td><strong>Dias em aberto</strong></td>
+<td>Há quanto tempo está lá</td>
+</tr>
+<tr>
+<td><strong>Veredicto</strong></td>
+<td>Para resolvidos: o fix segurou? Voltou o problema?</td>
+</tr>
+<tr>
+<td><strong>Times impactados</strong></td>
+<td>Quais equipes internas estavam chamando antes do fix e pararam depois</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Por que 3 saídas:</strong></p>
+<h3>Achados reais (go-live de 09/06/2026)</h3>
 <ul>
-<li>Cada audiência tem necessidade diferente.</li>
-<li>Se Slack cair, dashboard ainda existe.</li>
-<li>Se banco cair, JSON ainda existe.</li>
-<li><strong>Resiliência</strong> garantida.</li>
+<li>✅ <strong>84 de 84 PRBs</strong> no painel (depois de uma operação para trazer</li>
 </ul>
+<p>PRBs antigos do banco)</p>
+<ul>
+<li>⚠️ <strong>6 reincidências surfaceadas</strong> — fixes que voltaram a dar</li>
+</ul>
+<p>problema</p>
+<ul>
+<li>🚨 <strong>Destaque: PRB0055284</strong> — fechado há <strong>726 dias</strong>, mas continua</li>
+</ul>
+<p>gerando ~6 incidentes/mês no Hospedagem Compartilhada. O painel</p>
+<p>acendeu o alerta — sem ele, esse PRB ficaria invisível para</p>
+<p>sempre.</p>
 </div>
 <div class="slide">
-<h2>Análises possíveis pelo histórico Postgres</h2>
-<p>Queries SQL ricas habilitadas pelo histórico de 30 dias:</p>
-<p><strong>📈 Tendência semanal:</strong></p>
-<blockquote>"Quantos alertas críticos por dia na última semana?"</blockquote>
-<p><strong>👥 Clientes piorando:</strong></p>
-<blockquote>"Quais clientes tiveram severidade média subindo nos últimos 30 dias?"</blockquote>
-<p><strong>🖥️ CIs crônicos:</strong></p>
-<blockquote>"Quais servidores aparecem em mais de 50 ciclos do motor (recorrência sistêmica)?"</blockquote>
-<p><strong>⏱️ Saúde do motor:</strong></p>
-<blockquote>"Tempo médio de cada ciclo nas últimas 24h? Algum pico?"</blockquote>
-<p><strong>Sem o motor:</strong> essas perguntas exigiriam horas de análise manual.</p>
+<h2>Times impactados — quem o PRB realmente afetou?</h2>
+<p>Sinal novo entregue em 03/06/2026. Responde a pergunta da</p>
+<p>coordenação:</p>
+<blockquote>*"Esse PRB que a Change Team entregou — quais times internos da</blockquote>
+<blockquote>Locaweb deixaram de chamar depois?"*</blockquote>
+<p>Exemplo real:</p>
+<pre><code>PRB resolveu bug na ferramenta de cobrança
+Antes do fix → Depois do fix:
+
+  • Cobrança:       12 chamados → 0  ✅ zerou!
+  • Faturamento:    8  chamados → 1  ↓ caiu 87%
+  • Suporte Geral:  3  chamados → 2  (estável)</code></pre>
+<p><strong>Leitura operacional:</strong> o fix foi excelente para Cobrança e bom para</p>
+<p>Faturamento. Discreto para Suporte Geral. A coordenação pode parabenizar</p>
+<p>quem entregou e investigar se os 2 chamados restantes do Suporte são</p>
+<p>da mesma natureza.</p>
 </div>
 <div class="slide">
-<h2>Resultados do MVP (mock de validação)</h2>
-<p><strong>Dataset sintético com 91 INCs simuladas:</strong></p>
+<h2>O que muda para cada um de vocês</h2>
+<h3>👔 Liderança / Gestores</h3>
+<ul>
+<li>Métricas de "saúde do produto" sempre disponíveis no banco — consulta</li>
+</ul>
+<p>SQL responde em segundos perguntas que antes exigiam horas de</p>
+<p>análise.</p>
+<ul>
+<li>Histórico de <strong>30 dias</strong> de execuções persistido — dá pra ver</li>
+</ul>
+<p>tendência por semana, por produto, por servidor.</p>
+<ul>
+<li>Visibilidade sobre <strong>eficácia da Change Team</strong> — quantos fixes</li>
+</ul>
+<p>realmente seguraram, quantos voltaram.</p>
+<h3>🎯 Coordenação</h3>
+<ul>
+<li>Painel pronto de manhã, sem preparar slides manualmente.</li>
+<li>Alertas críticos no Slack — não precisa ficar abrindo sistemas para</li>
+</ul>
+<p>monitorar.</p>
+<ul>
+<li>Clientes ruidosos identificados automaticamente — proativo, não</li>
+</ul>
+<p>reativo.</p>
+<h3>🔧 Change Team</h3>
+<ul>
+<li>Cada PRB resolvido recebe <strong>veredicto automático</strong> após 7-14 dias:</li>
+</ul>
+<p>- ✅ <em>Entrega Validada</em> — o fix segurou</p>
+<p>- ⚠️ <em>Reincidência</em> — o problema voltou, reabrir</p>
+<p>- 🤔 <em>Inconclusivo</em> — ainda cedo demais para decidir</p>
+<ul>
+<li>Sinais ricos no Slack quando alguma coisa volta: quantos incidentes</li>
+</ul>
+<p>novos, quantos clientes ligaram, quais times pararam de chamar.</p>
+<ul>
+<li><strong>Painel Change Team</strong> com os 84 PRBs prioritários sempre atualizado.</li>
+</ul>
+<h3>🚨 Plantão</h3>
+<ul>
+<li>Slack só toca quando é <strong>realmente crítico</strong> (P1 ou cliente em</li>
+</ul>
+<p>alerta). Sem ruído.</p>
+<ul>
+<li>Quando toca, vem com <strong>justificativa por escrito</strong> — entende em 5</li>
+</ul>
+<p>segundos o porquê.</p>
+</div>
+<div class="slide">
+<h2>O que o motor decide sozinho — e o que NÃO</h2>
+<p>Importante entender as fronteiras:</p>
+<h3>✅ O motor faz sozinho</h3>
+<ul>
+<li>Lê milhares de chamados.</li>
+<li>Agrupa por similaridade.</li>
+<li>Aplica a régua P1-P5 da Locaweb.</li>
+<li><strong>Sugere</strong> abrir PRB, elevar prioridade, monitorar.</li>
+<li>Avisa no Slack quando é grave.</li>
+<li>Mantém o painel atualizado.</li>
+</ul>
+<h3>❌ O motor NÃO faz (por princípio de segurança)</h3>
+<ul>
+<li><strong>Não abre PRB sozinho no ServiceNow.</strong> Só sugere — humano confirma.</li>
+<li><strong>Não rebaixa prioridade automaticamente.</strong> Só sugere elevar.</li>
+<li><strong>Não decide P5 sozinho</strong> — exige confirmação do Coordenador/PO,</li>
+</ul>
+<p>porque P5 é "decidimos não consertar agora", e isso é decisão de</p>
+<p>produto, não de máquina.</p>
+<ul>
+<li><strong>Não aprende com feedback.</strong> As regras são as oficiais da Locaweb</li>
+</ul>
+<p>— quem ajusta é a coordenação, não o motor.</p>
+<blockquote>🎯 <strong>Filosofia:</strong> o motor é uma ferramenta de **apoio à decisão</blockquote>
+<blockquote>humana**, não um substituto. Toda decisão importante passa por</blockquote>
+<blockquote>alguém com nome e crachá.</blockquote>
+</div>
+<div class="slide">
+<h2>Como saber se ele está funcionando?</h2>
+<p>Indicadores rápidos:</p>
 <table>
 <thead><tr>
-<th>Métrica</th>
+<th>O que olhar</th>
+<th>Como verificar</th>
+<th>Bom sinal</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Motor preventivo está vivo?</td>
+<td>Painel atualizou na última hora</td>
+<td>✅ sim</td>
+</tr>
+<tr>
+<td>Validador rodou hoje?</td>
+<td>Painel Change Team com "snapshot < 7h"</td>
+<td>✅ sim</td>
+</tr>
+<tr>
+<td>Está achando coisas?</td>
+<td>5-10 prescrições por ciclo em média</td>
+<td>✅ esperado</td>
+</tr>
+<tr>
+<td>Reincidências detectadas</td>
+<td>6 surfaceadas no go-live</td>
+<td>✅ funcionando</td>
+</tr>
+</tbody>
+</table>
+<p>Se algo parecer parado, a coordenação tem queries SQL prontas para</p>
+<p>checar em segundos (documentadas em <code>docs/MANUAL.md</code>).</p>
+</div>
+<div class="slide">
+<h2>Resultados reais — primeiro mês em produção</h2>
+<p>Dados do banco real da Locaweb, atualizados em 09/06/2026:</p>
+<table>
+<thead><tr>
+<th>O que mede</th>
 <th>Valor</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>INCs processadas</td>
-<td>91 em 4,5 segundos</td>
+<td>Incidentes processados por ciclo</td>
+<td><strong>280-400</strong></td>
 </tr>
 <tr>
-<td>Clusters identificados</td>
-<td>5 (todos com tema coerente)</td>
+<td>Tickets de suporte cruzados</td>
+<td><strong>500-700</strong></td>
 </tr>
 <tr>
-<td>Prescrições geradas</td>
-<td>5 (1 crítica, 2 altas, 1 média)</td>
+<td>Grupos de incidentes parecidos identificados</td>
+<td><strong>70-95</strong> por ciclo</td>
 </tr>
 <tr>
-<td>Clientes em recorrência alta</td>
-<td>13</td>
+<td>Clientes ruidosos detectados</td>
+<td><strong>9-12 por ciclo</strong></td>
 </tr>
 <tr>
-<td>CIs recorrentes detectados</td>
-<td>4 servidores</td>
+<td>PRBs com fix validado (avaliados a cada 6h)</td>
+<td><strong>~10 por ciclo</strong></td>
 </tr>
 <tr>
-<td>Erros</td>
-<td>0</td>
+<td><strong>Achado de destaque</strong></td>
+<td><strong>PRB0055284 — 726 dias pós-resolução ainda gerando incidentes</strong></td>
+</tr>
+<tr>
+<td>Tempo total do ciclo preventivo</td>
+<td><strong>22-31 segundos</strong></td>
+</tr>
+<tr>
+<td>Tempo do ciclo validador + Change Team</td>
+<td><strong>~143 segundos</strong></td>
+</tr>
+<tr>
+<td>Erros no período</td>
+<td><strong>0</strong></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Validação técnica:</strong></p>
+<blockquote>🚀 <strong>Em produção desde:</strong> maio/2026 (preventivo) | junho/2026</blockquote>
+<blockquote>(Validador + Painel Change Team).</blockquote>
+</div>
+<div class="slide">
+<h2>Quando o motor "ajustou" expectativas</h2>
+<p>Algumas coisas só viraram visíveis depois que ele entrou em operação:</p>
+<h3>Aprendizado 1 — PRBs antigos esquecidos</h3>
+<p>O <strong>PRB0055284</strong> estava fechado há 2 anos. Ninguém olhava mais para</p>
+<p>ele. Mas continuava gerando ~6 incidentes/mês no Hospedagem</p>
+<p>Compartilhada. <strong>Sem o painel Change Team, ninguém perceberia.</strong></p>
+<h3>Aprendizado 2 — fixes que parecem ok mas voltam</h3>
+<p>Das <strong>84 fichas</strong> da Change Team, <strong>6 viraram reincidências</strong> depois</p>
+<p>do go-live. Isso não significa que a Change Team trabalhou mal —</p>
+<p>significa que algumas correções são complexas e merecem</p>
+<p>re-investigação. **Antes, isso só apareceria quando o cliente</p>
+<p>reclamasse no Reclame Aqui.**</p>
+<h3>Aprendizado 3 — times impactados sumindo</h3>
+<p>Quando um PRB resolve um problema bem, dá pra <strong>ver no chart</strong>:</p>
+<p><em>"Cobrança chamou 12 vezes antes do fix → 0 depois"</em>. Isso vira</p>
+<p><strong>reconhecimento concreto</strong> da Change Team, com número.</p>
+</div>
+<div class="slide">
+<h2>O que vem pela frente</h2>
+<h3>Em discussão (próximos 30 dias)</h3>
 <ul>
-<li>✅ <strong>54 testes automatizados</strong> passando (cobertura de regras, scores, parsers).</li>
-<li>✅ <strong>Bug de regressão protegido</strong> (caso "ra" / "fora" não pode voltar).</li>
-<li>✅ <strong>Persistência funcional</strong> em Postgres + JSON paralelo.</li>
+<li><strong>Ligar os alertas Slack</strong> — hoje as 6 reincidências e 8 saúdes</li>
 </ul>
-</div>
-<div class="slide">
-<h2>Decisões de produto preservadas</h2>
-<p>O que o motor <strong>NÃO faz</strong> — por princípio:</p>
-<table>
-<thead><tr>
-<th>O que NÃO faz</th>
-<th>Por quê</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>Abrir PRB automaticamente no SNow</td>
-<td>Motor <strong>sugere</strong>, humano decide</td>
-</tr>
-<tr>
-<td>Repriorizar PRB sem aprovação humana</td>
-<td>Princípio de segurança operacional</td>
-</tr>
-<tr>
-<td>Rebaixar prioridade automaticamente</td>
-<td>Conservadorismo — só sugere upgrade</td>
-</tr>
-<tr>
-<td>Decidir P5 sozinho</td>
-<td>P5 exige confirmação de Coordenador/PO</td>
-</tr>
-<tr>
-<td>Aprender por feedback (ML)</td>
-<td>Regras determinísticas auditáveis > caixa-preta</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Auditabilidade é prioridade.</strong> Toda decisão automatizada explica-se em texto livre (justificativas no Slack/dashboard).</p>
-</div>
-<div class="slide">
-<h2>O que falta para subir em produção</h2>
-<p>Pendências <strong>não-técnicas</strong> (apenas configuração):</p>
+<p>altas estão sendo registradas, mas o disparo no Slack está</p>
+<p>desligado por escolha (revisão antes de ativar).</p>
 <ul>
-<li>[ ] <strong>Webhook Slack</strong> real (env <code>SLACK_WEBHOOK_URL</code>).</li>
-<li>[ ] <strong>Canal Slack</strong> criado (sugestão: <code>#prb-alertas</code> ou <code>#noc-alertas</code>).</li>
-<li>[ ] <strong>Conta de banco</strong> com <code>SELECT</code> nos schemas relevantes + <code>INSERT</code> em <code>lwsa.motor_*</code>.</li>
-<li>[ ] <strong>Supervisor</strong> (systemd/Docker) para restart automático.</li>
-<li>[ ] <strong>Monitoração externa</strong> (Site24x7) com query "motor está vivo?".</li>
+<li><strong>Frente de relatório semanal</strong> — resumir automaticamente para</li>
 </ul>
-<p><strong>Pendências técnicas:</strong> zero. Código validado e pronto.</p>
-</div>
-<div class="slide">
-<h2>Próximos passos sugeridos</h2>
-<h3>Curto prazo (0–4 semanas)</h3>
-<ol>
-<li><strong>Deploy em staging:</strong> apontar para banco real, validar dados reais por 1 semana.</li>
-<li><strong>Calibrar <code>DBSCAN_EPS</code></strong> se clusters não fizerem sentido com volume real.</li>
-<li><strong>Habilitar Slack</strong> após validação no dashboard.</li>
-</ul>
-<h3>Médio prazo (1–3 meses)</h3>
-<ol>
-<li><strong>Front-end visual</strong> consumindo o JSON/Postgres (dashboard de coordenadores).</li>
-<li><strong>Monitoração externa</strong> integrada.</li>
-<li><strong>Cleanup TTL automático</strong> após DBA conceder permissão DELETE.</li>
-</ul>
-<h3>Longo prazo (3+ meses)</h3>
-<ol>
-<li><strong>Análise de tendência</strong> (motor stateful — comparar ciclos).</li>
-<li><strong>Integração bidirecional com SNow</strong> (escrever PRBs) — somente após validação extensa.</li>
-</ul>
-</div>
-<div class="slide">
-<h2>Métricas de sucesso propostas</h2>
-<p>Para acompanhar o ROI do motor após 30 dias em produção:</p>
-<table>
-<thead><tr>
-<th>Métrica</th>
-<th>Como medir</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Antecipação de PRBs</strong></td>
-<td>Quantos PRBs foram abertos via sugestão proativa (5+ P3 idênticas)?</td>
-</tr>
-<tr>
-<td><strong>Repriorização correta</strong></td>
-<td>Quantos PRBs subiram de P3 para P2 via sugestão do motor?</td>
-</tr>
-<tr>
-<td><strong>Redução de garimpagem</strong></td>
-<td>Tempo médio de plantão por incidente complexo (antes vs. depois)</td>
-</tr>
-<tr>
-<td><strong>Saúde do Cliente</strong></td>
-<td>Clientes com recorrência alta identificados / total de alertas P1 mensais</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Hipótese a validar:</strong> motor identifica 60-80% das crises antes delas virarem P1, ganhando 24-72h de antecedência.</p>
-</div>
-<div class="slide">
-<h2>Resumo executivo</h2>
-<p><strong>O que entregamos:</strong></p>
+<p>liderança "o que aconteceu essa semana".</p>
+<h3>Em discussão (próximos 90 dias)</h3>
 <ul>
-<li>✅ MVP funcional rodando localmente.</li>
-<li>✅ Atende <strong>todos os 7 requisitos</strong> do levantamento original.</li>
-<li>✅ Lógica de negócio <strong>auditável</strong> (matriz P1-P5 + justificativas textuais).</li>
-<li>✅ <strong>Resiliente</strong> (defesa em 4 camadas, motor sempre funciona).</li>
-<li>✅ <strong>Documentado</strong> (3 docs separadas para 3 audiências + glossário).</li>
-<li>✅ <strong>Testado</strong> (54 testes automatizados, regressão protegida).</li>
-<li>✅ Compatível com infra atual (Postgres 9.2/9.3, sem upgrade necessário).</li>
+<li><strong>Painel visual para coordenação</strong> — hoje a coordenação consulta</li>
 </ul>
-<p><strong>Próximo passo concreto:</strong> decisão sobre subir staging.</p>
+<p>via Superset (técnico). Pode existir uma versão mais leve no</p>
+<p>navegador.</p>
+<ul>
+<li><strong>Análise de tendência</strong> — comparar este mês com o anterior:</li>
+</ul>
+<p>"Hospedagem está piorando? E-mail está estável?"</p>
+<h3>Fora de cogitação (por enquanto)</h3>
+<ul>
+<li><strong>Motor escrever no ServiceNow.</strong> Continua sendo *"sugere, humano</li>
+</ul>
+<p>decide"* — segurança operacional acima de tudo.</p>
+<ul>
+<li><strong>Substituir analistas.</strong> O motor é <strong>apoio</strong>, não substituição.</li>
+</ul>
 </div>
 <div class="slide">
-<h2>Perguntas / discussão</h2>
-<p><strong>Pontos para alinhar:</strong></p>
-<ol>
-<li><strong>Calibração:</strong> os thresholds atuais (P2 = 5 sem contorno, gatilho = 5 P3, etc.) batem com a realidade operacional?</li>
+<h2>Quem está atrás disso</h2>
+<p><strong>Construção:</strong> Emerson Ramos (Locaweb)</p>
+<p><strong>Requisitos originais:</strong> Jéssica, Victor, Bruno, Emerson — reunião</p>
+<p>de levantamento que deu origem ao projeto.</p>
+<p><strong>Em produção desde:</strong> maio/2026.</p>
+<p><strong>Phase 1 (Painel Change Team) entregue:</strong> 05/06/2026.</p>
+<p><strong>Go-live em PROD:</strong> 09/06/2026.</p>
+</div>
+<div class="slide">
+<h2>Perguntas que costumam aparecer</h2>
+<p><strong>"O motor erra?"</strong></p>
+<blockquote>Pode errar — qualquer ferramenta automática pode. Por isso ele</blockquote>
+<blockquote><strong>sugere</strong>, nunca decide sozinho. Cada decisão tem **justificativa</blockquote>
+<blockquote>por escrito** auditável. Se algo parecer estranho, basta abrir a</blockquote>
+<blockquote>justificativa.</blockquote>
+<p><strong>"E se ele cair?"</strong></p>
+<blockquote>O Windows Task Scheduler (sistema do Windows) dispara o motor de</blockquote>
+<blockquote>hora em hora. Se um ciclo crashar, o próximo simplesmente roda. Não</blockquote>
+<blockquote>há "motor caído" — há "ciclo que falhou", que se recupera no</blockquote>
+<blockquote>próximo.</blockquote>
+<p><strong>"Posso desligar uma frente sem mexer no resto?"</strong></p>
+<blockquote>Sim. O Painel Change Team tem um interruptor próprio</blockquote>
+<blockquote>(<code>CHANGE_TEAM_HABILITADO</code>). Se houver problema com ele, desliga</blockquote>
+<blockquote>sem afetar o validador nem o motor preventivo.</blockquote>
+<p><strong>"Onde ficam os dados sensíveis?"</strong></p>
+<blockquote>No banco da própria Locaweb (Postgres <code>lwsa.*</code>). O motor não</blockquote>
+<blockquote>manda nada para fora — só lê de dentro e devolve no Slack/painel</blockquote>
+<blockquote>internos.</blockquote>
+<p><strong>"Quem mexe nos limiares (P1, P2, etc.)?"</strong></p>
+<blockquote>Coordenação + PO. Os limiares vivem num arquivo de configuração</blockquote>
+<blockquote>(<code>config.py</code>) — ajuste é 1 linha + reinício do motor.</blockquote>
+</div>
+<div class="slide">
+<h2>Para se aprofundar (opcional)</h2>
+<p>Se quiser ler mais sobre algum tópico específico, a documentação</p>
+<p>técnica está organizada em audiências:</p>
+<ul>
+<li><strong><code>docs/MANUAL.md</code></strong> — Para quem opera o motor no dia a dia</li>
+<li><strong><code>docs/REGRAS.md</code></strong> — Para PO/auditoria — matriz oficial P1-P5</li>
+<li><strong><code>docs/VALIDADOR_ENTREGA.md</code></strong> — Para Change Team — como ler</li>
 </ul>
-<ol>
-<li><strong>Canal Slack:</strong> time prefere alertas individuais (atual) ou consolidados num resumo de 15 min?</li>
+<p>veredictos</p>
+<ul>
+<li><strong><code>docs/DASHBOARD_CHANGE_TEAM.md</code></strong> — Para quem mantém a lista</li>
 </ul>
-<ol>
-<li><strong>Cleanup TTL:</strong> vale solicitar GRANT DELETE para a conta do motor ou DBA cuida manualmente?</li>
+<p>da força-tarefa</p>
+<ul>
+<li><strong><code>docs/SAUDE_DO_CLIENTE.md</code></strong> — Para coordenação — como funciona</li>
 </ul>
-<ol>
-<li><strong>Próxima fase:</strong> front-end visual ou expansão das regras P1-P5?</li>
+<p>o termômetro de cliente</p>
+<ul>
+<li><strong><code>docs/ARQUITETURA.md</code></strong> — Para quem quer mexer no código (técnico)</li>
+<li><strong><code>GLOSSARIO.md</code></strong> — Dicionário de termos</li>
 </ul>
-<ol>
-<li><strong>Métricas de sucesso:</strong> quais critérios para considerar o motor "validado"?</li>
-</ul>
+</div>
+<div class="slide">
+<h2>Resumo de bolso</h2>
+<p>🎯 <strong>O motor é um vigia automático.</strong></p>
+<p>📥 <strong>Lê</strong> todos os incidentes e tickets de suporte.</p>
+<p>🔍 <strong>Agrupa</strong> o que é parecido.</p>
+<p>🚦 <strong>Decide</strong> a urgência usando a régua oficial da Locaweb.</p>
+<p>💡 <strong>Sugere</strong> o que fazer (mas não decide sozinho).</p>
+<p>📊 <strong>Mostra</strong> tudo num painel + avisa no Slack quando é crítico.</p>
+<p>🔁 <strong>Acompanha</strong> se o que a Change Team entregou realmente segurou.</p>
+<p>🎯 <strong>84 PRBs prioritários</strong> num painel único, sempre atualizado.</p>
+<p>⏰ <strong>24/7</strong>, sem cansar.</p>
 </div>
 <div class="slide">
 <h2>Obrigado</h2>
-<p><strong>Motor Prescritivo PRB</strong> · Emerson Ramos · Maio/2026</p>
-<p><strong>Para detalhes técnicos:</strong></p>
-<ul>
-<li><code>docs/ARQUITETURA.md</code> — como o motor foi construído</li>
-<li><code>docs/MANUAL.md</code> — como usar</li>
-<li><code>docs/REGRAS.md</code> — matriz oficial P1-P5</li>
-<li><code>GLOSSARIO.md</code> — termos técnicos</li>
-</ul>
-<p><strong>Código:</strong> <code>Motor PRB-INC/</code> (12 módulos Python, 3.205 linhas)</p>
-<p><strong>Testes:</strong> <code>python -m pytest tests/</code> (54 testes, 0.13s)</p>
+<p><strong>Motor PRB-INC</strong> · Locaweb · Junho/2026</p>
+<p>Dúvidas, sugestões ou pedidos de evolução: <strong>Emerson Ramos</strong>.</p>
+<blockquote>*"O motor faz o trabalho braçal de comparar, agrupar e cruzar.</blockquote>
+<blockquote>Vocês fazem o trabalho que importa: decidir o que resolver primeiro</blockquote>
+<blockquote>e como."*</blockquote>
 </div>
 </body>
 </html>

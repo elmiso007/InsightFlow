@@ -1,0 +1,1 @@
+python monitoramento_diario.py
