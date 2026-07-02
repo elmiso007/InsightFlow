@@ -24,23 +24,40 @@ Responsável por:
 - aplicar anonimização de dados sensíveis;
 - montar o conteúdo textual consumido pela IA.
 
+Funções principais:
+- `get_atendimentos_analista_individual(analista, inicio, fim)` — query individual por analista com `LIMIT ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA`, executa em thread própria com conexão isolada;
+- `_dados_sensiveis(interacoes)` — anonimizador compartilhado entre as funções de busca;
+- `drop_duplicates(subset=['Protocolo'])` aplicado após cada query para eliminar protocolos duplicados de JOINs.
+
 ### 2.4 analise_ia.py
 Responsável por:
 - construir prompts para a API Gemini;
-- processar a resposta da IA;
-- gerar conteúdo estruturado para relatórios e análises.
+- processar a resposta da IA e extrair as 6 seções estruturadas via regex tolerante a `*` e `**`;
+- converter markdown para HTML com tabelas coloridas por tipo;
+- gerar relatórios HTML individuais por analista e índice geral;
+- calcular a análise comparativa usando a fórmula NPS real (promotores − detratores) / total, em vez de média de notas;
+- executar a limpeza automática de registros antigos (`limpar_rawdata_antigos`).
+
+Função de idempotência:
+- `analise_ja_existe(analista, inicio, fim)` — consulta `rawdata_analise_nps_analistas` antes de processar; retorna `True` se já há registro para o analista no período, evitando duplicação e permitindo re-execução segura.
 
 ### 2.5 verifica_nps.py
 É o orquestrador principal do fluxo.
 
 Ele executa:
 1. configuração e logging;
-2. leitura das avaliações;
-3. cálculo de NPS;
-4. identificação de analistas críticos;
-5. busca de conversas;
-6. análise por IA;
-7. gravação do resultado.
+2. leitura das avaliações (query inicial — `vw_report_diario` + NPS);
+3. cálculo de NPS por analista;
+4. identificação de analistas críticos (NPS < meta);
+5. para cada analista, via `ThreadPoolExecutor(max_workers=PARALELO_MAX_WORKERS)`:
+   - verifica idempotência (`analise_ja_existe`) — pula se já existe;
+   - busca conversas individuais com `LIMIT ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA`;
+   - envia para análise de IA (Gemini);
+   - grava resultado no banco;
+6. análise comparativa consolidada;
+7. limpeza automática de rawdata antigos.
+
+O uso de `ThreadPoolExecutor` garante que múltiplos analistas sejam processados simultaneamente, e cada thread abre e fecha sua própria conexão com o banco (thread-safe).
 
 ## 3. Fluxo de dados
 
