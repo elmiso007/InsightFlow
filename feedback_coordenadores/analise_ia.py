@@ -813,15 +813,15 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
                     
                     # Contar quantas seções foram extraídas com sucesso
                     secoes_validas = sum(1 for v in secoes_extraidas.values() if v.strip())
-                
-                # Se menos de 4 seções foram extraídas, a análise não seguiu o formato
-                if secoes_validas < 4 and tentativa < 2:  # Permite retry nas 2 primeiras tentativas
-                    logger.warning(f"⚠️  Apenas {secoes_validas}/6 seções extraídas. Formato inadequado da IA.")
-                    logger.info(f"🔄 Refazendo análise com prompt mais específico... (Tentativa {tentativa + 2})")
-                    
-                    # Aguardar um pouco mais antes de tentar novamente
+                    secoes_faltando = [k for k, v in secoes_extraidas.items() if not v.strip()]
+
+                # Se alguma seção estiver faltando e ainda houver tentativas, reprocessar
+                if secoes_validas < 6 and tentativa < max_tentativas - 1:
+                    logger.warning(f"⚠️  Apenas {secoes_validas}/6 seções extraídas. Pilares ausentes: {secoes_faltando}")
+                    logger.info(f"🔄 Refazendo análise com prompt mais específico... (Tentativa {tentativa + 2}/{max_tentativas})")
+
                     time.sleep(config.ANALISE_DELAY_TENTATIVA)
-                    
+
                     # Reformular o prompt sendo MUITO mais enfático sobre o formato
                     prompt_atual = f"""
 IMPORTANTE: Sua resposta DEVE seguir EXATAMENTE o formato especificado com os títulos EXATOS abaixo.
@@ -845,13 +845,22 @@ Use EXATAMENTE estes títulos (copie e cole):
 *Casos Críticos*
 (seu conteúdo aqui)
 
+Se não houver dados suficientes para um pilar específico, escreva "Não há dados suficientes para este pilar." dentro da seção correspondente — mas NUNCA omita o título da seção.
+
 AGORA ANALISE OS DADOS ABAIXO:
 
 {prompt_mensagem}
 """
-                    # Tentar novamente com o prompt reformulado
                     logger.debug("Enviando prompt reformulado para a IA...")
                     continue  # Volta para o início do loop de tentativas
+
+                # Última tentativa ou todas as seções presentes: aceita o que foi extraído.
+                # Pilares ausentes após todos os retries indicam ausência real de dados.
+                if secoes_validas < 6:
+                    logger.warning(
+                        f"⚠️  Após {tentativa + 1} tentativa(s), {secoes_validas}/6 seções disponíveis. "
+                        f"Pilares sem dados: {secoes_faltando}. Prosseguindo com o que foi extraído."
+                    )
                 
                 # Para compatibilidade com o banco de dados existente
                 request_id = str(uuid.uuid4())
