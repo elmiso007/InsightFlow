@@ -661,7 +661,8 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
     
     # Configurar a API do Gemini
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(config.GEMINI_MODEL)
+    generation_config = genai.GenerationConfig(max_output_tokens=config.GEMINI_MAX_OUTPUT_TOKENS)
+    model = genai.GenerativeModel(config.GEMINI_MODEL, generation_config=generation_config)
 
     # Limita o tamanho do dataset (para segurança e custo)
     max_size = config.ANALISE_MAX_DATASET_SIZE
