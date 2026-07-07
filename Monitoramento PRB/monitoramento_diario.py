@@ -54,8 +54,8 @@ def configurar_logger():
 
 # Preencha estes campos se quiser definir a data diretamente no codigo.
 # Se ambos ficarem em branco, o monitoramento usa D-1.
-DATA_INICIO_MANUAL = "2026-05-01"  # Ex: "2026-06-10"
-DATA_FIM_MANUAL = "2026-05-02"     # Ex: "2026-06-15"
+DATA_INICIO_MANUAL = None  # Ex: "2026-06-10"
+DATA_FIM_MANUAL = None     # Ex: "2026-06-15"
 
 
 def parse_data_monitoramento(valor_data):

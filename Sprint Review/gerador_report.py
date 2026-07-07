@@ -166,8 +166,8 @@ ALVO_INOVACAO = 10.0
 # Calendário de sprints (ajuste aqui se mudar a cadência ou a referência)
 # Referência alinhada ao fecho da Sprint #4: termina 14/04/2026; Sprint #5 inicia 15/04/2026 (ciclos de 14 dias).
 SPRINT_DURACAO_DIAS = 14
-SPRINT_REFERENCIA_NUMERO = 4
-SPRINT_REFERENCIA_INICIO = date(2026, 4, 1)  # início da Sprint #4 (dd/mm/aaaa); fim = +13 dias
+SPRINT_REFERENCIA_NUMERO = 10
+SPRINT_REFERENCIA_INICIO = date(2026, 6, 22)  # início da Sprint #10 (dd/mm/aaaa); fim = +13 dias
 
 # Limite vertical seguro para conteúdo (A4 ~297 mm, margens e rodapé)
 PDF_Y_CONTEUDO_MAX = 276
@@ -1070,8 +1070,7 @@ def processar_e_gerar_pdf(csv_path, sprint_numero=None):
         0,
         8,
         f'Sprint #{n_cal} | {ini.strftime("%d/%m/%Y")} - {fim.strftime("%d/%m/%Y")} '
-        f'({SPRINT_DURACAO_DIAS} dias por ciclo; ref. Sprint #{SPRINT_REFERENCIA_NUMERO} '
-        f'a partir de {SPRINT_REFERENCIA_INICIO.strftime("%d/%m/%Y")})',
+        f'({SPRINT_DURACAO_DIAS} dias por ciclo)',
         border=0,
         align='C',
         new_x=XPos.LMARGIN,
@@ -1408,4 +1407,8 @@ if __name__ == "__main__":
         help="Número da sprint no calendário (ex.: 3 para relatório final da Sprint #3)",
     )
     args = ap.parse_args()
-    processar_e_gerar_pdf(args.csv, sprint_numero=args.sprint)
+    from pathlib import Path
+    csv_path = Path(args.csv)
+    if not csv_path.is_absolute():
+        csv_path = Path(__file__).resolve().parent / csv_path
+    processar_e_gerar_pdf(str(csv_path), sprint_numero=args.sprint)

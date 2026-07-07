@@ -23,7 +23,9 @@ Fluxo executado:
 1. Lê as credenciais do arquivo `config.ini`.
 2. Abre conexão com o PostgreSQL.
 3. Busca os PRBs da lista fixa `PRBS_ALVO` na tabela `lwsa.service_now_problems`.
-4. Para cada PRB encontrado:
+4. Consulta `lwsa.gabarito_prb` para identificar quais PRBs já foram processados anteriormente.
+5. Filtra apenas os PRBs **pendentes** (ainda não presentes no gabarito), evitando chamadas desnecessárias à IA.
+6. Para cada PRB pendente:
    - monta um prompt com o título e a descrição original;
    - chama o modelo `gpt-4o-mini` para extrair uma estrutura padronizada com:
      - `categoria`
@@ -32,9 +34,9 @@ Fluxo executado:
      - `termos_relacionados`
    - cria um texto auxiliar com resumo + termos relacionados;
    - gera embedding com `text-embedding-3-small`;
-   - salva ou atualiza o registro em `lwsa.gabarito_prb`.
-5. Faz `commit` a cada PRB processado.
-6. Registra a execução em arquivo de log dentro da pasta `logs/` do diretório do módulo.
+   - insere o novo registro em `lwsa.gabarito_prb`.
+7. Faz `commit` a cada PRB processado.
+8. Registra a execução em arquivo de log dentro da pasta `logs/` do diretório do módulo.
 
 Objetivo prático: transformar o histórico de problemas resolvidos em uma base vetorial e estruturada para comparação futura.
 
@@ -203,7 +205,7 @@ O script de carga histórica `gabarito_prb.py` também grava um arquivo de log d
 
 ### Etapa 1: carga histórica
 
-O script `gabarito_prb.py` lê os PRBs encerrados do ServiceNow, usa IA para extrair um resumo padronizado do sintoma e salva esse conteúdo com embedding em `lwsa.gabarito_prb`.
+O script `gabarito_prb.py` lê os PRBs encerrados do ServiceNow, filtra os que ainda não possuem gabarito, usa IA para extrair um resumo padronizado do sintoma e insere o novo conteúdo com embedding em `lwsa.gabarito_prb`. PRBs já processados são ignorados para evitar custo desnecessário com a API.
 
 ### Etapa 2: monitoramento diário
 

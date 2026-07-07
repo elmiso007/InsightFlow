@@ -1,6 +1,0 @@
-pandas>=2.0.0
-markdown>=3.4.0
-xhtml2pdf>=0.2.13
-google-genai>=1.0.0
-matplotlib>=3.7.0
-pypdf>=4.0.0

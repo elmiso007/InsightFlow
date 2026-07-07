@@ -25,18 +25,24 @@ Pacotes principais: `pandas`, `matplotlib`, `seaborn`, `fpdf2`, `Pillow` (usada 
 
 ## Execução
 
-Na pasta do projeto:
+Pode ser executado de **qualquer diretório** — o script localiza o `Jira.csv` sempre **relativo à sua própria pasta**:
 
 ```bash
 python gerador_report.py
+# ou de outro diretório:
+python "c:/caminho/para/Sprint Review/gerador_report.py"
 ```
 
-Por defeito o script chama `processar_e_gerar_pdf('Jira.csv')`, ou seja, espera o ficheiro **`Jira.csv`** no diretório atual.
+Para gerar o relatório de uma sprint já encerrada (ex.: sprint 10):
+
+```bash
+python gerador_report.py --sprint 10
+```
 
 ### Saída
 
-- Ficheiro PDF: **`Relatorio_Executivo_Sprint_<N>.pdf`**, onde `<N>` é o número da sprint calculado para a **data de hoje** (ver calendário abaixo).
-- Se o PDF com o mesmo nome estiver **aberto** ou bloqueado noutra aplicação, o script grava **`Relatorio_Executivo_Sprint_<N>_novo.pdf`** e imprime um aviso no consola.
+- Ficheiro PDF: **`Report Sprint #<N>.pdf`**, onde `<N>` é o número da sprint calculado para a **data de hoje** (ou o valor passado em `--sprint`, ver calendário abaixo).
+- Se o PDF com o mesmo nome estiver **aberto** ou bloqueado noutra aplicação, o script grava **`Report Sprint #<N>_novo.pdf`** e imprime um aviso no consola.
 - Imagens temporárias (`g1_status.png`, `g2_tipo_item.png`, …) são **apagadas** no fim da execução.
 
 ## Ficheiro de entrada (`Jira.csv`)
@@ -82,11 +88,13 @@ A sprint do dia `D` é: `SPRINT_REFERENCIA_NUMERO + (D - SPRINT_REFERENCIA_INICI
 | Secção | Conteúdo |
 |--------|-----------|
 | Capa | Título, sprint atual (rótulo do CSV quando possível), intervalo de datas da sprint |
-| 1. Sumário executivo | Métricas sobre `df_atual`; gráfico de barras horizontais por **Status** |
-| 2 e 3 (mesma página) | Pizza por **tipo de item**; barras por **solicitante** (Slack → Relator, com **unificação** `user` / `user@domínio` e rótulos de quantidade); texto + gráfico de **gargalos WIP** (pendentes, não concluídos/cancelados) |
-| 4 | Texto e gráfico **70/20/10** (Categoria de Atuação vs alvos configuráveis) |
-| 5 e 6 (mesma página, se existirem ambos) | Barras por **BU** (com valores nas barras); **heatmap** BU × Área |
-| 7 | Tabela **Próximas etapas** (todo o CSV) |
+| 1. Sumário executivo | Métricas sobre `df_atual`; gráfico de barras horizontais por **Status** (mesma página que a seção 2) |
+| 2. Análise de Origem e Tipo | Pizza por **tipo de item**; barras por **solicitante** (Slack → Relator, com **unificação** `user` / `user@domínio` e rótulos de quantidade) |
+| 3. Análise de Gargalos no Fluxo (WIP) | Texto explicativo + gráfico de barras com tarefas pendentes por status (exclui concluídas/canceladas) (mesma página que a seção 4, quando existir) |
+| 4. Demandas por Unidade de Negócio | Gráfico de barras por BU (com valores nas barras) |
+| 5. Alinhamento Estratégico (70/20/10) | Texto e gráfico comparando realizado vs alvos 70/20/10 (Categoria de Atuação) |
+| 6. Intersecção Negócio vs. Área | **Heatmap** BU × Área Atendida (exibido apenas se ambas as colunas existirem no CSV) |
+| 7. Tabela de tarefas | Subtabelas: sprint encerrada (7.1), backlog e próximas sprints (7.3), concluídas (7.4) — todo o CSV |
 
 ## Regras de negócio resumidas
 
