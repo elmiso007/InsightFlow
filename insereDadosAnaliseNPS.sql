@@ -3,7 +3,6 @@
 -- COMPATÍVEL COM POSTGRESQL
 
 INSERT INTO lw_octadesk.analise_nps_analistas (
-    id,
     request_datetime,
     data_inicio,
     data_fim,
@@ -29,8 +28,7 @@ INSERT INTO lw_octadesk.analise_nps_analistas (
     modelo_ia,
     created_at
 )
-SELECT 
-    (SELECT COALESCE(MAX(id), 0) FROM lw_octadesk.analise_nps_analistas) + ROW_NUMBER() OVER (ORDER BY r.id) as id,
+SELECT
     r.request as request_datetime,
     r.dados_de as data_inicio,
     r.dados_ate as data_fim,
