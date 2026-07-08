@@ -85,7 +85,7 @@ class Config:
     # ======================================================================
     GEMINI_API_KEY = _get_config_value('gemini', 'api_key', os.getenv('GEMINI_API_KEY'))
     GEMINI_MODEL = _get_config_value('gemini', 'model', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
-    GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
+    GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv('GEMINI_MAX_OUTPUT_TOKENS', '16384'))
     
     # ======================================================================
     # CONFIGURAÇÕES DE NPS
