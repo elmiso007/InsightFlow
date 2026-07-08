@@ -36,20 +36,27 @@ $$
 
 ## 5. Regras de persistência
 
-- os resultados são escritos em tabelas de análise no banco;
-- os relatórios gerados servem como auditoria e histórico de acompanhamento;
-- o processo deve manter o histórico para comparação entre ciclos;
-- registros na tabela `rawdata_analise_nps_analistas` mais antigos que `ANALISE_RETENTION_DAYS` (padrão 90 dias) são removidos automaticamente a cada execução;
-- a tabela `analise_nps_analistas` (dados processados) não é afetada pela limpeza automática.
+- os resultados são escritos na tabela `analise_nps_analistas` com `analise_tipo = 'monitoramento_nps_analistas'`;
+- rawdata (`rawdata_analise_nps_analistas`) é o rascunho intermediário — promovido para `analise_nps_analistas` via `insereDadosAnaliseNPS.sql` ao final de cada execução;
+- registros em `rawdata_analise_nps_analistas` mais antigos que `ANALISE_RETENTION_DAYS` (padrão 90 dias) são removidos automaticamente;
+- a tabela `analise_nps_analistas` (dados processados) não é afetada pela limpeza automática;
+- o schema do banco é lido de `config.DB_SCHEMA` (`DB_SCHEMA` no `.env`) — não há schema hardcoded no código.
 
-## 6. Regras de operação
+## 6. Regras de idempotência
+
+- o fluxo é seguro para re-execução: `analise_ja_existe()` detecta registros existentes no período e pula o analista sem chamar o Gemini;
+- a idempotência é verificada por `(analistas_criticos, dados_de, dados_ate)` na tabela rawdata;
+- o SQL de promoção (`insereDadosAnaliseNPS.sql`) deve ser executado **uma única vez** por execução, após todos os analistas serem processados — nunca dentro de loop por analista.
+
+## 7. Regras de operação
 
 - se não houver dados no período, o processo deve encerrar com mensagem clara;
 - se houver falha de conexão ou API, o log deve registrar o erro com contexto;
 - o sistema deve priorizar consistência e rastreabilidade sobre velocidade.
 
-## 7. Regras de manutenção
+## 8. Regras de manutenção
 
 - alterações em limiares devem ser feitas no `.env` ou no arquivo de configuração central;
 - alterações em lógica de consulta ou processamento devem ser documentadas no README e em docs/;
-- alterações em dependências precisam atualizar o `requirements.txt`.
+- alterações em dependências precisam atualizar o `requirements.txt`;
+- ao modificar o prompt de análise, sempre escapar chaves de dados externos (`{` → `{{`) antes de usar `.format()` — conversas de clientes podem conter JSON ou templates que causam crash silencioso.

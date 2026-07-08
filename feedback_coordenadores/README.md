@@ -214,12 +214,12 @@ Mostra todas as configurações e valida se estão corretas.
 
 ```
 1. COLETA DE DADOS
-   └─> Busca avaliações NPS do período (mês anterior)
-   └─> Calcula NPS por analista (fórmula padrão)
+   └─> Busca avaliações NPS do período (mês anterior) via vw_report_diario
+   └─> Calcula NPS por analista: (Promotores − Detratores) / Total × 100
 
 2. IDENTIFICAÇÃO DE CRÍTICOS
-   └─> Analistas com NPS < 70 (configurável)
-   └─> Mínimo de 3 avaliações (configurável)
+   └─> Analistas com NPS < 70 (configurável via NPS_META)
+   └─> Mínimo de 3 avaliações (configurável via NPS_MIN_AVALIACOES)
 
 3. BUSCA DE CONVERSAS (por analista, em paralelo)
    └─> Query individual por analista com LIMIT configurável
@@ -228,26 +228,23 @@ Mostra todas as configurações e valida se estão corretas.
 
 4. ANÁLISE DE IA (ThreadPoolExecutor — N workers simultâneos)
    └─> Verifica idempotência: pula analistas já analisados no período
-   └─> Envia para Google Gemini
-   └─> Extrai 6 seções estruturadas:
-       • Resumo Geral
-       • Problemas por Dimensão NPS
-       • Padrões Comportamentais
-       • Comentários vs Conversas
-       • Recomendações de Melhoria
-       • Casos Críticos
+   └─> Envia para Google Gemini com saída estruturada em JSON (Pydantic)
+   └─> Recebe 6 seções preenchidas diretamente:
+       • Resumo Geral / Problemas por Dimensão NPS
+       • Padrões Comportamentais / Comentários vs Conversas
+       • Recomendações de Melhoria / Casos Críticos
 
 5. SALVAMENTO
-   └─> Banco: rawdata_analise_nps_analistas
-   └─> HTML: analistas_criticos/{analista}.html
+   └─> Banco: rawdata_analise_nps_analistas (analise_tipo='monitoramento_nps_analistas')
+   └─> HTML: analistas_criticos/{analista}.html + index.html
    └─> Logs: logs/nps_verificacao.log
 
-6. LIMPEZA AUTOMÁTICA
-   └─> Remove registros do rawdata mais antigos que ANALISE_RETENTION_DAYS
-
-7. PROCESSAMENTO FINAL
+6. PROMOÇÃO (UMA VEZ, após todos os analistas)
    └─> SQL: insereDadosAnaliseNPS.sql
-   └─> Copia para: analise_nps_analistas (tabela final)
+   └─> Copia rawdata → analise_nps_analistas (tabela final)
+
+7. LIMPEZA AUTOMÁTICA
+   └─> Remove registros do rawdata mais antigos que ANALISE_RETENTION_DAYS
 
 8. NOTIFICAÇÃO
    └─> Alertas ou boas notícias
@@ -357,25 +354,30 @@ schtasks /create /tn "NPS_Mensal" /tr "C:\caminho\venv\Scripts\python.exe C:\cam
 
 ### Consultar Resultados
 
+> O schema é configurado via `DB_SCHEMA` no `.env`. Substitua `{schema}` pelo valor configurado.
+
 ```sql
 -- Últimas análises
-SELECT 
+SELECT
     request_datetime,
+    analise_tipo,
     analistas_criticos,
     total_protocolos,
     setor
-FROM kinghost_octadesk.analise_nps_analistas
+FROM {schema}.analise_nps_analistas
+WHERE analise_tipo = 'monitoramento_nps_analistas'
 ORDER BY request_datetime DESC
 LIMIT 5;
 
 -- Análise de hoje
-SELECT 
+SELECT
     analistas_criticos,
     resumo_geral,
     casos_criticos,
     recomendacoes_melhoria
-FROM kinghost_octadesk.analise_nps_analistas
-WHERE DATE(request_datetime) = CURRENT_DATE;
+FROM {schema}.analise_nps_analistas
+WHERE analise_tipo = 'monitoramento_nps_analistas'
+  AND DATE(request_datetime) = CURRENT_DATE;
 ```
 
 ---
@@ -425,7 +427,10 @@ grep "ERROR" logs/nps_verificacao.log
 
 - **[GUIA_INSTALACAO.md](GUIA_INSTALACAO.md)** - Instalação passo a passo
 - **[README_LOGGING.md](README_LOGGING.md)** - Sistema de logging
-- **[README_ALTERACOES.md](README_ALTERACOES.md)** - Histórico de mudanças
+- **[README_ALTERACOES.md](README_ALTERACOES.md)** - Histórico de mudanças e correções
+- **[docs/ARQUITETURA.md](docs/ARQUITETURA.md)** - Módulos, fluxo de dados e decisões de design
+- **[docs/MANUAL.md](docs/MANUAL.md)** - Manual operacional detalhado
+- **[docs/REGRAS.md](docs/REGRAS.md)** - Regras de negócio, idempotência e persistência
 
 ---
 
@@ -457,7 +462,7 @@ grep "ERROR" logs/nps_verificacao.log
 **Sistema desenvolvido para análise de NPS de analistas de atendimento**
 
 - Implementação inicial: Outubro 2025
-- Versão atual: 2.0 (com suporte a .env)
+- Versão atual: 2.2 (correções de integridade — ver README_ALTERACOES.md)
 
 ---
 
@@ -488,5 +493,5 @@ python verifica_nps.py   # Executa análise
 
 ---
 
-*Última atualização: Julho 2026 | Versão 2.1*
+*Última atualização: Julho 2026 | Versão 2.2 — correções de integridade (schema por .env, analise_tipo, SQL único, tokens reais, injeção de format string, dead code removido)*
 

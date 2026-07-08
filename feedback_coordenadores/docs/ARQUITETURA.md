@@ -32,14 +32,22 @@ Funções principais:
 ### 2.4 analise_ia.py
 Responsável por:
 - construir prompts para a API Gemini;
-- processar a resposta da IA e extrair as 6 seções estruturadas via regex tolerante a `*` e `**`;
-- converter markdown para HTML com tabelas coloridas por tipo;
+- obter resposta estruturada em JSON via schema Pydantic `SecoesAnaliseNPS` — elimina extração por regex;
+- converter markdown para HTML com tabelas coloridas por tipo de seção;
 - gerar relatórios HTML individuais por analista e índice geral;
-- calcular a análise comparativa usando a fórmula NPS real (promotores − detratores) / total, em vez de média de notas;
-- executar a limpeza automática de registros antigos (`limpar_rawdata_antigos`).
+- calcular a análise comparativa usando a fórmula NPS real (promotores − detratores) / total;
+- executar a limpeza automática de registros antigos (`limpar_rawdata_antigos`);
+- promover rawdata → `analise_nps_analistas` via `executar_sql_pos_analise(conn)`.
 
-Função de idempotência:
-- `analise_ja_existe(analista, inicio, fim)` — consulta `rawdata_analise_nps_analistas` antes de processar; retorna `True` se já há registro para o analista no período, evitando duplicação e permitindo re-execução segura.
+Funções principais:
+- `analise_ja_existe(analista, inicio, fim)` — consulta `rawdata_analise_nps_analistas` antes de processar; retorna `True` se já há registro no período, evitando chamadas duplicadas ao Gemini.
+- `executar_sql_pos_analise(conn)` — executa `insereDadosAnaliseNPS.sql` promovendo rawdata → `analise_nps_analistas`. Deve ser chamado **uma única vez** pelo orquestrador após todos os analistas serem processados — nunca dentro de loops por analista.
+
+Detalhes técnicos relevantes:
+- O dataset enviado ao prompt é escapado antes de `.format()` (`{` → `{{`) para evitar crash em conversas de clientes que contenham JSON, templates ou código com `{variavel}`.
+- Contagem de tokens usa `response.usage_metadata.prompt_token_count` / `candidates_token_count`; estimativa por palavras mantida apenas como fallback.
+- O schema do banco é lido de `config.DB_SCHEMA` (variável `DB_SCHEMA` no `.env`) — não há schema hardcoded no código.
+- Registros inseridos em `rawdata_analise_nps_analistas` com `analise = 'monitoramento_nps_analistas'`, garantindo consistência ao promover para `analise_nps_analistas`.
 
 ### 2.5 verifica_nps.py
 É o orquestrador principal do fluxo.
@@ -54,10 +62,11 @@ Ele executa:
    - busca conversas individuais com `LIMIT ANALISE_MAX_ATENDIMENTOS_POR_ANALISTA`;
    - envia para análise de IA (Gemini);
    - grava resultado no banco;
-6. análise comparativa consolidada;
-7. limpeza automática de rawdata antigos.
+6. chama `executar_sql_pos_analise(conn)` **uma única vez** após todos os futures do ThreadPoolExecutor completarem;
+7. análise comparativa consolidada;
+8. limpeza automática de rawdata antigos.
 
-O uso de `ThreadPoolExecutor` garante que múltiplos analistas sejam processados simultaneamente, e cada thread abre e fecha sua própria conexão com o banco (thread-safe).
+O uso de `ThreadPoolExecutor` garante que múltiplos analistas sejam processados simultaneamente; cada thread abre e fecha sua própria conexão com o banco (thread-safe).
 
 ## 3. Fluxo de dados
 
@@ -97,5 +106,7 @@ A arquitetura permite evoluir o sistema com:
 ## 6. Observações de manutenção
 
 - o fluxo principal deve permanecer orquestrado em `verifica_nps.py`;
-- regras e configurações devem permanecer centralizadas;
+- regras e configurações devem permanecer centralizadas em `config.py`;
+- `executar_sql_pos_analise()` deve ser chamado **uma única vez** por execução, após o ThreadPoolExecutor — nunca dentro de loops por analista;
+- ao adicionar novo conteúdo dinâmico ao prompt, sempre escapar chaves antes do `.format()` — dados externos podem conter `{variavel}` que causam `KeyError` silencioso;
 - toda nova lógica de negócio deve ser documentada em `docs/`.

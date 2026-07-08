@@ -1,5 +1,6 @@
 import pandas as pd
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from conecta_banco import *
 import time
 import uuid
@@ -7,9 +8,9 @@ from datetime import datetime
 import json
 import logging
 import re
-from functools import lru_cache
 from sqlalchemy import text
 from pathlib import Path
+from pydantic import BaseModel
 
 sql_path = Path(__file__).parent
 resposta_path = Path(__file__).parent / "resposta_nps_gemini.html"
@@ -20,6 +21,27 @@ analistas_criticos_dir.mkdir(exist_ok=True)
 
 # Configurar logger para análise de IA
 logger = logging.getLogger('nps_monitor.analise_ia')
+
+# Schema de saída estruturada (JSON) para a análise de NPS.
+# O Gemini é obrigado a devolver exatamente estes 6 campos, eliminando
+# a necessidade de extrair seções por regex.
+class SecoesAnaliseNPS(BaseModel):
+    resumo_geral: str
+    problemas_nps: str
+    padroes_comportamentais: str
+    comentarios_vs_conversas: str
+    recomendacoes_melhoria: str
+    casos_criticos: str
+
+# Título legível de cada seção (usado para reconstruir o markdown/HTML)
+TITULOS_SECOES = {
+    'resumo_geral': 'Resumo Geral',
+    'problemas_nps': 'Problemas Identificados por Dimensão NPS',
+    'padroes_comportamentais': 'Padrões Comportamentais dos Analistas',
+    'comentarios_vs_conversas': 'Comentários NPS vs Conversas',
+    'recomendacoes_melhoria': 'Recomendações de Melhoria',
+    'casos_criticos': 'Casos Críticos',
+}
 
 """
 SISTEMA DE TABELAS COLORIDAS AUTOMÁTICAS
@@ -47,7 +69,7 @@ com cores específicas por coluna, baseadas no tipo de tabela detectado:
    - Cores por coluna: Azul | Laranja | Rosa | Roxo | Verde
    - Classe CSS: tabela-analise
 
-A detecção automática acontece na função converter_tabela_markdown_para_html_cached()
+A detecção automática acontece na função converter_tabela_markdown_para_html()
 baseada nos cabeçalhos das colunas.
 """
 
@@ -290,12 +312,13 @@ def analise_ja_existe(analista_nome, data_inicio, data_fim):
     Evita chamadas redundantes ao Gemini em re-execuções do mesmo mês.
     """
     from conecta_banco import get_psycopg2_connection
+    from config import config
     conn = None
     try:
         conn = get_psycopg2_connection()
         with conn.cursor() as cursor:
             cursor.execute(
-                """SELECT COUNT(*) FROM kinghost_octadesk.rawdata_analise_nps_analistas
+                f"""SELECT COUNT(*) FROM {config.DB_SCHEMA}.rawdata_analise_nps_analistas
                    WHERE analistas_criticos = %s
                    AND dados_de = %s
                    AND dados_ate = %s""",
@@ -321,7 +344,7 @@ def limpar_rawdata_antigos(conn):
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM kinghost_octadesk.rawdata_analise_nps_analistas WHERE request < (CURRENT_DATE - INTERVAL %s)",
+                f"DELETE FROM {config.DB_SCHEMA}.rawdata_analise_nps_analistas WHERE request < (CURRENT_DATE - INTERVAL %s)",
                 (f"{retention_days} days",)
             )
             deleted = cursor.rowcount
@@ -335,19 +358,38 @@ def limpar_rawdata_antigos(conn):
             pass
 
 
-@lru_cache(maxsize=128)
-def converter_tabela_markdown_para_html_cached(linhas_tabela_tuple):
+def executar_sql_pos_analise(conn):
+    """Promove rawdata → analise_nps_analistas. Deve ser chamado UMA VEZ após todos os analistas."""
+    sql_nps_file = sql_path / 'insereDadosAnaliseNPS.sql'
+    if not sql_nps_file.exists():
+        logger.warning("insereDadosAnaliseNPS.sql não encontrado — promoção de rawdata ignorada.")
+        return
+    try:
+        with open(sql_nps_file, 'r', encoding='utf-8') as f:
+            sql_script = f.read()
+        with conn.cursor() as cursor:
+            cursor.execute(sql_script)
+        conn.commit()
+        logger.info("✅ insereDadosAnaliseNPS.sql executado — rawdata promovido à tabela final")
+    except Exception as e:
+        error_msg = str(e).split('\n')[0]
+        logger.error(f"Erro ao executar insereDadosAnaliseNPS.sql: {error_msg}")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+
+
+def converter_tabela_markdown_para_html(linhas_tabela):
     """
-    Versão cacheada da conversão de tabela markdown para HTML
-    Usa tupla como entrada pois listas não são hasheáveis
-    
+    Converte linhas de tabela markdown para HTML com classes de cor por tipo.
+
     Args:
-        linhas_tabela_tuple (tuple): Tupla de linhas da tabela em formato markdown
-        
+        linhas_tabela (list): Linhas da tabela em formato markdown
+
     Returns:
         str: Tabela HTML formatada
     """
-    linhas_tabela = list(linhas_tabela_tuple)
     if len(linhas_tabela) < 2:
         return '\n'.join(linhas_tabela)
     
@@ -400,19 +442,6 @@ def converter_tabela_markdown_para_html_cached(linhas_tabela_tuple):
     
     return html_tabela
 
-def converter_tabela_markdown_para_html(linhas_tabela):
-    """
-    Wrapper não cacheado que converte lista em tupla para usar a versão cacheada
-    
-    Args:
-        linhas_tabela (list): Lista de linhas da tabela em formato markdown
-        
-    Returns:
-        str: Tabela HTML formatada
-    """
-    return converter_tabela_markdown_para_html_cached(tuple(linhas_tabela))
-
-@lru_cache(maxsize=256)
 def converter_markdown_para_html(texto_markdown):
     """
     Converte texto markdown para HTML formatado
@@ -564,67 +593,6 @@ def converter_markdown_para_html(texto_markdown):
     
     return html
 
-def extrair_secoes_analise(texto_completo):
-    """
-    Extrai as seções específicas da análise de IA do markdown gerado
-    
-    Args:
-        texto_completo (str): Texto completo da análise gerada pela IA
-        
-    Returns:
-        dict: Dicionário com as seções extraídas
-    """
-    secoes = {
-        'resumo_geral': '',
-        'problemas_nps': '',
-        'padroes_comportamentais': '',
-        'comentarios_vs_conversas': '',
-        'recomendacoes_melhoria': '',
-        'casos_criticos': ''
-    }
-    
-    try:
-        # Definir delimitadores das seções
-        delimitadores = [
-            (r'\*{1,2}Resumo Geral\*{1,2}', r'\*{1,2}Problemas Identificados por Dimensão NPS\*{1,2}'),
-            (r'\*{1,2}Problemas Identificados por Dimensão NPS\*{1,2}', r'\*{1,2}Padrões Comportamentais dos Analistas\*{1,2}'),
-            (r'\*{1,2}Padrões Comportamentais dos Analistas\*{1,2}', r'\*{1,2}Comentários NPS vs Conversas\*{1,2}'),
-            (r'\*{1,2}Comentários NPS vs Conversas\*{1,2}', r'\*{1,2}Recomendações de Melhoria\*{1,2}'),
-            (r'\*{1,2}Recomendações de Melhoria\*{1,2}', r'\*{1,2}Casos Críticos\*{1,2}'),
-            (r'\*{1,2}Casos Críticos\*{1,2}', r'$')  # Até o final do texto
-        ]
-        
-        chaves_secoes = list(secoes.keys())
-        
-        for i, (inicio, fim) in enumerate(delimitadores):
-            # Usar regex para encontrar o conteúdo entre os delimitadores
-            if fim == r'$':
-                # Para a última seção, capturar até o final
-                padrao = rf'{inicio}\s*(.*?)(?:\Z|\n\s*$)'
-            else:
-                padrao = rf'{inicio}\s*(.*?)\s*{fim}'
-            
-            match = re.search(padrao, texto_completo, re.DOTALL | re.IGNORECASE)
-            
-            if match:
-                conteudo = match.group(1).strip()
-                # Remover linhas vazias no início e fim
-                conteudo = re.sub(r'^\s*\n|\n\s*$', '', conteudo)
-                secoes[chaves_secoes[i]] = conteudo
-                
-                logger.debug(f"✅ Seção '{chaves_secoes[i]}' extraída: {len(conteudo)} caracteres")
-            else:
-                logger.warning(f"❌ Seção '{chaves_secoes[i]}' não encontrada")
-        
-        # Verificar se pelo menos uma seção foi extraída
-        secoes_com_conteudo = sum(1 for v in secoes.values() if v.strip())
-        logger.info(f"📊 Extração concluída: {secoes_com_conteudo}/6 seções encontradas")
-        
-        return secoes
-        
-    except Exception as e:
-        logger.error(f"Erro ao extrair seções: {str(e)}")
-        return secoes
 
 def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_protocolos, setor='Não identificado'):
     """
@@ -659,10 +627,13 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
     engine = None
     conn = None
     
-    # Configurar a API do Gemini
-    genai.configure(api_key=api_key)
-    generation_config = genai.GenerationConfig(max_output_tokens=config.GEMINI_MAX_OUTPUT_TOKENS)
-    model = genai.GenerativeModel(config.GEMINI_MODEL, generation_config=generation_config)
+    # Configurar a API do Gemini (SDK google-genai) com saída estruturada em JSON
+    client = genai.Client(api_key=api_key)
+    generation_config = types.GenerateContentConfig(
+        max_output_tokens=config.GEMINI_MAX_OUTPUT_TOKENS,
+        response_mime_type="application/json",
+        response_schema=SecoesAnaliseNPS,
+    )
 
     # Limita o tamanho do dataset (para segurança e custo)
     max_size = config.ANALISE_MAX_DATASET_SIZE
@@ -753,6 +724,17 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
            - Sugira ação imediata para cada caso crítico
 
         **IMPORTANTE:** Seja específico e actionável nas recomendações. O objetivo é que os gestores possam tomar ações concretas para melhorar o NPS dos analistas.
+
+        #Formato da resposta (OBRIGATÓRIO)
+        Responda com um objeto JSON contendo exatamente estes campos (todos obrigatórios):
+        - "resumo_geral": conteúdo do item 2 (Resumo Geral)
+        - "problemas_nps": conteúdo do item 3 (Problemas Identificados por Dimensão NPS)
+        - "padroes_comportamentais": conteúdo do item 4 (Padrões Comportamentais dos Analistas)
+        - "comentarios_vs_conversas": conteúdo do item 5 (Comentários NPS vs Conversas)
+        - "recomendacoes_melhoria": conteúdo do item 6 (Recomendações de Melhoria)
+        - "casos_criticos": conteúdo do item 7 (Casos Críticos)
+        Cada campo deve conter texto em markdown (use tabelas markdown e *asterisco simples* para destaque).
+        NÃO repita o título da seção dentro do valor do campo. Se não houver dados para um campo, escreva "Não há dados suficientes para este pilar.".
     """)
 
     # Personalizar prompt baseado se é um ou múltiplos analistas
@@ -765,8 +747,11 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
         estilo_analise = "diferenças na forma de atender entre analistas"
         tipo_comportamentos = "comportamentos"
     
+    # Escapar chaves do dataset antes do format() — evita KeyError/IndexError
+    # quando conversas de clientes contêm JSON, templates ou código com {variavel}
+    dataset_safe = dataset.replace('{', '{{').replace('}', '}}')
     prompt_mensagem = prompt_estrutura.format(
-        dataset=dataset,
+        dataset=dataset_safe,
         padrao_analistas=padrao_analistas,
         estilo_analise=estilo_analise,
         tipo_comportamentos=tipo_comportamentos
@@ -787,88 +772,74 @@ def analise_ia_nps(dataset, data_inicial, data_fim, analistas_criticos, lista_pr
                 logger.debug(f"Prompt size: {len(prompt_atual)} caracteres")
                 
                 # Gerar resposta usando o Gemini
-                response = model.generate_content(prompt_atual)
+                response = client.models.generate_content(
+                    model=config.GEMINI_MODEL,
+                    contents=prompt_atual,
+                    config=generation_config,
+                )
                 
                 if response.text:
-                    resposta_conteudo = response.text
                     current_time = datetime.now()
-                    
-                    logger.info(f"✅ Resposta recebida da IA - {len(resposta_conteudo)} caracteres")
+
+                    logger.info(f"✅ Resposta recebida da IA - {len(response.text)} caracteres")
                     logger.info(f"📂 Setor do analista: {setor}")
-                    
-                    # Extrair seções da análise para validação
-                    logger.info("🔍 Extraindo seções da análise...")
-                    secoes_extraidas = extrair_secoes_analise(resposta_conteudo)
-                    
+
+                    # Saída estruturada (JSON) — parse direto, sem regex frágil
+                    logger.info("🔍 Lendo seções da resposta estruturada (JSON)...")
+                    try:
+                        dados_secoes = json.loads(response.text)
+                        if not isinstance(dados_secoes, dict):
+                            raise ValueError("resposta JSON não é um objeto")
+                    except (json.JSONDecodeError, ValueError, TypeError) as e:
+                        logger.warning(f"Tentativa {tentativa + 1}: JSON inválido da IA ({e})")
+                        if tentativa < max_tentativas - 1:
+                            time.sleep(config.ANALISE_DELAY_TENTATIVA)
+                            continue
+                        dados_secoes = {}
+
+                    # Normalizar as 6 seções (sempre presentes, mesmo que vazias)
+                    secoes_extraidas = {
+                        chave: str(dados_secoes.get(chave, '') or '').strip()
+                        for chave in TITULOS_SECOES
+                    }
+
+                    # Reconstruir o markdown a partir das seções (mantém o restante do fluxo intacto)
+                    resposta_conteudo = "\n\n".join(
+                        f"*{TITULOS_SECOES[chave]}*\n{secoes_extraidas[chave]}"
+                        for chave in TITULOS_SECOES if secoes_extraidas[chave]
+                    )
+
                     # Converter cada seção de markdown para HTML
                     logger.info("🔄 Convertendo seções para HTML...")
-                    secoes_html = {}
-                    for nome_secao, conteudo_md in secoes_extraidas.items():
-                        if conteudo_md.strip():
-                            # Converter markdown para HTML
-                            secoes_html[nome_secao] = converter_markdown_para_html(conteudo_md)
-                            logger.debug(f"  ✓ {nome_secao}: {len(conteudo_md)} → {len(secoes_html[nome_secao])} chars")
-                        else:
-                            secoes_html[nome_secao] = ''
-                    
-                    # Contar quantas seções foram extraídas com sucesso
-                    secoes_validas = sum(1 for v in secoes_extraidas.values() if v.strip())
-                    secoes_faltando = [k for k, v in secoes_extraidas.items() if not v.strip()]
+                    secoes_html = {
+                        nome_secao: (converter_markdown_para_html(conteudo_md) if conteudo_md else '')
+                        for nome_secao, conteudo_md in secoes_extraidas.items()
+                    }
 
-                # Se alguma seção estiver faltando e ainda houver tentativas, reprocessar
-                if secoes_validas < 6 and tentativa < max_tentativas - 1:
-                    logger.warning(f"⚠️  Apenas {secoes_validas}/6 seções extraídas. Pilares ausentes: {secoes_faltando}")
-                    logger.info(f"🔄 Refazendo análise com prompt mais específico... (Tentativa {tentativa + 2}/{max_tentativas})")
+                    # Contar quantas seções vieram preenchidas
+                    secoes_validas = sum(1 for v in secoes_extraidas.values() if v)
+                    secoes_faltando = [k for k, v in secoes_extraidas.items() if not v]
+                else:
+                    logger.warning(f"Tentativa {tentativa + 1}: resposta vazia da IA")
+                    if tentativa < max_tentativas - 1:
+                        time.sleep(config.ANALISE_DELAY_TENTATIVA)
+                        continue
+                    return "Erro: resposta vazia do Gemini após todas as tentativas."
 
-                    time.sleep(config.ANALISE_DELAY_TENTATIVA)
-
-                    # Reformular o prompt sendo MUITO mais enfático sobre o formato
-                    prompt_atual = f"""
-IMPORTANTE: Sua resposta DEVE seguir EXATAMENTE o formato especificado com os títulos EXATOS abaixo.
-Use EXATAMENTE estes títulos (copie e cole):
-
-*Resumo Geral*
-(seu conteúdo aqui)
-
-*Problemas Identificados por Dimensão NPS*
-(seu conteúdo aqui)
-
-*Padrões Comportamentais dos Analistas*
-(seu conteúdo aqui)
-
-*Comentários NPS vs Conversas*
-(seu conteúdo aqui)
-
-*Recomendações de Melhoria*
-(seu conteúdo aqui)
-
-*Casos Críticos*
-(seu conteúdo aqui)
-
-Se não houver dados suficientes para um pilar específico, escreva "Não há dados suficientes para este pilar." dentro da seção correspondente — mas NUNCA omita o título da seção.
-
-AGORA ANALISE OS DADOS ABAIXO:
-
-{prompt_mensagem}
-"""
-                    logger.debug("Enviando prompt reformulado para a IA...")
-                    continue  # Volta para o início do loop de tentativas
-
-                # Última tentativa ou todas as seções presentes: aceita o que foi extraído.
-                # Pilares ausentes após todos os retries indicam ausência real de dados.
+                # Com saída estruturada (JSON), as 6 seções vêm sempre presentes.
+                # Se alguma vier vazia, é ausência real de dados — não há retry de formato.
                 if secoes_validas < 6:
                     logger.warning(
-                        f"⚠️  Após {tentativa + 1} tentativa(s), {secoes_validas}/6 seções disponíveis. "
-                        f"Pilares sem dados: {secoes_faltando}. Prosseguindo com o que foi extraído."
+                        f"⚠️  {secoes_validas}/6 seções preenchidas. Pilares sem dados: {secoes_faltando}."
                     )
                 
                 # Para compatibilidade com o banco de dados existente
                 request_id = str(uuid.uuid4())
                 model_name = config.GEMINI_MODEL
                 
-                # Estimativas de tokens (Gemini não fornece contagem exata como OpenAI)
-                token_prompt = len(prompt_mensagem.split()) * 1.3  # Estimativa
-                token_completion = len(resposta_conteudo.split()) * 1.3  # Estimativa
+                usage = getattr(response, 'usage_metadata', None)
+                token_prompt = int(usage.prompt_token_count) if (usage and getattr(usage, 'prompt_token_count', None)) else int(len(prompt_mensagem.split()) * 1.3)
+                token_completion = int(usage.candidates_token_count) if (usage and getattr(usage, 'candidates_token_count', None)) else int(len(resposta_conteudo.split()) * 1.3)
                 
                 time.sleep(config.ANALISE_DELAY_TENTATIVA)
 
@@ -1377,29 +1348,26 @@ AGORA ANALISE OS DADOS ABAIXO:
                 try:
                     # Inserção usando SQL direto para evitar problemas de compatibilidade
                     with conn.cursor() as cursor:
-                        # Primeiro, obter o próximo ID manualmente
-                        cursor.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM kinghost_octadesk.rawdata_analise_nps_analistas")
-                        next_id = cursor.fetchone()[0]
-                        
                         # Converter analistas_criticos corretamente (sem colchetes e aspas)
                         analistas_str = analistas_criticos if isinstance(analistas_criticos, str) else ', '.join(analistas_criticos)
                         protocolos_str = lista_protocolos if isinstance(lista_protocolos, str) else str(lista_protocolos)
-                        
+
                         # Tentar inserir com as novas colunas (se existirem)
+                        # O id é gerado automaticamente pela coluna BIGSERIAL (evita colisão com workers paralelos)
                         try:
-                            insert_sql_completo = """
-                            INSERT INTO kinghost_octadesk.rawdata_analise_nps_analistas 
-                            (id, request, dados_de, dados_ate, analistas_criticos, lista_protocolos, 
+                            insert_sql_completo = f"""
+                            INSERT INTO {schema}.rawdata_analise_nps_analistas
+                            (request, dados_de, dados_ate, analistas_criticos, lista_protocolos,
                              analise, setor, input_text, request_id, resposta_json, resposta_text,
                              token_prompt, token_completion, model,
                              resumo_geral, problemas_nps, padroes_comportamentais,
                              comentarios_vs_conversas, recomendacoes_melhoria, casos_criticos)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                             """
                             cursor.execute(insert_sql_completo, (
-                                next_id, current_time, data_inicial, data_fim, 
+                                current_time, data_inicial, data_fim,
                                 analistas_str, protocolos_str,
-                                'NPS', setor, prompt_mensagem, request_id,
+                                'monitoramento_nps_analistas', setor, prompt_mensagem, request_id,
                                 json.dumps(resposta_json),  # resposta_json
                                 resposta_conteudo,  # resposta_text (markdown original)
                                 int(token_prompt), int(token_completion), model_name,
@@ -1415,17 +1383,17 @@ AGORA ANALISE OS DADOS ABAIXO:
                         except psycopg2.errors.UndefinedColumn as e:
                             # Se as colunas de seções não existem, usar inserção tradicional
                             logger.warning("⚠️  Colunas de seções não encontradas, usando inserção tradicional")
-                            insert_sql = """
-                            INSERT INTO kinghost_octadesk.rawdata_analise_nps_analistas 
-                            (id, request, dados_de, dados_ate, analistas_criticos, lista_protocolos, 
-                             analise, setor, input_text, request_id, resposta_json, resposta_text, 
+                            insert_sql = f"""
+                            INSERT INTO {schema}.rawdata_analise_nps_analistas
+                            (request, dados_de, dados_ate, analistas_criticos, lista_protocolos,
+                             analise, setor, input_text, request_id, resposta_json, resposta_text,
                              token_prompt, token_completion, model)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                             """
                             cursor.execute(insert_sql, (
-                                next_id, current_time, data_inicial, data_fim, 
+                                current_time, data_inicial, data_fim,
                                 analistas_str, protocolos_str,
-                                'NPS', setor, prompt_mensagem, request_id,
+                                'monitoramento_nps_analistas', setor, prompt_mensagem, request_id,
                                 json.dumps(resposta_json),
                                 resposta_conteudo,  # markdown
                                 int(token_prompt), int(token_completion), model_name
@@ -1453,36 +1421,8 @@ AGORA ANALISE OS DADOS ABAIXO:
 
                 logger.info("✅ Análise de IA salva no arquivo HTML")
 
-                # Verificar se existe script SQL específico para NPS
-                sql_nps_file = sql_path / 'insereDadosAnaliseNPS.sql'
-                if sql_nps_file.exists():
-                    try:
-                        # Lê o script SQL específico para NPS
-                        with open(sql_nps_file, 'r', encoding='utf-8') as file:
-                            sql_script = file.read()
-                        
-                        # Executando o script SQL para processar dados usando psycopg2
-                        with conn.cursor() as cursor:
-                            cursor.execute(sql_script)
-                            conn.commit()
-                        logger.info("✅ Script SQL de processamento NPS executado com sucesso")
-                    except Exception as sql_error:
-                        # Extrair apenas a mensagem principal do erro, sem o SQL completo
-                        error_msg = str(sql_error).split('\n')[0] if '\n' in str(sql_error) else str(sql_error)
-                        logger.error(f"Erro ao executar script SQL de processamento: {error_msg}")
-                        logger.debug(f"Script SQL que falhou: insereDadosAnaliseNPS.sql")
-                        # Fazer rollback se houver erro
-                        try:
-                            conn.rollback()
-                            logger.debug("Rollback executado após erro no script SQL")
-                        except Exception as rollback_error:
-                            logger.warning(f"Erro ao fazer rollback: {str(rollback_error)}")
-
                 return resposta_conteudo
 
-            except genai.types.generation_types.StopCandidateException as e:
-                logger.warning(f"Tentativa {tentativa + 1}: Conteúdo bloqueado por filtros de segurança")
-                time.sleep(config.ANALISE_DELAY_TENTATIVA)
             except Exception as e:
                 logger.error(f"Tentativa {tentativa + 1}: Erro na API do Gemini: {str(e)}")
                 if "quota" in str(e).lower() or "rate" in str(e).lower() or "429" in str(e):
@@ -1547,12 +1487,13 @@ def analise_comparativa_nps(analistas_criticos_dados, periodo_dias=30):
     # Inicializar variáveis de conexão - serão fechadas no finally
     engine = None
     conn = None
-    
+
     try:
+        from config import config as _cfg
         # Estabelecer conexões ao banco
         engine = get_sqlalchemy_engine()
         conn = get_psycopg2_connection()
-        
+
         # Buscar dados gerais de NPS para comparação
         query_comparativa = f"""
         SELECT
@@ -1570,7 +1511,7 @@ def analise_comparativa_nps(analistas_criticos_dados, periodo_dias=30):
                 SUM(CASE WHEN CAST("Relacionamento" AS INT) <= 6 THEN 1 ELSE 0 END)
             ) / NULLIF(COUNT(CASE WHEN "Relacionamento" IS NOT NULL THEN 1 END), 0), 2) AS nps_relacionamento,
             COUNT(*) as total_avaliacoes
-        FROM kinghost_octadesk.vw_report_diario
+        FROM {_cfg.DB_SCHEMA}.vw_report_diario
         WHERE "Data Encerramento" >= (CURRENT_DATE - INTERVAL '{periodo_dias} days')
         AND ("Velocidade" IS NOT NULL OR "Solução" IS NOT NULL OR "Relacionamento" IS NOT NULL)
         GROUP BY "Analista"

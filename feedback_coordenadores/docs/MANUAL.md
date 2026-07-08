@@ -86,13 +86,14 @@ python verifica_nps.py
 
 1. Carrega parâmetros do `.env`
 2. Conecta ao PostgreSQL
-3. Consulta avaliações do período definido
-4. Calcula NPS por analista
+3. Consulta avaliações do período definido (`vw_report_diario`)
+4. Calcula NPS por analista (fórmula: promotores − detratores / total × 100)
 5. Identifica analistas abaixo da meta
-6. Busca atendimentos e comentários associados
-7. Aplica anonimização de dados sensíveis
-8. Envia contexto para IA do Gemini
-9. Gera relatórios e salva os resultados
+6. Busca atendimentos e comentários associados (paralelo, N workers)
+7. Aplica anonimização de dados sensíveis antes de enviar para a IA
+8. Envia contexto para Google Gemini — analistas já analisados no período são pulados automaticamente (idempotência)
+9. Após todos os workers concluírem, executa `insereDadosAnaliseNPS.sql` **uma única vez** (promoção rawdata → tabela final)
+10. Gera relatórios HTML individuais e índice geral
 
 ## 6. Saídas esperadas
 
@@ -126,7 +127,8 @@ pip install -r requirements.txt
 
 - não versionar o arquivo `.env`;
 - manter as chaves de API protegidas;
-- revisar logs após cada execução — erros na extração das 6 seções da IA aparecem como `ERROR`;
+- revisar logs após cada execução — seções ausentes da IA aparecem como `WARNING`, falhas de banco como `ERROR`;
 - usar o período configurado com atenção para não gerar relatórios incompletos;
 - ajustar `ANALISE_RETENTION_DAYS` conforme a política de retenção da empresa (padrão: 90 dias);
-- manter o `requirements.txt` atualizado quando adicionar dependências.
+- manter o `requirements.txt` atualizado quando adicionar dependências;
+- o script é seguro para re-execução: analistas já analisados no período são detectados e pulados automaticamente (idempotência via `request_id`).
