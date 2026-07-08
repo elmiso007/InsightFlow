@@ -76,31 +76,59 @@ O objetivo é confirmar:
 - disponibilidade da API Gemini;
 - permissões de escrita em logs e diretório principal.
 
-## 5. Execução do fluxo principal
+## 5. Execução
+
+### 5.1 Fluxo NPS por analista
 
 ```bash
 python verifica_nps.py
 ```
 
-### 5.1 O que acontece em execução
+O que acontece em execução:
 
 1. Carrega parâmetros do `.env`
 2. Conecta ao PostgreSQL
-3. Consulta avaliações do período definido
-4. Calcula NPS por analista
+3. Consulta avaliações do período definido (`vw_report_diario`)
+4. Calcula NPS por analista (fórmula padrão: promotores − detratores / total × 100)
 5. Identifica analistas abaixo da meta
-6. Busca atendimentos e comentários associados
-7. Aplica anonimização de dados sensíveis
-8. Envia contexto para IA do Gemini
-9. Gera relatórios e salva os resultados
+6. Busca atendimentos e comentários associados (paralelo, N workers)
+7. Aplica anonimização de dados sensíveis antes de enviar para a IA
+8. Envia contexto para Google Gemini — idempotente: analistas já analisados no período são pulados
+9. Após todos os workers concluírem, executa `insereDadosAnaliseNPS.sql` uma única vez
+10. Gera relatórios HTML e salva no banco
+
+### 5.2 Análise de detratores WOZ (comparativo trimestral)
+
+```bash
+# Compara T1 vs T2 do ano atual
+python analise_woz_detratores.py
+
+# Especificar trimestres e ano
+python analise_woz_detratores.py --ano 2026 --t1 1 --t2 2
+python analise_woz_detratores.py --ano 2026 --t1 2 --t2 3
+```
+
+O que acontece em execução:
+
+1. Busca comentários NPS com termos WOZ via SQL ILIKE
+2. Classifica cada comentário em Promotor / Neutro / Detrator
+3. Calcula métricas por trimestre e variação entre T1 e T2
+4. Gera HTML em `woz_detratores/`
+5. Persiste em `analise_nps_analistas` com `analise_tipo = 'woz_detratores_trimestral'`
+6. Atualiza `woz_detratores/historico.json` (somente se o banco persistiu com sucesso)
 
 ## 6. Saídas esperadas
 
+**Fluxo NPS (`verifica_nps.py`):**
 - `logs/nps_verificacao.log` — log detalhado do processo
-- `atendimentos_nps_baixo.txt` — conversas e atendimento dos analistas críticos
 - `analistas_criticos/{analista}.html` — relatório HTML individual por analista
 - `analistas_criticos/index.html` — índice de todos os analistas analisados
-- registros nas tabelas de análise no banco (`rawdata_analise_nps_analistas` e `analise_nps_analistas`)
+- banco: `rawdata_analise_nps_analistas` (rascunho) e `analise_nps_analistas` (final, `analise_tipo='monitoramento_nps_analistas'`)
+
+**Fluxo WOZ (`analise_woz_detratores.py`):**
+- `woz_detratores/woz_detratores_{ano}_T{t1}_vs_T{t2}.html` — relatório HTML do comparativo
+- `woz_detratores/historico.json` — histórico acumulativo de todos os comparativos executados
+- banco: `analise_nps_analistas` (`analise_tipo='woz_detratores_trimestral'`)
 
 ## 7. Solução de problemas
 
@@ -129,4 +157,6 @@ pip install -r requirements.txt
 - revisar logs após cada execução — erros na extração das 6 seções da IA aparecem como `ERROR`;
 - usar o período configurado com atenção para não gerar relatórios incompletos;
 - ajustar `ANALISE_RETENTION_DAYS` conforme a política de retenção da empresa (padrão: 90 dias);
-- manter o `requirements.txt` atualizado quando adicionar dependências.
+- manter o `requirements.txt` atualizado quando adicionar dependências;
+- ao executar `analise_woz_detratores.py`, confirmar que o banco está acessível antes — o `historico.json` só é atualizado se a persistência no banco for bem-sucedida;
+- o script `verifica_nps.py` é seguro para re-execução: analistas já analisados no período são detectados e pulados automaticamente (idempotência via `request_id`).

@@ -2,7 +2,7 @@
 -- Arquivo: insereDadosAnaliseNPS.sql
 -- COMPATÍVEL COM POSTGRESQL
 
-INSERT INTO kinghost_octadesk.analise_nps_analistas (
+INSERT INTO lw_octadesk.analise_nps_analistas (
     id,
     request_datetime,
     data_inicio,
@@ -30,7 +30,7 @@ INSERT INTO kinghost_octadesk.analise_nps_analistas (
     created_at
 )
 SELECT 
-    (SELECT COALESCE(MAX(id), 0) FROM kinghost_octadesk.analise_nps_analistas) + ROW_NUMBER() OVER (ORDER BY r.id) as id,
+    (SELECT COALESCE(MAX(id), 0) FROM lw_octadesk.analise_nps_analistas) + ROW_NUMBER() OVER (ORDER BY r.id) as id,
     r.request as request_datetime,
     r.dados_de as data_inicio,
     r.dados_ate as data_fim,
@@ -60,15 +60,15 @@ SELECT
     r.model as modelo_ia,
     CURRENT_TIMESTAMP as created_at
     
-FROM kinghost_octadesk.rawdata_analise_nps_analistas r
+FROM lw_octadesk.rawdata_analise_nps_analistas r
 WHERE r.request_id NOT IN (
     SELECT request_id 
-    FROM kinghost_octadesk.analise_nps_analistas 
+    FROM lw_octadesk.analise_nps_analistas 
     WHERE request_id IS NOT NULL
 );
 
 -- Atualizar estatísticas da tabela (PostgreSQL)
-ANALYZE kinghost_octadesk.analise_nps_analistas;
+ANALYZE lw_octadesk.analise_nps_analistas;
 
 -- Log da execução
 DO $$

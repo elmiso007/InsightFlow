@@ -18,7 +18,7 @@ def _dados_sensiveis(interacoes):
     """Anonimiza dados sensíveis nas conversas (e-mails, CPF, IPs, etc.)"""
     interacoes = BeautifulSoup(interacoes, "html.parser").get_text()
     interacoes = re.sub(r'\*(\w+)\*', r'\1', interacoes)
-    texto_anonimizado = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zAlo]{2,}', '[email]', interacoes)
+    texto_anonimizado = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', '[email]', interacoes)
     texto_anonimizado = re.sub(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', '[CPF]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b', '[CNPJ]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b(\(?\d{2}\)?\s?)?9?\d{4}[-.]?\d{4}\b', '[telefone]', texto_anonimizado)
@@ -32,7 +32,7 @@ def _dados_sensiveis(interacoes):
     texto_anonimizado = re.sub(r'<[^>]+>', '', texto_anonimizado)
     texto_anonimizado = re.sub(r'[\r\n]+', ' ', texto_anonimizado).strip()
     texto_anonimizado = re.sub(r'\b[a-zA-Z0-9.-]+(?:\.com\.br|\.gov\.br|\.org\.br|\.edu\.br|\.com|\.br|\.net|\.org|\.info|\.tech|\.xyz|\.tv|\.me|\.app)\b', '[dominio]', texto_anonimizado)
-    texto_anonimizado = re.sub(r'Kinghost|KINGHOST|kinghost|KingHost', '[empresa]', texto_anonimizado)
+    texto_anonimizado = re.sub(r'Locaweb|LOCAWEB|locaweb', '[empresa]', texto_anonimizado)
     texto_anonimizado = re.sub(r'Octadesk|octadesk|OCTADESK|OCTA|octa|Octa|hostinger|Hostinger|HOSTINGER|Godaddy|godaddy|GODADDY|HOSTGATOR|hostgator|Hostgator|WIX|wix|Wix|Hostnet|hostnet|HOSTNET|cloudflare|Cloudflare|CLOUDFLARE|nuvemshop|NUVEMSHOP|Nuvemshop', '[concorrente]', texto_anonimizado)
     texto_anonimizado = re.sub(r'(O seu usuário é: \s*)\S+', r'\1[usuário]', texto_anonimizado)
     texto_anonimizado = re.sub(r'(login\s*[:\s]?\s*)\S+', r'\1[login]', texto_anonimizado)
@@ -121,6 +121,7 @@ def get_atendimentos_analista_individual(analista_nome, data_inicio, data_fim):
     try:
         conn = get_psycopg2_connection()
 
+        schema = config.DB_SCHEMA
         query = f"""
         SELECT
             rd."Protocolo",
@@ -133,16 +134,16 @@ def get_atendimentos_analista_individual(analista_nome, data_inicio, data_fim):
             rd."Comentários" as comentarios,
             nps."ID Sessão" as id_sessao,
             m.mensagens
-        FROM kinghost_octadesk.vw_report_diario rd
-        INNER JOIN kinghost_octadesk.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
-        LEFT JOIN kinghost_octadesk.mensagens m ON nps."ID Sessão" = m.id
-        WHERE rd."Analista" = '{analista_nome}'
-        AND rd."Data Encerramento" BETWEEN '{data_inicio}' AND '{data_fim} 23:59:59'
+        FROM {schema}.vw_report_diario rd
+        INNER JOIN {schema}.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
+        LEFT JOIN {schema}.mensagens m ON nps."ID Sessão" = m.id
+        WHERE rd."Analista" = %s
+        AND rd."Data Encerramento" BETWEEN %s AND %s
         ORDER BY rd."Data Encerramento" DESC
-        LIMIT {max_atendimentos}
+        LIMIT %s
         """
 
-        df = pd.read_sql(query, conn)
+        df = pd.read_sql(query, conn, params=(analista_nome, data_inicio, f'{data_fim} 23:59:59', max_atendimentos))
 
         if df.empty:
             logger.warning(f"{analista_nome}: nenhum atendimento encontrado no período")
@@ -202,9 +203,6 @@ def get_atendimentos_nps(analistas_criticos, data_inicio=None, data_fim=None):
     engine = None
     conn = None
 
-    # Converter lista de analistas para string SQL
-    analistas_sql = "', '".join(lista_analistas)
-    
     # Definir período de busca
     if not data_inicio:
         # Buscar últimos 30 dias se não especificado
@@ -220,6 +218,7 @@ def get_atendimentos_nps(analistas_criticos, data_inicio=None, data_fim=None):
         engine = get_sqlalchemy_engine()
         conn = get_psycopg2_connection()
 
+        schema = config.DB_SCHEMA
         query = f'''
         SELECT
             rd."Protocolo",
@@ -234,16 +233,16 @@ def get_atendimentos_nps(analistas_criticos, data_inicio=None, data_fim=None):
             nps."Data e Hora da Pesquisa" as data_hora_pesquisa,
             nps."Login do Analista" as login_analista_nps,
             m.mensagens
-        FROM kinghost_octadesk.vw_report_diario rd
-        INNER JOIN kinghost_octadesk.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
-        LEFT JOIN kinghost_octadesk.mensagens m ON nps."ID Sessão" = m.id
-        WHERE rd."Analista" IN ('{analistas_sql}')
-        AND rd."Data Encerramento" BETWEEN '{data_inicio}' AND '{data_fim} 23:59:59'
+        FROM {schema}.vw_report_diario rd
+        INNER JOIN {schema}.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
+        LEFT JOIN {schema}.mensagens m ON nps."ID Sessão" = m.id
+        WHERE rd."Analista" = ANY(%s)
+        AND rd."Data Encerramento" BETWEEN %s AND %s
         ORDER BY rd."Data Encerramento" DESC;
         '''
 
         logger.info("Executando consulta no banco...")
-        df = pd.read_sql(query, conn)
+        df = pd.read_sql(query, conn, params=(lista_analistas, data_inicio, f'{data_fim} 23:59:59'))
         
         if df.empty:
             logger.warning("Nenhum atendimento encontrado para os analistas especificados.")
@@ -344,9 +343,6 @@ def get_estatisticas_analistas(analistas_criticos, data_inicio=None, data_fim=No
         logger.warning("Nenhum analista crítico encontrado para estatísticas.")
         return pd.DataFrame()
 
-    # Converter lista de analistas para string SQL
-    analistas_sql = "', '".join(lista_analistas)
-    
     # Definir período de busca
     if not data_inicio:
         data_inicio = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
@@ -356,12 +352,13 @@ def get_estatisticas_analistas(analistas_criticos, data_inicio=None, data_fim=No
     # Conectar ao banco - será fechado no finally
     engine = None
     conn = None
-    
+
     try:
         # Estabelecer conexões
         engine = get_sqlalchemy_engine()
         conn = get_psycopg2_connection()
 
+        schema = config.DB_SCHEMA
         query = f'''
         SELECT
             rd."Analista",
@@ -372,17 +369,17 @@ def get_estatisticas_analistas(analistas_criticos, data_inicio=None, data_fim=No
             AVG(CAST(rd."Relacionamento" AS FLOAT)) AS media_relacionamento,
             rd."Canal",
             COUNT(CASE WHEN m.mensagens IS NOT NULL THEN 1 END) AS registros_com_mensagens
-        FROM kinghost_octadesk.vw_report_diario rd
-        INNER JOIN kinghost_octadesk.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
-        LEFT JOIN kinghost_octadesk.mensagens m ON nps."ID Sessão" = m.id
-        WHERE rd."Analista" IN ('{analistas_sql}')
-        AND rd."Data Encerramento" BETWEEN '{data_inicio}' AND '{data_fim} 23:59:59'
+        FROM {schema}.vw_report_diario rd
+        INNER JOIN {schema}.vw_nps nps ON CAST(rd."Protocolo" AS BIGINT) = nps."Protocolo"
+        LEFT JOIN {schema}.mensagens m ON nps."ID Sessão" = m.id
+        WHERE rd."Analista" = ANY(%s)
+        AND rd."Data Encerramento" BETWEEN %s AND %s
         GROUP BY rd."Analista", rd."Canal"
         ORDER BY total_avaliacoes_nps DESC;
         '''
 
         logger.info("Buscando estatísticas dos analistas...")
-        df_stats = pd.read_sql(query, conn)
+        df_stats = pd.read_sql(query, conn, params=(lista_analistas, data_inicio, f'{data_fim} 23:59:59'))
         
         return df_stats
     

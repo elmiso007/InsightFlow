@@ -1,14 +1,29 @@
 -- ==================================================================================
--- SCRIPT PARA CRIAÇÃO DAS TABELAS NECESSÁRIAS PARA O SISTEMA DE ANÁLISE NPS
--- COMPATÍVEL COM POSTGRESQL
+-- SETUP DO BANCO — rode UMA VEZ antes de usar o sistema pela primeira vez
+-- ==================================================================================
+--
+--  O QUE FAZ  Cria 2 tabelas no schema lw_octadesk:
+--
+--    rawdata_analise_nps_analistas   Rascunho bruto gerado pela IA (Gemini).
+--                                    Gravado pelo Python; descartável após processamento.
+--
+--    analise_nps_analistas           Resultados finais — consultados por dashboards e relatórios.
+--                                    Recebe dois tipos de análise (coluna analise_tipo):
+--                                      • 'monitoramento_nps_analistas' → análise de analistas (IA)
+--                                      • 'woz_detratores_trimestral'   → comparativo WOZ (estatístico)
+--
+--  COMO RODAR
+--    psql -U seu_usuario -d seu_banco -f create_tables_nps.sql
+--    psql -U seu_usuario -d seu_banco -f create_analysis_columns.sql
+--
 -- ==================================================================================
 
 -- Criar schema se não existir
-CREATE SCHEMA IF NOT EXISTS kinghost_octadesk;
+CREATE SCHEMA IF NOT EXISTS lw_octadesk;
 
 -- 1. TABELA PARA DADOS BRUTOS DA ANÁLISE DE IA (RAW DATA)
 -- Esta tabela recebe diretamente os dados da API do Gemini
-CREATE TABLE kinghost_octadesk.rawdata_analise_nps_analistas (
+CREATE TABLE lw_octadesk.rawdata_analise_nps_analistas (
     id BIGSERIAL PRIMARY KEY,
     request TIMESTAMP NOT NULL,                   -- Data/hora da requisição
     dados_de DATE NOT NULL,                       -- Data inicial do período analisado
@@ -28,13 +43,13 @@ CREATE TABLE kinghost_octadesk.rawdata_analise_nps_analistas (
 );
 
 -- Índices para performance na tabela rawdata
-CREATE INDEX IX_rawdata_nps_request_date ON kinghost_octadesk.rawdata_analise_nps_analistas (request);
-CREATE INDEX IX_rawdata_nps_periodo ON kinghost_octadesk.rawdata_analise_nps_analistas (dados_de, dados_ate);
-CREATE INDEX IX_rawdata_nps_request_id ON kinghost_octadesk.rawdata_analise_nps_analistas (request_id);
+CREATE INDEX IX_rawdata_nps_request_date ON lw_octadesk.rawdata_analise_nps_analistas (request);
+CREATE INDEX IX_rawdata_nps_periodo ON lw_octadesk.rawdata_analise_nps_analistas (dados_de, dados_ate);
+CREATE INDEX IX_rawdata_nps_request_id ON lw_octadesk.rawdata_analise_nps_analistas (request_id);
 
 -- 2. TABELA DEFINITIVA (Para dados processados e limpos)
 -- Esta tabela recebe dados tratados da tabela RAW através do script insereDadosAnaliseNPS.sql
-CREATE TABLE kinghost_octadesk.analise_nps_analistas (
+CREATE TABLE lw_octadesk.analise_nps_analistas (
     id BIGSERIAL PRIMARY KEY,
     request_datetime TIMESTAMP NOT NULL,         -- Data/hora da requisição original
     data_inicio DATE NOT NULL,                   -- Data inicial do período
@@ -63,11 +78,11 @@ CREATE TABLE kinghost_octadesk.analise_nps_analistas (
 );
 
 -- Índices para performance e consultas na tabela definitiva
-CREATE INDEX IX_analise_nps_data_periodo ON kinghost_octadesk.analise_nps_analistas (data_inicio, data_fim);
-CREATE INDEX IX_analise_nps_request_datetime ON kinghost_octadesk.analise_nps_analistas (request_datetime);
-CREATE INDEX IX_analise_nps_analistas ON kinghost_octadesk.analise_nps_analistas (analistas_criticos);
-CREATE INDEX IX_analise_nps_tipo ON kinghost_octadesk.analise_nps_analistas (analise_tipo);
-CREATE INDEX IX_analise_nps_created_at ON kinghost_octadesk.analise_nps_analistas (created_at);
+CREATE INDEX IX_analise_nps_data_periodo ON lw_octadesk.analise_nps_analistas (data_inicio, data_fim);
+CREATE INDEX IX_analise_nps_request_datetime ON lw_octadesk.analise_nps_analistas (request_datetime);
+CREATE INDEX IX_analise_nps_analistas ON lw_octadesk.analise_nps_analistas (analistas_criticos);
+CREATE INDEX IX_analise_nps_tipo ON lw_octadesk.analise_nps_analistas (analise_tipo);
+CREATE INDEX IX_analise_nps_created_at ON lw_octadesk.analise_nps_analistas (created_at);
 
 -- ==================================================================================
 -- COMENTÁRIOS E OBSERVAÇÕES
@@ -95,6 +110,6 @@ CREATE INDEX IX_analise_nps_created_at ON kinghost_octadesk.analise_nps_analista
 DO $$
 BEGIN
     RAISE NOTICE '✅ Tabelas para análise NPS criadas com sucesso!';
-    RAISE NOTICE '📊 kinghost_octadesk.rawdata_analise_nps_analistas - Para dados brutos da IA';
-    RAISE NOTICE '📈 kinghost_octadesk.analise_nps_analistas - Para dados processados e relatórios';
+    RAISE NOTICE '📊 lw_octadesk.rawdata_analise_nps_analistas - Para dados brutos da IA';
+    RAISE NOTICE '📈 lw_octadesk.analise_nps_analistas - Para dados processados e relatórios';
 END $$;

@@ -40,39 +40,41 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 - ✅ **Configuração via .env** (seguro e flexível)
 - ✅ **Push seguro** com `.env` e saídas ignoradas no Git
 - ✅ **Salvamento em PostgreSQL** com dados estruturados
+- ✅ **Análise de Detratores WOZ** — comparativo trimestral de comentários sobre atendimento automatizado
 
 ---
 
 ## 🏗️ Arquitetura
 
 ```
-┌─────────────────────────┐
-│   verifica_nps.py       │ → Orquestrador principal
-│   (548 linhas)          │   Calcula NPS, identifica críticos
-└───────────┬─────────────┘
-            │
-    ┌───────┴────────┐
-    │                │
-    ▼                ▼
-┌────────────┐  ┌────────────┐
-│ get_       │  │ analise_   │
-│ atendimen  │  │ ia.py      │
-│ tos_nps.py │  │ (540 l)    │
-│ (375 l)    │  └─────┬──────┘
-└─────┬──────┘        │
-      │               │
+┌─────────────────────────┐    ┌──────────────────────────────┐
+│   verifica_nps.py       │    │  analise_woz_detratores.py   │
+│   Orquestrador NPS      │    │  Comparativo trimestral WOZ  │
+│   Calcula NPS, críticos │    │  --ano --t1 --t2             │
+└───────────┬─────────────┘    └──────┬───────────────────────┘
+            │                         │
+    ┌───────┴────────┐                ├──────────────────────┐
+    │                │                │                      │
+    ▼                ▼                ▼                      ▼
+┌────────────┐  ┌────────────┐  ┌─────────────┐   ┌────────────────┐
+│ get_       │  │ analise_   │  │ conecta_    │   │  woz_detrato-  │
+│ atendimen  │  │ ia.py      │  │ banco.py    │   │  res/          │
+│ tos_nps.py │  │ Gemini AI  │  └──────┬──────┘   │  *.html + JSON │
+└─────┬──────┘  └─────┬──────┘         │           └────────────────┘
+      │               │                │
+      └───────┬───────┘                │
+              ▼                        │
+      ┌───────────────┐                │
+      │ conecta_      │                │
+      │ banco.py      ├────────────────┘
       └───────┬───────┘
               ▼
-      ┌───────────────┐
-      │ conecta_      │
-      │ banco.py      │
-      │ (60 l)        │
-      └───────┬───────┘
-              ▼
-      ┌───────────────┐
-      │  PostgreSQL   │
-      │  Database     │
-      └───────────────┘
+      ┌─────────────────────────────────┐
+      │  PostgreSQL — lw_octadesk       │
+      │  • rawdata_analise_nps_analistas│
+      │  • analise_nps_analistas        │
+      │    (NPS analistas + WOZ)        │
+      └─────────────────────────────────┘
 ```
 
 ---
@@ -95,7 +97,7 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 
 ```bash
 git clone <seu-repo>
-cd feedback_coordenadores
+cd "Feedback Woz-Analista"
 ```
 
 ### 2. Crie Ambiente Virtual
@@ -137,6 +139,8 @@ GEMINI_API_KEY=sua_nova_chave_aqui
 ```
 
 ### 5. Crie as Tabelas
+
+> Os scripts já estão configurados para o schema `lw_octadesk`.
 
 ```bash
 psql -U seu_usuario -d seu_banco -f create_tables_nps.sql
@@ -213,6 +217,8 @@ Mostra todas as configurações e valida se estão corretas.
 ### Fluxo de Execução
 
 ```
+FLUXO A — Análise NPS por Analista (verifica_nps.py)
+─────────────────────────────────────────────────────
 1. COLETA DE DADOS
    └─> Busca avaliações NPS do período (mês anterior)
    └─> Calcula NPS por analista (fórmula padrão)
@@ -230,12 +236,9 @@ Mostra todas as configurações e valida se estão corretas.
    └─> Verifica idempotência: pula analistas já analisados no período
    └─> Envia para Google Gemini
    └─> Extrai 6 seções estruturadas:
-       • Resumo Geral
-       • Problemas por Dimensão NPS
-       • Padrões Comportamentais
-       • Comentários vs Conversas
-       • Recomendações de Melhoria
-       • Casos Críticos
+       • Resumo Geral / Problemas por Dimensão NPS
+       • Padrões Comportamentais / Comentários vs Conversas
+       • Recomendações de Melhoria / Casos Críticos
 
 5. SALVAMENTO
    └─> Banco: rawdata_analise_nps_analistas
@@ -247,10 +250,30 @@ Mostra todas as configurações e valida se estão corretas.
 
 7. PROCESSAMENTO FINAL
    └─> SQL: insereDadosAnaliseNPS.sql
-   └─> Copia para: analise_nps_analistas (tabela final)
+   └─> Copia para: analise_nps_analistas (analise_tipo='monitoramento_nps_analistas')
 
 8. NOTIFICAÇÃO
    └─> Alertas ou boas notícias
+
+
+FLUXO B — Análise de Detratores WOZ (analise_woz_detratores.py)
+────────────────────────────────────────────────────────────────
+1. COLETA
+   └─> Busca comentários NPS com termos WOZ/robô/bot via SQL ILIKE
+   └─> Filtra por trimestre (--ano, --t1, --t2)
+
+2. CLASSIFICAÇÃO
+   └─> Calcula score médio (Velocidade + Solução + Relacionamento)
+   └─> Classifica: Promotor (≥9) / Neutro (7-8) / Detrator (≤6)
+
+3. COMPARATIVO
+   └─> Calcula delta de volume, % detratores e tendência entre os dois trimestres
+
+4. SAÍDAS
+   └─> HTML: woz_detratores/woz_detratores_{ano}_T{t1}_vs_T{t2}.html
+   └─> JSON: woz_detratores/historico.json (acumulativo)
+   └─> Banco: analise_nps_analistas (analise_tipo='woz_detratores_trimestral')
+       — idempotente por request_id=woz_{ano}_T{t1}_vs_T{t2}
 ```
 
 ### Cálculo de NPS
@@ -271,14 +294,15 @@ Onde:
 ## 📁 Estrutura de Arquivos
 
 ```
-feedback_coordenadores/
+Feedback Woz-Analista/
 ├── .env                          # ⚠️  Configurações (NÃO versionar!)
 ├── env.example                   # Template de configuração
-├── config.py                     # Carrega configurações do .env
+├── config.py                     # Carrega configurações do .env (DB_SCHEMA=lw_octadesk)
 ├── conecta_banco.py              # Conexões PostgreSQL
-├── verifica_nps.py               # Script principal
+├── verifica_nps.py               # Script principal — análise NPS por analista
 ├── analise_ia.py                 # Integração com Gemini AI
 ├── get_atendimentos_nps.py       # Busca e anonimiza conversas
+├── analise_woz_detratores.py     # Comparativo trimestral de detratores WOZ
 ├── teste_conexao.py              # Script de teste
 │
 ├── requirements.txt              # Dependências Python
@@ -293,14 +317,18 @@ feedback_coordenadores/
 ├── docs/                        # Documentação distribuída (manual, regras e arquitetura)
 │   ├── MANUAL.md                # Guia operacional completo
 │   ├── REGRAS.md                # Regras de negócio, limiares e políticas
-│   └── ARQUITETURA.md            # Fluxo, módulos e dependências
+│   └── ARQUITETURA.md           # Fluxo, módulos e dependências
 ├── README_ALTERACOES.md         # Histórico de mudanças
 └── README_LOGGING.md            # Documentação do logging
 │
 ├── logs/                         # Logs da aplicação
 │   └── nps_verificacao.log
 │
-└── outputs/ (gerados)            # Arquivos de saída
+├── woz_detratores/ (gerados)     # Relatórios WOZ
+│   ├── woz_detratores_2026_T1_vs_T2.html
+│   └── historico.json
+│
+└── outputs/ (gerados)            # Arquivos de saída NPS
     ├── atendimentos_nps_baixo.txt
     └── resposta_nps_gemini.md
 ```
@@ -336,10 +364,15 @@ O sistema anonimiza automaticamente:
 
 ```bash
 # Ativar ambiente virtual
-source venv/bin/activate
+source venv/bin/activate   # Linux/Mac
+.\venv\Scripts\activate    # Windows
 
-# Executar análise
+# Análise NPS por analista
 python verifica_nps.py
+
+# Análise de detratores WOZ (comparativo trimestral)
+python analise_woz_detratores.py                        # T1 vs T2 do ano atual
+python analise_woz_detratores.py --ano 2026 --t1 2 --t2 3
 ```
 
 ### Execução Agendada
@@ -358,24 +391,40 @@ schtasks /create /tn "NPS_Mensal" /tr "C:\caminho\venv\Scripts\python.exe C:\cam
 ### Consultar Resultados
 
 ```sql
--- Últimas análises
-SELECT 
+-- Últimas análises (qualquer tipo)
+SELECT
     request_datetime,
+    analise_tipo,
     analistas_criticos,
     total_protocolos,
     setor
-FROM kinghost_octadesk.analise_nps_analistas
+FROM lw_octadesk.analise_nps_analistas
 ORDER BY request_datetime DESC
-LIMIT 5;
+LIMIT 10;
 
--- Análise de hoje
-SELECT 
+-- Apenas análises NPS de analistas
+SELECT
     analistas_criticos,
     resumo_geral,
     casos_criticos,
     recomendacoes_melhoria
-FROM kinghost_octadesk.analise_nps_analistas
-WHERE DATE(request_datetime) = CURRENT_DATE;
+FROM lw_octadesk.analise_nps_analistas
+WHERE analise_tipo = 'monitoramento_nps_analistas'
+  AND DATE(request_datetime) = CURRENT_DATE;
+
+-- Apenas análises WOZ (comparativos trimestrais)
+SELECT
+    request_id,
+    data_inicio,
+    data_fim,
+    analistas_criticos   AS tendencia,
+    total_protocolos     AS comentarios_woz_t2,
+    resumo_geral,
+    recomendacoes_melhoria,
+    casos_criticos
+FROM lw_octadesk.analise_nps_analistas
+WHERE analise_tipo = 'woz_detratores_trimestral'
+ORDER BY request_datetime DESC;
 ```
 
 ---
@@ -425,7 +474,10 @@ grep "ERROR" logs/nps_verificacao.log
 
 - **[GUIA_INSTALACAO.md](GUIA_INSTALACAO.md)** - Instalação passo a passo
 - **[README_LOGGING.md](README_LOGGING.md)** - Sistema de logging
-- **[README_ALTERACOES.md](README_ALTERACOES.md)** - Histórico de mudanças
+- **[README_ALTERACOES.md](README_ALTERACOES.md)** - Histórico de mudanças e correções
+- **[docs/ARQUITETURA.md](docs/ARQUITETURA.md)** - Módulos, fluxo de dados e decisões de design
+- **[docs/MANUAL.md](docs/MANUAL.md)** - Manual operacional detalhado
+- **[docs/REGRAS.md](docs/REGRAS.md)** - Regras de negócio, idempotência e persistência
 
 ---
 
@@ -433,8 +485,8 @@ grep "ERROR" logs/nps_verificacao.log
 
 - [ ] Dashboard web para visualização
 - [ ] Notificações via Slack/Email
-- [ ] Análise comparativa histórica
-- [ ] Suporte a múltiplos períodos
+- [x] Análise comparativa histórica — `analise_woz_detratores.py` + `historico.json`
+- [x] Suporte a múltiplos períodos — `--ano`, `--t1`, `--t2`
 - [ ] API REST para integração
 - [ ] Testes automatizados
 - [ ] Docker container
@@ -444,11 +496,12 @@ grep "ERROR" logs/nps_verificacao.log
 ## 📊 Estatísticas do Projeto
 
 - **Linguagem:** Python 3.8+
-- **Linhas de Código:** ~1.500 linhas Python + 266 SQL
-- **Módulos:** 8 arquivos principais
+- **Linhas de Código:** ~2.000 linhas Python + 170 SQL
+- **Módulos:** 9 arquivos principais
 - **Dependências:** 10 pacotes Python
-- **Banco de Dados:** PostgreSQL
+- **Banco de Dados:** PostgreSQL (`lw_octadesk`)
 - **IA:** Google Gemini Flash
+- **Tabela unificada:** `analise_nps_analistas` (NPS analistas + WOZ, discriminado por `analise_tipo`)
 
 ---
 
@@ -457,7 +510,7 @@ grep "ERROR" logs/nps_verificacao.log
 **Sistema desenvolvido para análise de NPS de analistas de atendimento**
 
 - Implementação inicial: Outubro 2025
-- Versão atual: 2.0 (com suporte a .env)
+- Versão atual: 2.4 (correções de integridade e segurança — ver README_ALTERACOES.md)
 
 ---
 
@@ -488,5 +541,5 @@ python verifica_nps.py   # Executa análise
 
 ---
 
-*Última atualização: Julho 2026 | Versão 2.1*
+*Última atualização: Julho 2026 | Versão 2.4 — 9 correções de integridade e segurança (analise_tipo, import bomb, race condition, token counts, lru_cache, SQL duplicado, falsos positivos WOZ, JSON/DB sync)*
 

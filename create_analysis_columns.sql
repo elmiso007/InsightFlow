@@ -12,7 +12,7 @@
 -- IMPORTANTE: Execute como proprietário da tabela no PostgreSQL
 
 -- 1. Adicionar colunas para seções da análise IA na tabela RAW
-ALTER TABLE kinghost_octadesk.rawdata_analise_nps_analistas 
+ALTER TABLE lw_octadesk.rawdata_analise_nps_analistas 
 ADD COLUMN IF NOT EXISTS resumo_geral TEXT,
 ADD COLUMN IF NOT EXISTS problemas_nps TEXT,
 ADD COLUMN IF NOT EXISTS padroes_comportamentais TEXT,
@@ -21,15 +21,15 @@ ADD COLUMN IF NOT EXISTS recomendacoes_melhoria TEXT,
 ADD COLUMN IF NOT EXISTS casos_criticos TEXT;
 
 -- 2. Adicionar comentários para documentar as colunas
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.resumo_geral IS 'Seção: Resumo Geral da análise IA';
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.problemas_nps IS 'Seção: Problemas Identificados por Dimensão NPS';
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.padroes_comportamentais IS 'Seção: Padrões Comportamentais dos Analistas';
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.comentarios_vs_conversas IS 'Seção: Comentários NPS vs Conversas';
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.recomendacoes_melhoria IS 'Seção: Recomendações de Melhoria';
-COMMENT ON COLUMN kinghost_octadesk.rawdata_analise_nps_analistas.casos_criticos IS 'Seção: Casos Críticos';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.resumo_geral IS 'Seção: Resumo Geral da análise IA';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.problemas_nps IS 'Seção: Problemas Identificados por Dimensão NPS';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.padroes_comportamentais IS 'Seção: Padrões Comportamentais dos Analistas';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.comentarios_vs_conversas IS 'Seção: Comentários NPS vs Conversas';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.recomendacoes_melhoria IS 'Seção: Recomendações de Melhoria';
+COMMENT ON COLUMN lw_octadesk.rawdata_analise_nps_analistas.casos_criticos IS 'Seção: Casos Críticos';
 
 -- 3. Opcional: Adicionar as mesmas colunas na tabela definitiva
--- ALTER TABLE kinghost_octadesk.analise_nps_analistas 
+-- ALTER TABLE lw_octadesk.analise_nps_analistas 
 -- ADD COLUMN IF NOT EXISTS resumo_geral TEXT,
 -- ADD COLUMN IF NOT EXISTS problemas_nps TEXT,
 -- ADD COLUMN IF NOT EXISTS padroes_comportamentais TEXT,
@@ -44,7 +44,7 @@ SELECT
     is_nullable
 FROM information_schema.columns 
 WHERE table_name = 'rawdata_analise_nps_analistas' 
-  AND table_schema = 'kinghost_octadesk'
+  AND table_schema = 'lw_octadesk'
   AND column_name IN (
       'resumo_geral', 
       'problemas_nps', 
@@ -75,7 +75,7 @@ ORDER BY column_name;
 --     analistas_criticos,
 --     resumo_geral,
 --     casos_criticos
--- FROM kinghost_octadesk.rawdata_analise_nps_analistas 
+-- FROM lw_octadesk.rawdata_analise_nps_analistas 
 -- WHERE DATE(created_at) = CURRENT_DATE
 -- ORDER BY created_at DESC;
 -- 

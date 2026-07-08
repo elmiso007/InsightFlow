@@ -78,7 +78,7 @@ class Config:
     DB_NAME = _get_config_value('database', 'database', os.getenv('DB_NAME', 'report_requesttracker'))
     DB_USER = _get_config_value('database', 'uid', os.getenv('DB_USER', 'postgres'))
     DB_PASSWORD = _get_config_value('database', 'pwd', os.getenv('DB_PASSWORD', ''))
-    DB_SCHEMA = os.getenv('DB_SCHEMA', 'kinghost_octadesk')
+    DB_SCHEMA = os.getenv('DB_SCHEMA', 'lw_octadesk')
     
     # ======================================================================
     # API GEMINI
