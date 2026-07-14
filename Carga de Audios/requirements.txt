@@ -1,0 +1,4 @@
+faster-whisper
+psycopg2-binary
+python-dotenv
+requests
