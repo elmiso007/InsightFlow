@@ -1,9 +1,0 @@
-[database]
-SERVER="10.30.138.28"
-DATABASE = "report_requesttracker"
-USER = "a_report"
-PWD = "Eequ8ohc"
-
-
-[app]
-debug = true
