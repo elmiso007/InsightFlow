@@ -36,18 +36,22 @@ $$
 
 ## 5. Regras de persistência
 
-- os resultados são escritos em uma única tabela `lw_octadesk.analise_nps_analistas`, discriminados pela coluna `analise_tipo`:
-  - `'monitoramento_nps_analistas'` para análises por analista (via Gemini);
-  - `'woz_detratores_trimestral'` para comparativos WOZ (estatístico, sem IA);
+- os resultados são escritos em duas tabelas distintas:
+  - `lw_octadesk.analise_nps_analistas` — resumos, discriminados por `analise_tipo`:
+    - `'monitoramento_nps_analistas'` para análises por analista (via Gemini);
+    - `'woz_detratores_mensal'` para comparativos WOZ mensais (estatístico, sem IA);
+  - `lw_octadesk.woz_comentarios` — cada comentário WOZ individual; criada via `woz_cria_tabela.sql`;
 - registros na tabela `rawdata_analise_nps_analistas` mais antigos que `ANALISE_RETENTION_DAYS` (padrão 90 dias) são removidos automaticamente a cada execução do fluxo NPS;
-- a tabela `analise_nps_analistas` (dados processados) não é afetada pela limpeza automática;
+- as tabelas `analise_nps_analistas` e `woz_comentarios` (dados processados) não são afetadas pela limpeza automática;
 - o arquivo `woz_detratores/historico.json` é atualizado somente após confirmação de sucesso na persistência do banco — banco e JSON devem sempre estar em sincronia;
 - os relatórios HTML gerados servem como auditoria e histórico de acompanhamento.
 
 ## 6. Regras de idempotência
 
 - o fluxo NPS (`verifica_nps.py`) é idempotente: analistas já analisados no período são detectados via `analise_ja_existe()` e pulados, sem nova chamada à API Gemini;
-- o fluxo WOZ (`analise_woz_detratores.py`) é idempotente: cada execução usa `request_id = woz_{ano}_T{t1}_vs_T{t2}` com `WHERE NOT EXISTS` para evitar duplicatas;
+- o fluxo WOZ (`analise_woz_detratores.py`) é idempotente em dois níveis:
+  - resumo mensal: `request_id = woz_{data_inicio_1}_vs_{data_inicio_2}` com `WHERE NOT EXISTS` em `analise_nps_analistas`;
+  - comentários individuais: chave única `(protocolo, data_inicio_periodo, data_fim_periodo)` com `ON CONFLICT DO NOTHING` em `woz_comentarios`;
 - o lock de threading `_analise_lock` em `verifica_nps.py` garante que dois workers paralelos não iniciem a análise do mesmo analista simultaneamente — o lock cobre tanto a verificação no banco quanto a marcação como "em andamento".
 
 ## 7. Regras de operação
@@ -62,4 +66,5 @@ $$
 - alterações em limiares devem ser feitas no `.env` ou no arquivo de configuração central;
 - alterações em lógica de consulta ou processamento devem ser documentadas no README e em docs/;
 - alterações em dependências precisam atualizar o `requirements.txt`;
-- ao adicionar novos termos de detecção WOZ, validar que o padrão SQL ILIKE não gera falsos positivos em palavras comuns do português antes de incluir.
+- ao adicionar novos termos de detecção WOZ, validar que o padrão SQL ILIKE não gera falsos positivos em palavras comuns do português antes de incluir;
+- a tabela `woz_comentarios` deve ser criada uma única vez via `woz_cria_tabela.sql`; nunca recriar sem antes verificar se há dados históricos que precisam ser preservados.

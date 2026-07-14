@@ -26,6 +26,11 @@ _analises_em_andamento: set = set()
 
 sql_path = Path(__file__).parent
 
+# Preencha estes campos se quiser definir a data diretamente no codigo.
+# Se ambos ficarem em branco, o monitoramento usa o mês anterior completo.
+DATA_INICIO_MANUAL = None  # Ex: "2026-06-10"
+DATA_FIM_MANUAL = None     # Ex: "2026-06-15"
+
 #|-------------------------------------------------------------------------------------------------------------------|
 
 # CONFIGURAÇÃO DE LOGGING
@@ -99,6 +104,7 @@ def notifica(mensagem, analistas_criticos, total_analistas):
     logger.warning("=============================")
 
 def gerar_chave_unica():
+    """Gera UUID v4 único — usado como request_id ao salvar análises no banco."""
     return str(uuid.uuid4())
 
 def processar_analista_individual(analista_nome, comentarios_criticos, data_inicio, data_fim, setores_analistas, idx, total):
@@ -113,6 +119,8 @@ def processar_analista_individual(analista_nome, comentarios_criticos, data_inic
         logger.warning(f"[{idx}/{total}] {analista_nome}: nenhum comentário NPS")
         return analista_nome, None, []
 
+    # Guarda dupla de idempotência: impede chamadas duplicadas ao Gemini em threads paralelas
+    # e descarta analistas que já têm análise gravada no banco para o mesmo período.
     with _analise_lock:
         if analista_nome in _analises_em_andamento or analise_ja_existe(analista_nome, data_inicio, data_fim):
             logger.info(f"[{idx}/{total}] ⏭ {analista_nome}: análise já existe ou em andamento, pulando")
@@ -121,31 +129,31 @@ def processar_analista_individual(analista_nome, comentarios_criticos, data_inic
 
     try:
         atendimentos_txt, protocolos_analista = get_atendimentos_analista_individual(
-        analista_nome, data_inicio, data_fim
-    )
+            analista_nome, data_inicio, data_fim
+        )
 
-    texto_analista = f"=== ANÁLISE ESPECÍFICA: {analista_nome.upper()} ===\n"
-    texto_analista += f"Período: {data_inicio} até {data_fim}\n"
-    texto_analista += f"Total de comentários NPS: {len(comentarios_analista)}\n\n"
+        texto_analista = f"=== ANÁLISE ESPECÍFICA: {analista_nome.upper()} ===\n"
+        texto_analista += f"Período: {data_inicio} até {data_fim}\n"
+        texto_analista += f"Total de comentários NPS: {len(comentarios_analista)}\n\n"
 
-    for _, row in comentarios_analista.iterrows():
-        texto_analista += f"Protocolo: {row['Protocolo']}\n"
-        texto_analista += f"Notas NPS: Velocidade={row['Velocidade']}, Solução={row['Solução']}, Relacionamento={row['Relacionamento']}\n"
-        texto_analista += f"Comentário: {row['Comentários']}\n"
-        texto_analista += "-" * 80 + "\n"
+        for _, row in comentarios_analista.iterrows():
+            texto_analista += f"Protocolo: {row['Protocolo']}\n"
+            texto_analista += f"Notas NPS: Velocidade={row['Velocidade']}, Solução={row['Solução']}, Relacionamento={row['Relacionamento']}\n"
+            texto_analista += f"Comentário: {row['Comentários']}\n"
+            texto_analista += "-" * 80 + "\n"
 
-    if atendimentos_txt:
-        texto_analista += "\n=== CONVERSAS COMPLETAS ===\n"
-        texto_analista += "".join(atendimentos_txt[:5000])
+        if atendimentos_txt:
+            texto_analista += "\n=== CONVERSAS COMPLETAS ===\n"
+            texto_analista += "".join(atendimentos_txt[:5000])
 
-    setor = setores_analistas.get(analista_nome, 'Não identificado')
-    if not protocolos_analista:
-        protocolos_analista = list(comentarios_analista['Protocolo'].dropna().unique())
+        setor = setores_analistas.get(analista_nome, 'Não identificado')
+        if not protocolos_analista:
+            protocolos_analista = list(comentarios_analista['Protocolo'].dropna().unique())
 
-    analise = analise_ia_nps(
-        texto_analista, data_inicio, data_fim,
-        [analista_nome], protocolos_analista, setor
-    )
+        analise = analise_ia_nps(
+            texto_analista, data_inicio, data_fim,
+            [analista_nome], protocolos_analista, setor
+        )
 
     finally:
         with _analise_lock:
@@ -166,8 +174,9 @@ def extrair_setores_analistas(df):
     for analista in df['Analista'].unique():
         # Pegar o setor mais frequente do analista (em caso de múltiplos setores)
         dados_analista = df[df['Analista'] == analista]
+        # mode() retorna o(s) valor(es) mais frequente(s) — [0] pega o primeiro em caso de empate
         setor = dados_analista['Setor'].mode()
-        
+
         if len(setor) > 0:
             setores_por_analista[analista] = setor[0]
         else:
@@ -185,13 +194,13 @@ def calcular_nps_nota(serie_notas):
     if len(notas_validas) == 0:
         return None
     
-    # Contar promotores, neutros e detratores
+    # Promotores ≥ 9 | Neutros 7-8 | Detratores ≤ 6 (escala padrão NPS)
     promotores = len(notas_validas[notas_validas >= 9])
     detratores = len(notas_validas[notas_validas <= 6])
     neutros = len(notas_validas[(notas_validas > 6) & (notas_validas < 9)])
     total_respostas = len(notas_validas)
-    
-    # Calcular NPS
+
+    # Fórmula NPS: ((Promotores - Detratores) / Total) × 100
     diferenca = promotores - detratores
     
     if total_respostas == 0:
@@ -269,13 +278,16 @@ def main():
     hora_atual = datetime.now()
     hora_atual_formatada = hora_atual.strftime("%H:%M:%S")
 
-    # Calcular primeiro e último dia do mês anterior
-    primeiro_dia_mes_atual = data_hoje.replace(day=1)
-    ultimo_dia_mes_anterior = primeiro_dia_mes_atual - timedelta(days=1)
-    primeiro_dia_mes_anterior = ultimo_dia_mes_anterior.replace(day=1)
-
-    data_inicio_analise = primeiro_dia_mes_anterior.strftime('%Y-%m-%d')
-    data_fim_analise = ultimo_dia_mes_anterior.strftime('%Y-%m-%d')
+    if DATA_INICIO_MANUAL and DATA_FIM_MANUAL:
+        data_inicio_analise = DATA_INICIO_MANUAL
+        data_fim_analise = DATA_FIM_MANUAL
+        logger.info("Período definido manualmente via DATA_INICIO_MANUAL / DATA_FIM_MANUAL")
+    else:
+        primeiro_dia_mes_atual = data_hoje.replace(day=1)
+        ultimo_dia_mes_anterior = primeiro_dia_mes_atual - timedelta(days=1)
+        primeiro_dia_mes_anterior = ultimo_dia_mes_anterior.replace(day=1)
+        data_inicio_analise = primeiro_dia_mes_anterior.strftime('%Y-%m-%d')
+        data_fim_analise = ultimo_dia_mes_anterior.strftime('%Y-%m-%d')
 
     logger.info(f"Executando verificação de NPS em {data_hoje} às {hora_atual_formatada}")
     logger.info(f"Período de análise: {data_inicio_analise} até {data_fim_analise} (mês anterior)")
@@ -360,6 +372,7 @@ def main():
                 logger.info("=== COMENTÁRIOS DOS ANALISTAS COM NPS BAIXO ===")
                 logger.info(f"Encontrados {len(comentarios_criticos)} comentários para análise")
 
+                # Extrai os nomes dos analistas a partir do índice do DataFrame de NPS críticos
                 fila_analistas = list(analistas_criticos.index)
                 total_analistas = len(fila_analistas)
                 logger.info(f"=== INICIANDO ANÁLISE POR ANALISTA ({config.PARALELO_MAX_WORKERS} worker(s) paralelo(s)) ===")
@@ -370,6 +383,7 @@ def main():
                 protocolos_analistas = []
                 analistas_processados = 0
 
+                # Cada future representa a chamada ao Gemini para um analista; PARALELO_MAX_WORKERS controla concorrência
                 with ThreadPoolExecutor(max_workers=config.PARALELO_MAX_WORKERS) as executor:
                     futures = {
                         executor.submit(
@@ -401,6 +415,7 @@ def main():
                             analistas_processados += 1
                             logger.error(f"Erro no processamento de {nome}: {str(e)}")
 
+                # Reordena na sequência original da fila — as_completed entrega em ordem de conclusão, não de envio
                 for nome in fila_analistas:
                     if nome in resultados_analistas:
                         analise = resultados_analistas[nome]
@@ -419,7 +434,10 @@ def main():
                 executar_sql_pos_analise(conn)
 
                 logger.info("Executando análise comparativa geral...")
-                dias_mes_anterior = (ultimo_dia_mes_anterior - primeiro_dia_mes_anterior).days + 1
+                # Calcula o número exato de dias do período para usar como janela na query SQL de comparação
+                _inicio_dt = datetime.strptime(data_inicio_analise, '%Y-%m-%d').date()
+                _fim_dt = datetime.strptime(data_fim_analise, '%Y-%m-%d').date()
+                dias_mes_anterior = (_fim_dt - _inicio_dt).days + 1
                 analise_comp = analise_comparativa_nps(analistas_criticos, periodo_dias=dias_mes_anterior)
                 if analise_comp:
                     content += f"\n{'='*80}\n"

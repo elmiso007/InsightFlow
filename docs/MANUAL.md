@@ -97,25 +97,29 @@ O que acontece em execução:
 9. Após todos os workers concluírem, executa `insereDadosAnaliseNPS.sql` uma única vez
 10. Gera relatórios HTML e salva no banco
 
-### 5.2 Análise de detratores WOZ (comparativo trimestral)
+### 5.2 Análise de detratores WOZ (comparativo mensal)
 
 ```bash
-# Compara T1 vs T2 do ano atual
+# Auto: últimos 2 meses completos
 python analise_woz_detratores.py
 
-# Especificar trimestres e ano
-python analise_woz_detratores.py --ano 2026 --t1 1 --t2 2
-python analise_woz_detratores.py --ano 2026 --t1 2 --t2 3
+# Especificar dois meses manualmente
+python analise_woz_detratores.py --ano1 2026 --mes1 5 --ano2 2026 --mes2 6
+
+# Override completo de datas
+python analise_woz_detratores.py --inicio1 2026-05-01 --fim1 2026-05-31 \
+                                 --inicio2 2026-06-01 --fim2 2026-06-30
 ```
 
 O que acontece em execução:
 
-1. Busca comentários NPS com termos WOZ via SQL ILIKE
+1. Busca comentários NPS com termos WOZ via SQL ILIKE para cada mês
 2. Classifica cada comentário em Promotor / Neutro / Detrator
-3. Calcula métricas por trimestre e variação entre T1 e T2
-4. Gera HTML em `woz_detratores/`
-5. Persiste em `analise_nps_analistas` com `analise_tipo = 'woz_detratores_trimestral'`
-6. Atualiza `woz_detratores/historico.json` (somente se o banco persistiu com sucesso)
+3. Calcula métricas por mês e variação entre os dois períodos
+4. Persiste comentários individuais em `woz_comentarios` (idempotente por protocolo+período)
+5. Gera HTML em `woz_detratores/woz_mensal_{data_inicio_1}_vs_{data_inicio_2}.html`
+6. Persiste resumo em `analise_nps_analistas` com `analise_tipo = 'woz_detratores_mensal'`
+7. Atualiza `woz_detratores/historico.json` (somente se o banco persistiu com sucesso)
 
 ## 6. Saídas esperadas
 
@@ -126,9 +130,10 @@ O que acontece em execução:
 - banco: `rawdata_analise_nps_analistas` (rascunho) e `analise_nps_analistas` (final, `analise_tipo='monitoramento_nps_analistas'`)
 
 **Fluxo WOZ (`analise_woz_detratores.py`):**
-- `woz_detratores/woz_detratores_{ano}_T{t1}_vs_T{t2}.html` — relatório HTML do comparativo
+- banco: `woz_comentarios` — cada comentário WOZ individual com protocolo, notas, classificação e score
+- `woz_detratores/woz_mensal_{data_inicio_1}_vs_{data_inicio_2}.html` — relatório HTML do comparativo
 - `woz_detratores/historico.json` — histórico acumulativo de todos os comparativos executados
-- banco: `analise_nps_analistas` (`analise_tipo='woz_detratores_trimestral'`)
+- banco: `analise_nps_analistas` (`analise_tipo='woz_detratores_mensal'`) — resumo do comparativo
 
 ## 7. Solução de problemas
 
@@ -158,5 +163,6 @@ pip install -r requirements.txt
 - usar o período configurado com atenção para não gerar relatórios incompletos;
 - ajustar `ANALISE_RETENTION_DAYS` conforme a política de retenção da empresa (padrão: 90 dias);
 - manter o `requirements.txt` atualizado quando adicionar dependências;
-- ao executar `analise_woz_detratores.py`, confirmar que o banco está acessível antes — o `historico.json` só é atualizado se a persistência no banco for bem-sucedida;
+- ao executar `analise_woz_detratores.py`, confirmar que o banco está acessível antes — os comentários em `woz_comentarios` e o `historico.json` só são persistidos se o banco responder com sucesso;
+- a tabela `woz_comentarios` deve ser criada antes da primeira execução: `psql -f woz_cria_tabela.sql`;
 - o script `verifica_nps.py` é seguro para re-execução: analistas já analisados no período são detectados e pulados automaticamente (idempotência via `request_id`).

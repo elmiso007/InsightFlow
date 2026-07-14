@@ -16,24 +16,30 @@ logger = logging.getLogger('nps_monitor.atendimentos')
 
 def _dados_sensiveis(interacoes):
     """Anonimiza dados sensíveis nas conversas (e-mails, CPF, IPs, etc.)"""
+    # Remove tags HTML e formatação markdown antes de anonimizar
     interacoes = BeautifulSoup(interacoes, "html.parser").get_text()
     interacoes = re.sub(r'\*(\w+)\*', r'\1', interacoes)
+    # Dados pessoais identificáveis (PII): e-mail, CPF, CNPJ, telefone, IP
     texto_anonimizado = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', '[email]', interacoes)
     texto_anonimizado = re.sub(r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b', '[CPF]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b', '[CNPJ]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b(\(?\d{2}\)?\s?)?9?\d{4}[-.]?\d{4}\b', '[telefone]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', '[IP]', texto_anonimizado)
+    # Identidade do assistente WOZ, subdomínios de hospedagem e códigos de barras
     texto_anonimizado = re.sub(r'Olá! Sou o WOZ', '[assistente]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b[a-zA-Z]\d+-[a-zA-Z0-9]+\b', '[subdomínio]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\b\d{12,14}\b', '[codigo_de_barras]', texto_anonimizado)
+    # URLs, links e domínios de qualquer TLD
     texto_anonimizado = re.sub(r'http[s]?://\S+', '[link]', texto_anonimizado)
     texto_anonimizado = re.sub(r'(?<=//)[a-zA-Z0-9.-]+', '[dominio]', texto_anonimizado)
     texto_anonimizado = re.sub(r'\bwww\.[a-zA-Z0-9.-]+', '[dominio]', texto_anonimizado)
     texto_anonimizado = re.sub(r'<[^>]+>', '', texto_anonimizado)
     texto_anonimizado = re.sub(r'[\r\n]+', ' ', texto_anonimizado).strip()
     texto_anonimizado = re.sub(r'\b[a-zA-Z0-9.-]+(?:\.com\.br|\.gov\.br|\.org\.br|\.edu\.br|\.com|\.br|\.net|\.org|\.info|\.tech|\.xyz|\.tv|\.me|\.app)\b', '[dominio]', texto_anonimizado)
+    # Nomes de empresa e concorrentes — protege dados competitivos e contratuais
     texto_anonimizado = re.sub(r'Locaweb|LOCAWEB|locaweb', '[empresa]', texto_anonimizado)
     texto_anonimizado = re.sub(r'Octadesk|octadesk|OCTADESK|OCTA|octa|Octa|hostinger|Hostinger|HOSTINGER|Godaddy|godaddy|GODADDY|HOSTGATOR|hostgator|Hostgator|WIX|wix|Wix|Hostnet|hostnet|HOSTNET|cloudflare|Cloudflare|CLOUDFLARE|nuvemshop|NUVEMSHOP|Nuvemshop', '[concorrente]', texto_anonimizado)
+    # Credenciais de acesso mencionadas nas conversas
     texto_anonimizado = re.sub(r'(O seu usuário é: \s*)\S+', r'\1[usuário]', texto_anonimizado)
     texto_anonimizado = re.sub(r'(login\s*[:\s]?\s*)\S+', r'\1[login]', texto_anonimizado)
     texto_anonimizado = re.sub(r'(usuário\s*[:\s]?\s*)\S+', r'\1[usuario]', texto_anonimizado)
@@ -86,6 +92,7 @@ def _formatar_atendimentos_analista(analista_nome, df_mensagem):
                     if all(k in msg for k in ['sentBy', 'time', 'body']):
                         try:
                             tipo_remetente = msg.get('sentBy', {}).get('type', '')
+                            # C = Cliente (contact), A = Analista (operator/bot) — remetente compacto para a IA
                             author_formatado = "C" if tipo_remetente == 'contact' else "A"
                             conteudo_txt.append(f"{author_formatado}: {_dados_sensiveis(msg['body'])}\n")
                         except Exception as e:

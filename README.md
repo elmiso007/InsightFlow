@@ -40,7 +40,8 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 - ✅ **Configuração via .env** (seguro e flexível)
 - ✅ **Push seguro** com `.env` e saídas ignoradas no Git
 - ✅ **Salvamento em PostgreSQL** com dados estruturados
-- ✅ **Análise de Detratores WOZ** — comparativo trimestral de comentários sobre atendimento automatizado
+- ✅ **Análise de Detratores WOZ** — comparativo mensal de comentários sobre atendimento automatizado
+- ✅ **Gravação de Comentários WOZ** — cada comentário individual persistido em `lw_octadesk.woz_comentarios`
 
 ---
 
@@ -49,8 +50,8 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
 ```
 ┌─────────────────────────┐    ┌──────────────────────────────┐
 │   verifica_nps.py       │    │  analise_woz_detratores.py   │
-│   Orquestrador NPS      │    │  Comparativo trimestral WOZ  │
-│   Calcula NPS, críticos │    │  --ano --t1 --t2             │
+│   Orquestrador NPS      │    │  Comparativo mensal WOZ      │
+│   Calcula NPS, críticos │    │  --ano1 --mes1 --ano2 --mes2 │
 └───────────┬─────────────┘    └──────┬───────────────────────┘
             │                         │
     ┌───────┴────────┐                ├──────────────────────┐
@@ -73,7 +74,9 @@ Identificar analistas com NPS baixo (< 70), analisar conversas de atendimento e 
       │  PostgreSQL — lw_octadesk       │
       │  • rawdata_analise_nps_analistas│
       │  • analise_nps_analistas        │
-      │    (NPS analistas + WOZ)        │
+      │    (NPS analistas + WOZ resumo) │
+      │  • woz_comentarios              │
+      │    (comentários individuais)    │
       └─────────────────────────────────┘
 ```
 
@@ -260,20 +263,21 @@ FLUXO B — Análise de Detratores WOZ (analise_woz_detratores.py)
 ────────────────────────────────────────────────────────────────
 1. COLETA
    └─> Busca comentários NPS com termos WOZ/robô/bot via SQL ILIKE
-   └─> Filtra por trimestre (--ano, --t1, --t2)
+   └─> Filtra por mês (--ano1 --mes1 --ano2 --mes2 ou auto: últimos 2 meses)
 
 2. CLASSIFICAÇÃO
    └─> Calcula score médio (Velocidade + Solução + Relacionamento)
    └─> Classifica: Promotor (≥9) / Neutro (7-8) / Detrator (≤6)
 
 3. COMPARATIVO
-   └─> Calcula delta de volume, % detratores e tendência entre os dois trimestres
+   └─> Calcula delta de volume, % detratores e tendência entre os dois meses
 
 4. SAÍDAS
-   └─> HTML: woz_detratores/woz_detratores_{ano}_T{t1}_vs_T{t2}.html
+   └─> Banco: woz_comentarios (cada comentário individual — idempotente por protocolo+período)
+   └─> HTML: woz_detratores/woz_mensal_{data_inicio_1}_vs_{data_inicio_2}.html
    └─> JSON: woz_detratores/historico.json (acumulativo)
-   └─> Banco: analise_nps_analistas (analise_tipo='woz_detratores_trimestral')
-       — idempotente por request_id=woz_{ano}_T{t1}_vs_T{t2}
+   └─> Banco: analise_nps_analistas (analise_tipo='woz_detratores_mensal')
+       — idempotente por request_id=woz_{data_inicio_1}_vs_{data_inicio_2}
 ```
 
 ### Cálculo de NPS
@@ -302,7 +306,7 @@ Feedback Woz-Analista/
 ├── verifica_nps.py               # Script principal — análise NPS por analista
 ├── analise_ia.py                 # Integração com Gemini AI
 ├── get_atendimentos_nps.py       # Busca e anonimiza conversas
-├── analise_woz_detratores.py     # Comparativo trimestral de detratores WOZ
+├── analise_woz_detratores.py     # Comparativo mensal de detratores WOZ
 ├── teste_conexao.py              # Script de teste
 │
 ├── requirements.txt              # Dependências Python
@@ -311,6 +315,7 @@ Feedback Woz-Analista/
 ├── create_tables_nps.sql         # Criação das tabelas
 ├── create_analysis_columns.sql   # Colunas de análise estruturada
 ├── insereDadosAnaliseNPS.sql     # Processamento dos dados
+├── woz_cria_tabela.sql           # Cria lw_octadesk.woz_comentarios (execute 1x)
 │
 ├── README.md                     # Este arquivo
 ├── GUIA_INSTALACAO.md           # Guia detalhado de instalação
@@ -325,7 +330,7 @@ Feedback Woz-Analista/
 │   └── nps_verificacao.log
 │
 ├── woz_detratores/ (gerados)     # Relatórios WOZ
-│   ├── woz_detratores_2026_T1_vs_T2.html
+│   ├── woz_mensal_2026-05-01_vs_2026-06-01.html
 │   └── historico.json
 │
 └── outputs/ (gerados)            # Arquivos de saída NPS
@@ -370,9 +375,11 @@ source venv/bin/activate   # Linux/Mac
 # Análise NPS por analista
 python verifica_nps.py
 
-# Análise de detratores WOZ (comparativo trimestral)
-python analise_woz_detratores.py                        # T1 vs T2 do ano atual
-python analise_woz_detratores.py --ano 2026 --t1 2 --t2 3
+# Análise de detratores WOZ (comparativo mensal)
+python analise_woz_detratores.py                                          # auto: últimos 2 meses
+python analise_woz_detratores.py --ano1 2026 --mes1 5 --ano2 2026 --mes2 6   # Mai vs Jun/2026
+python analise_woz_detratores.py --inicio1 2026-05-01 --fim1 2026-05-31 \
+                                 --inicio2 2026-06-01 --fim2 2026-06-30      # override completo
 ```
 
 ### Execução Agendada
@@ -412,19 +419,35 @@ FROM lw_octadesk.analise_nps_analistas
 WHERE analise_tipo = 'monitoramento_nps_analistas'
   AND DATE(request_datetime) = CURRENT_DATE;
 
--- Apenas análises WOZ (comparativos trimestrais)
+-- Resumo mensal WOZ (comparativo entre dois meses)
 SELECT
     request_id,
     data_inicio,
     data_fim,
     analistas_criticos   AS tendencia,
-    total_protocolos     AS comentarios_woz_t2,
+    total_protocolos     AS comentarios_woz_mes2,
     resumo_geral,
     recomendacoes_melhoria,
     casos_criticos
 FROM lw_octadesk.analise_nps_analistas
-WHERE analise_tipo = 'woz_detratores_trimestral'
+WHERE analise_tipo = 'woz_detratores_mensal'
 ORDER BY request_datetime DESC;
+
+-- Comentários WOZ individuais
+SELECT
+    protocolo,
+    analista,
+    fila,
+    data_encerramento,
+    velocidade, solucao, relacionamento,
+    score_medio,
+    classificacao,
+    comentario,
+    data_inicio_periodo,
+    data_fim_periodo
+FROM lw_octadesk.woz_comentarios
+ORDER BY data_encerramento DESC
+LIMIT 50;
 ```
 
 ---
@@ -486,7 +509,8 @@ grep "ERROR" logs/nps_verificacao.log
 - [ ] Dashboard web para visualização
 - [ ] Notificações via Slack/Email
 - [x] Análise comparativa histórica — `analise_woz_detratores.py` + `historico.json`
-- [x] Suporte a múltiplos períodos — `--ano`, `--t1`, `--t2`
+- [x] Comparativo mensal WOZ — `--ano1 --mes1 --ano2 --mes2`
+- [x] Gravação de comentários WOZ individuais — tabela `woz_comentarios`
 - [ ] API REST para integração
 - [ ] Testes automatizados
 - [ ] Docker container
@@ -496,12 +520,12 @@ grep "ERROR" logs/nps_verificacao.log
 ## 📊 Estatísticas do Projeto
 
 - **Linguagem:** Python 3.8+
-- **Linhas de Código:** ~2.000 linhas Python + 170 SQL
+- **Linhas de Código:** ~2.200 linhas Python + 200 SQL
 - **Módulos:** 9 arquivos principais
 - **Dependências:** 10 pacotes Python
 - **Banco de Dados:** PostgreSQL (`lw_octadesk`)
 - **IA:** Google Gemini Flash
-- **Tabela unificada:** `analise_nps_analistas` (NPS analistas + WOZ, discriminado por `analise_tipo`)
+- **Tabelas:** `analise_nps_analistas` (resumo NPS + WOZ) · `woz_comentarios` (comentários individuais WOZ) · `rawdata_analise_nps_analistas` (rascunho NPS)
 
 ---
 
@@ -541,5 +565,5 @@ python verifica_nps.py   # Executa análise
 
 ---
 
-*Última atualização: Julho 2026 | Versão 2.4 — 9 correções de integridade e segurança (analise_tipo, import bomb, race condition, token counts, lru_cache, SQL duplicado, falsos positivos WOZ, JSON/DB sync)*
+*Última atualização: Julho 2026 | Versão 2.5 — análise WOZ convertida para comparativo mensal; nova tabela `woz_comentarios` para comentários individuais; CLI WOZ atualizado para `--ano1 --mes1 --ano2 --mes2`*
 

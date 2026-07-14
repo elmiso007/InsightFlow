@@ -1,17 +1,20 @@
 """
-Análise de Detratores WOZ — Comparativo Trimestral (Locaweb)
-=============================================================
+Análise de Detratores WOZ — Comparativo Mensal (Locaweb)
+=========================================================
 
 Identifica comentários NPS que mencionam atendimento automatizado/robótico
-(Woz, robô, bot, automático, etc.) e compara entre trimestres.
+(Woz, robô, bot, automático, etc.) e compara entre dois meses.
+Os comentários individuais são gravados na tabela lw_octadesk.woz_comentarios.
 
 Uso:
-    python analise_woz_detratores.py                        # T1 vs T2 do ano atual
-    python analise_woz_detratores.py --ano 2026 --t1 1 --t2 2
-    python analise_woz_detratores.py --ano 2026 --t1 2 --t2 3
+    python analise_woz_detratores.py                                          # auto: últimos 2 meses completos
+    python analise_woz_detratores.py --ano1 2026 --mes1 5 --ano2 2026 --mes2 6  # Mai/2026 vs Jun/2026
+    python analise_woz_detratores.py --inicio1 2026-05-01 --fim1 2026-05-31 \\
+                                     --inicio2 2026-06-01 --fim2 2026-06-30
 """
 
 import argparse
+import calendar
 import json
 import logging
 import re
@@ -57,11 +60,11 @@ TERMOS_WOZ = [
     r'\bIA\b',
 ]
 
-# Padrão compilado para uso em Python (filtragem de linhas)
 _REGEX_WOZ = re.compile('|'.join(TERMOS_WOZ), re.IGNORECASE)
 
-# Padrão SQL: constrói cláusula ILIKE
+
 def _sql_ilike_woz():
+    """Gera cláusulas ILIKE para o WHERE SQL — executado no banco para melhor desempenho."""
     termos_simples = [
         'rob_', 'robo', 'robô', 'robotizado', 'automatico', 'automático',
         'automatizada', 'automatizado', 'automatização', 'automatizacao',
@@ -71,41 +74,52 @@ def _sql_ilike_woz():
         'nao foi humano', 'não foi humano',
         'inteligencia artificial', 'inteligência artificial',
     ]
-    clauses = ' OR\n          '.join(
+    return ' OR\n          '.join(
         f'"Comentários" ILIKE \'%{t}%\'' for t in termos_simples
     )
-    return clauses
 
 
 # ---------------------------------------------------------------------------
-# Utilitários de data/trimestre
+# Utilitários de data/quinzena
 # ---------------------------------------------------------------------------
 
-def periodo_trimestre(ano: int, trimestre: int):
-    """Retorna (data_inicio str, data_fim str) de um trimestre."""
-    mes_inicio = (trimestre - 1) * 3 + 1
-    mes_fim = mes_inicio + 2
-    data_inicio = datetime(ano, mes_inicio, 1)
-    if mes_fim == 12:
-        data_fim = datetime(ano, 12, 31)
-    else:
-        data_fim = datetime(ano, mes_fim + 1, 1) - timedelta(days=1)
+def periodo_mes(ano: int, mes: int):
+    """Retorna (data_inicio str, data_fim str) do mês completo."""
+    data_inicio = datetime(ano, mes, 1)
+    ultimo_dia = calendar.monthrange(ano, mes)[1]
+    data_fim = datetime(ano, mes, ultimo_dia)
     return data_inicio.strftime('%Y-%m-%d'), data_fim.strftime('%Y-%m-%d')
 
 
-def nome_trimestre(ano: int, trimestre: int) -> str:
-    meses = {1: 'Jan–Mar', 2: 'Abr–Jun', 3: 'Jul–Set', 4: 'Out–Dez'}
-    return f"T{trimestre}/{ano} ({meses[trimestre]})"
+def nome_mes(ano: int, mes: int) -> str:
+    meses = {1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+             7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'}
+    return f"{meses.get(mes, str(mes))}/{ano}"
+
+
+def _auto_meses():
+    """Retorna os dois últimos meses completos como ((ano1, mes1), (ano2, mes2)).
+    Exemplo: se hoje é julho/2026 → retorna (maio/2026, junho/2026).
+    """
+    hoje = datetime.now()
+    if hoje.month == 1:
+        ano2, mes2 = hoje.year - 1, 12
+    else:
+        ano2, mes2 = hoje.year, hoje.month - 1
+    if mes2 == 1:
+        ano1, mes1 = ano2 - 1, 12
+    else:
+        ano1, mes1 = ano2, mes2 - 1
+    return (ano1, mes1), (ano2, mes2)
 
 
 # ---------------------------------------------------------------------------
 # Busca de dados
 # ---------------------------------------------------------------------------
 
-def buscar_comentarios_woz(ano: int, trimestre: int) -> pd.DataFrame:
-    """Retorna DataFrame com comentários que mencionam atendimento automatizado."""
+def buscar_comentarios_woz_periodo(data_inicio: str, data_fim: str) -> pd.DataFrame:
+    """Busca comentários WOZ para qualquer período arbitrário (base de todas as buscas)."""
     schema = config.DB_SCHEMA
-    data_inicio, data_fim = periodo_trimestre(ano, trimestre)
     ilike_clauses = _sql_ilike_woz()
 
     query = f"""
@@ -132,10 +146,10 @@ def buscar_comentarios_woz(ano: int, trimestre: int) -> pd.DataFrame:
     try:
         conn = get_psycopg2_connection()
         df = pd.read_sql(query, conn, params=(data_inicio, f'{data_fim} 23:59:59'))
-        logger.info(f"T{trimestre}/{ano}: {len(df)} comentários WOZ encontrados ({data_inicio} → {data_fim})")
+        logger.info(f"WOZ ({data_inicio} → {data_fim}): {len(df)} comentários encontrados")
         return df
     except Exception as e:
-        logger.error(f"Erro ao buscar comentários WOZ T{trimestre}/{ano}: {e}")
+        logger.error(f"Erro ao buscar comentários WOZ ({data_inicio} → {data_fim}): {e}")
         return pd.DataFrame()
     finally:
         if conn:
@@ -143,6 +157,12 @@ def buscar_comentarios_woz(ano: int, trimestre: int) -> pd.DataFrame:
                 conn.close()
             except Exception:
                 pass
+
+
+def buscar_comentarios_woz_mes(ano: int, mes: int) -> pd.DataFrame:
+    """Busca comentários WOZ de um mês completo."""
+    data_inicio, data_fim = periodo_mes(ano, mes)
+    return buscar_comentarios_woz_periodo(data_inicio, data_fim)
 
 
 def classificar_nps(nota):
@@ -164,7 +184,6 @@ def enriquecer_df(df: pd.DataFrame) -> pd.DataFrame:
         return df
     for col in ('Velocidade', 'Solução', 'Relacionamento'):
         df[col] = pd.to_numeric(df[col], errors='coerce')
-
     df['score_medio'] = df[['Velocidade', 'Solução', 'Relacionamento']].mean(axis=1)
     df['classificacao'] = df['score_medio'].apply(classificar_nps)
     return df
@@ -174,18 +193,13 @@ def enriquecer_df(df: pd.DataFrame) -> pd.DataFrame:
 # Análise comparativa
 # ---------------------------------------------------------------------------
 
-def resumo_trimestre(df: pd.DataFrame, ano: int, trimestre: int) -> dict:
-    """Gera resumo estatístico de um trimestre."""
+def resumo_quinzena(df: pd.DataFrame, label: str) -> dict:
+    """Gera resumo estatístico de uma quinzena."""
     if df.empty:
         return {
-            'label': nome_trimestre(ano, trimestre),
-            'total': 0,
-            'detratores': 0,
-            'neutros': 0,
-            'promotores': 0,
-            'pct_detratores': 0.0,
-            'score_medio': None,
-            'top_comentarios': [],
+            'label': label,
+            'total': 0, 'detratores': 0, 'neutros': 0, 'promotores': 0,
+            'pct_detratores': 0.0, 'score_medio': None, 'top_comentarios': [],
         }
 
     contagens = df['classificacao'].value_counts()
@@ -201,7 +215,7 @@ def resumo_trimestre(df: pd.DataFrame, ano: int, trimestre: int) -> dict:
     )
 
     return {
-        'label': nome_trimestre(ano, trimestre),
+        'label': label,
         'total': total,
         'detratores': detratores,
         'neutros': neutros,
@@ -213,15 +227,13 @@ def resumo_trimestre(df: pd.DataFrame, ano: int, trimestre: int) -> dict:
 
 
 def calcular_variacao(r1: dict, r2: dict) -> dict:
-    """Calcula a variação absoluta e percentual entre dois resumos."""
+    """Calcula a variação absoluta e percentual entre duas quinzenas."""
     delta_total = r2['total'] - r1['total']
     delta_pct = round(r2['pct_detratores'] - r1['pct_detratores'], 1)
 
-    if r1['total']:
-        variacao_relativa = round((r2['total'] - r1['total']) / r1['total'] * 100, 1)
-    else:
-        variacao_relativa = None
-
+    variacao_relativa = (
+        round((r2['total'] - r1['total']) / r1['total'] * 100, 1) if r1['total'] else None
+    )
     tendencia = 'piora' if delta_total > 0 else ('melhora' if delta_total < 0 else 'estável')
 
     return {
@@ -236,16 +248,18 @@ def calcular_variacao(r1: dict, r2: dict) -> dict:
 # Geração de HTML
 # ---------------------------------------------------------------------------
 
-def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -> str:
+def gerar_html(r1: dict, r2: dict, variacao: dict,
+               data_inicio_1: str, data_fim_1: str,
+               data_inicio_2: str, data_fim_2: str) -> str:
     tendencia_cor = {'piora': '#e74c3c', 'melhora': '#27ae60', 'estável': '#f39c12'}
     cor = tendencia_cor.get(variacao['tendencia'], '#888')
     seta = {'piora': '▲', 'melhora': '▼', 'estável': '—'}[variacao['tendencia']]
 
-    def card_trimestre(r: dict) -> str:
+    def card_quinzena(r: dict) -> str:
         rows = ''.join(
             f"""<tr>
-                  <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:.82em;color:#555">{c.get('Protocolo','—')}</td>
-                  <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:.82em">{str(c.get('Comentários',''))[:180]}</td>
+                  <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:.82em;color:#555">{c.get('Protocolo', '—')}</td>
+                  <td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:.82em">{str(c.get('Comentários', ''))[:180]}</td>
                   <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-size:.82em">{round(c.get('score_medio', 0), 1)}</td>
                 </tr>"""
             for c in r['top_comentarios']
@@ -298,7 +312,7 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
         <div style="font-size:.9em;color:#555;margin-top:4px">Variação % detratores: <strong style="color:{cor}">{'+' if variacao['delta_pct_detratores'] >= 0 else ''}{variacao['delta_pct_detratores']}pp</strong></div>
       </div>
       <div style="font-size:.82em;color:#888;border-left:2px solid #eee;padding-left:20px">
-        Um aumento no volume de comentários WOZ entre trimestres indica crescimento<br>
+        Um aumento no volume de comentários WOZ entre quinzenas indica crescimento<br>
         da percepção de atendimento não-humano — sinal direto de deterioração da experiência.
       </div>
     </div>"""
@@ -308,7 +322,7 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Detratores WOZ — Comparativo Trimestral</title>
+  <title>Detratores WOZ — Comparativo Mensal</title>
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 24px; color: #333; }}
@@ -322,7 +336,7 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
 </head>
 <body>
   <div class="container">
-    <h1>Detratores WOZ — Comparativo Trimestral (Locaweb)</h1>
+    <h1>Detratores WOZ — Comparativo Mensal (Locaweb)</h1>
     <p class="subtitle">
       Comentários NPS contendo termos de atendimento automatizado (robô, woz, bot, automático…) &nbsp;|&nbsp;
       Gerado em {datetime.now().strftime('%d/%m/%Y %H:%M')}
@@ -331,8 +345,8 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
     {variacao_bloco}
 
     <div class="cards">
-      {card_trimestre(r1)}
-      {card_trimestre(r2)}
+      {card_quinzena(r1)}
+      {card_quinzena(r2)}
     </div>
 
     <div style="margin-top:32px;background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:.82em;color:#666;line-height:1.7">
@@ -340,6 +354,8 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
       que contenham pelo menos um dos termos: robô, robotizado, automático, automatizado, automatização,
       woz, bot, chatbot, máquina, atendimento virtual, "não é humano", "sem humano", inteligência artificial.
       Detratores = score médio (Velocidade + Solução + Relacionamento) ≤ 6.
+      <br><strong>Períodos:</strong>
+      {r1['label']} ({data_inicio_1} a {data_fim_1}) vs {r2['label']} ({data_inicio_2} a {data_fim_2}).
     </div>
   </div>
 </body>
@@ -347,16 +363,95 @@ def gerar_html(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int) -
 
 
 # ---------------------------------------------------------------------------
+# Persistência de comentários individuais (woz_comentarios)
+# ---------------------------------------------------------------------------
+
+def salvar_comentarios_woz(df: pd.DataFrame, data_inicio: str, data_fim: str) -> int:
+    """Insere os comentários WOZ na tabela woz_comentarios.
+    Idempotente: ON CONFLICT (protocolo, data_inicio_periodo, data_fim_periodo) DO NOTHING.
+
+    Returns:
+        int: número de linhas efetivamente inseridas.
+    """
+    if df.empty:
+        logger.info(f"WOZ: DataFrame vazio — nenhum comentário para salvar ({data_inicio} → {data_fim})")
+        return 0
+
+    schema = config.DB_SCHEMA
+    sql = f"""
+        INSERT INTO {schema}.woz_comentarios
+            (protocolo, analista, fila, data_encerramento,
+             velocidade, solucao, relacionamento, score_medio, classificacao,
+             comentario, data_inicio_periodo, data_fim_periodo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (protocolo, data_inicio_periodo, data_fim_periodo) DO NOTHING;
+    """
+
+    def _val(v):
+        """Converte NaN/NaT para None (NULL no banco)."""
+        import math
+        if v is None:
+            return None
+        try:
+            if math.isnan(float(v)):
+                return None
+        except (TypeError, ValueError):
+            pass
+        return v
+
+    registros = [
+        (
+            row.get('Protocolo'),
+            row.get('Analista'),
+            row.get('Fila'),
+            row.get('Data Encerramento') if pd.notna(row.get('Data Encerramento')) else None,
+            _val(row.get('Velocidade')),
+            _val(row.get('Solução')),
+            _val(row.get('Relacionamento')),
+            _val(row.get('score_medio')),
+            row.get('classificacao'),
+            row.get('Comentários'),
+            data_inicio,
+            data_fim,
+        )
+        for _, row in df.iterrows()
+    ]
+
+    conn = None
+    try:
+        conn = get_psycopg2_connection()
+        with conn.cursor() as cur:
+            cur.executemany(sql, registros)
+            inseridos = cur.rowcount
+        conn.commit()
+        logger.info(f"WOZ: {inseridos}/{len(registros)} comentários salvos em {schema}.woz_comentarios ({data_inicio} → {data_fim})")
+        return inseridos
+    except Exception as e:
+        logger.error(f"Erro ao salvar comentários WOZ no banco: {e}")
+        if conn:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return 0
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+# ---------------------------------------------------------------------------
 # Persistência no banco (analise_nps_analistas)
 # ---------------------------------------------------------------------------
 
-def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int):
+def salvar_no_banco(r1: dict, r2: dict, variacao: dict,
+                    data_inicio_1: str, data_fim_1: str,
+                    data_inicio_2: str, data_fim_2: str):
     """Insere os resultados WOZ na tabela analise_nps_analistas. Idempotente por request_id."""
     schema = config.DB_SCHEMA
-    request_id = f'woz_{ano}_T{t1}_vs_T{t2}'
-
-    data_inicio, _ = periodo_trimestre(ano, t1)
-    _, data_fim = periodo_trimestre(ano, t2)
+    request_id = f'woz_{data_inicio_1}_vs_{data_inicio_2}'
 
     tendencia_txt = (
         f"{variacao['tendencia'].upper()}: {r1['label']} → {r2['label']} | "
@@ -365,15 +460,15 @@ def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: i
     )
 
     resumo_geral = (
-        f"Comparativo de comentários WOZ entre {r1['label']} e {r2['label']}.\n"
+        f"Comparativo quinzenal de comentários WOZ: {r1['label']} vs {r2['label']}.\n"
         f"{r1['label']}: {r1['total']} comentários, {r1['pct_detratores']}% detratores, score médio {r1['score_medio']}.\n"
         f"{r2['label']}: {r2['total']} comentários, {r2['pct_detratores']}% detratores, score médio {r2['score_medio']}.\n"
         f"Tendência: {variacao['tendencia'].upper()}."
     )
 
     problemas_nps = json.dumps({
-        'trimestre_1': {k: v for k, v in r1.items() if k != 'top_comentarios'},
-        'trimestre_2': {k: v for k, v in r2.items() if k != 'top_comentarios'},
+        'quinzena_1': {k: v for k, v in r1.items() if k != 'top_comentarios'},
+        'quinzena_2': {k: v for k, v in r2.items() if k != 'top_comentarios'},
     }, ensure_ascii=False, indent=2)
 
     recomendacoes = (
@@ -381,19 +476,19 @@ def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: i
         f"Variação relativa: {('+' if (variacao['variacao_relativa_pct'] or 0) >= 0 else '')}"
         f"{variacao['variacao_relativa_pct']}%.\n"
         f"Variação percentual de detratores: {variacao['delta_pct_detratores']:+.1f}pp.\n"
-        f"Recomendação: {'Investigar causa do aumento de menções ao WOZ e avaliar ajustes no fluxo automatizado.' if variacao['tendencia'] == 'piora' else 'Manter monitoramento trimestral para confirmar tendência de melhora.' if variacao['tendencia'] == 'melhora' else 'Volume estável — continuar monitoramento.'}"
+        f"Recomendação: "
+        + ('Investigar causa do aumento de menções ao WOZ e avaliar ajustes no fluxo automatizado.'
+           if variacao['tendencia'] == 'piora'
+           else 'Manter monitoramento quinzenal para confirmar tendência de melhora.'
+           if variacao['tendencia'] == 'melhora'
+           else 'Volume estável — continuar monitoramento.')
     )
 
-    casos_criticos = json.dumps(
-        r2['top_comentarios'],
-        ensure_ascii=False, indent=2, default=str
-    )
-
+    casos_criticos = json.dumps(r2['top_comentarios'], ensure_ascii=False, indent=2, default=str)
     resposta_completa = json.dumps(
-        {'trimestre_1': r1, 'trimestre_2': r2, 'variacao': variacao},
+        {'quinzena_1': r1, 'quinzena_2': r2, 'variacao': variacao},
         ensure_ascii=False, indent=2, default=str
     )
-
     protocolos_top = json.dumps(
         [c.get('Protocolo') for c in r2['top_comentarios'] if c.get('Protocolo')],
         ensure_ascii=False
@@ -423,9 +518,9 @@ def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: i
     """
 
     params = (
-        datetime.now(), data_inicio, data_fim,
+        datetime.now(), data_inicio_1, data_fim_2,
         tendencia_txt, protocolos_top, r2['total'],
-        'woz_detratores_trimestral', 'WOZ/Chatbot',
+        'woz_detratores_mensal', 'WOZ/Chatbot',
         request_id, resposta_completa,
         resumo_geral, problemas_nps,
         recomendacoes, casos_criticos,
@@ -441,9 +536,9 @@ def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: i
             inserted = cur.rowcount
         conn.commit()
         if inserted:
-            logger.info(f"Resultado WOZ salvo no banco: {schema}.analise_nps_analistas (request_id={request_id})")
+            logger.info(f"Resultado WOZ salvo no banco (request_id={request_id})")
         else:
-            logger.info(f"Registro já existe no banco para request_id={request_id} — ignorado.")
+            logger.info(f"Já existe registro para request_id={request_id} — ignorado.")
         return True
     except Exception as e:
         logger.error(f"Erro ao salvar resultado WOZ no banco: {e}")
@@ -465,7 +560,8 @@ def salvar_no_banco(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: i
 # Persistência de histórico
 # ---------------------------------------------------------------------------
 
-def salvar_historico(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: int):
+def salvar_historico(r1: dict, r2: dict, variacao: dict,
+                     data_inicio_1: str, data_inicio_2: str):
     """Salva o resultado em JSON para acompanhamento histórico."""
     historico_path = OUTPUT_DIR / 'historico.json'
     historico = []
@@ -475,18 +571,16 @@ def salvar_historico(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: 
         except Exception:
             historico = []
 
+    chave_comparacao = f'{data_inicio_1} vs {data_inicio_2}'
     entrada = {
         'gerado_em': datetime.now().isoformat(),
-        'ano': ano,
-        'comparacao': f'T{t1} vs T{t2}',
-        'trimestre_1': r1,
-        'trimestre_2': r2,
+        'comparacao': chave_comparacao,
+        'quinzena_1': r1,
+        'quinzena_2': r2,
         'variacao': variacao,
     }
-    # Remove entrada anterior com o mesmo ano+comparação para não duplicar
-    historico = [h for h in historico if not (h.get('ano') == ano and h.get('comparacao') == entrada['comparacao'])]
+    historico = [h for h in historico if h.get('comparacao') != chave_comparacao]
     historico.append(entrada)
-
     historico_path.write_text(json.dumps(historico, ensure_ascii=False, indent=2), encoding='utf-8')
     logger.info(f"Histórico atualizado: {historico_path}")
 
@@ -496,46 +590,73 @@ def salvar_historico(r1: dict, r2: dict, variacao: dict, ano: int, t1: int, t2: 
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description='Análise de detratores WOZ — comparativo trimestral Locaweb')
-    parser.add_argument('--ano', type=int, default=datetime.now().year, help='Ano base (padrão: ano atual)')
-    parser.add_argument('--t1', type=int, default=1, choices=[1, 2, 3, 4], help='Primeiro trimestre (padrão: 1)')
-    parser.add_argument('--t2', type=int, default=2, choices=[1, 2, 3, 4], help='Segundo trimestre (padrão: 2)')
+    parser = argparse.ArgumentParser(description='Análise de detratores WOZ — comparativo mensal Locaweb')
+    parser.add_argument('--ano1',    type=int, default=None, help='Ano do 1º mês (mais antigo). Ex: 2026')
+    parser.add_argument('--mes1',    type=int, default=None, choices=range(1, 13), metavar='MES1',
+                        help='1º mês a comparar (1–12).')
+    parser.add_argument('--ano2',    type=int, default=None, help='Ano do 2º mês (mais recente). Ex: 2026')
+    parser.add_argument('--mes2',    type=int, default=None, choices=range(1, 13), metavar='MES2',
+                        help='2º mês a comparar (1–12).')
+    parser.add_argument('--inicio1', default=None, help='Início do 1º período (override completo). Ex: 2026-05-01')
+    parser.add_argument('--fim1',    default=None, help='Fim do 1º período. Ex: 2026-05-31')
+    parser.add_argument('--inicio2', default=None, help='Início do 2º período. Ex: 2026-06-01')
+    parser.add_argument('--fim2',    default=None, help='Fim do 2º período. Ex: 2026-06-30')
     args = parser.parse_args()
 
-    ano, t1, t2 = args.ano, args.t1, args.t2
+    # Resolução dos períodos — 3 modos em ordem de prioridade
+    if args.inicio1 and args.fim1 and args.inicio2 and args.fim2:
+        # Modo manual completo: datas explícitas
+        data_inicio_1, data_fim_1 = args.inicio1, args.fim1
+        data_inicio_2, data_fim_2 = args.inicio2, args.fim2
+        label1 = f"{data_inicio_1} → {data_fim_1}"
+        label2 = f"{data_inicio_2} → {data_fim_2}"
 
-    if t1 == t2:
-        logger.error('--t1 e --t2 devem ser trimestres diferentes.')
-        sys.exit(1)
+    elif args.ano1 and args.mes1 and args.ano2 and args.mes2:
+        # Modo mês explícito: dois meses informados
+        data_inicio_1, data_fim_1 = periodo_mes(args.ano1, args.mes1)
+        data_inicio_2, data_fim_2 = periodo_mes(args.ano2, args.mes2)
+        label1 = nome_mes(args.ano1, args.mes1)
+        label2 = nome_mes(args.ano2, args.mes2)
 
-    logger.info(f'=== Análise WOZ Detratores: {nome_trimestre(ano, t1)} vs {nome_trimestre(ano, t2)} ===')
+    else:
+        # Auto: últimos dois meses completos
+        (ano1, mes1), (ano2, mes2) = _auto_meses()
+        data_inicio_1, data_fim_1 = periodo_mes(ano1, mes1)
+        data_inicio_2, data_fim_2 = periodo_mes(ano2, mes2)
+        label1 = nome_mes(ano1, mes1)
+        label2 = nome_mes(ano2, mes2)
 
-    df1 = enriquecer_df(buscar_comentarios_woz(ano, t1))
-    df2 = enriquecer_df(buscar_comentarios_woz(ano, t2))
+    logger.info(f'=== Análise WOZ Mensal: {label1} vs {label2} ===')
 
-    r1 = resumo_trimestre(df1, ano, t1)
-    r2 = resumo_trimestre(df2, ano, t2)
+    df1 = enriquecer_df(buscar_comentarios_woz_periodo(data_inicio_1, data_fim_1))
+    df2 = enriquecer_df(buscar_comentarios_woz_periodo(data_inicio_2, data_fim_2))
+
+    r1 = resumo_quinzena(df1, label1)
+    r2 = resumo_quinzena(df2, label2)
     variacao = calcular_variacao(r1, r2)
 
-    logger.info(f'{r1["label"]}: {r1["total"]} comentários WOZ ({r1["pct_detratores"]}% detratores)')
-    logger.info(f'{r2["label"]}: {r2["total"]} comentários WOZ ({r2["pct_detratores"]}% detratores)')
+    logger.info(f'{label1}: {r1["total"]} comentários WOZ ({r1["pct_detratores"]}% detratores)')
+    logger.info(f'{label2}: {r2["total"]} comentários WOZ ({r2["pct_detratores"]}% detratores)')
     logger.info(f'Tendência: {variacao["tendencia"].upper()} | Δ volume: {variacao["delta_total"]:+d} | Δ %detratores: {variacao["delta_pct_detratores"]:+.1f}pp')
 
-    html = gerar_html(r1, r2, variacao, ano, t1, t2)
-    nome_arquivo = f'woz_detratores_{ano}_T{t1}_vs_T{t2}.html'
+    html = gerar_html(r1, r2, variacao, data_inicio_1, data_fim_1, data_inicio_2, data_fim_2)
+    nome_arquivo = f'woz_mensal_{data_inicio_1}_vs_{data_inicio_2}.html'
     saida = OUTPUT_DIR / nome_arquivo
     saida.write_text(html, encoding='utf-8')
     logger.info(f'Relatório salvo: {saida}')
 
-    banco_ok = salvar_no_banco(r1, r2, variacao, ano, t1, t2)
+    salvar_comentarios_woz(df1, data_inicio_1, data_fim_1)
+    salvar_comentarios_woz(df2, data_inicio_2, data_fim_2)
+
+    banco_ok = salvar_no_banco(r1, r2, variacao, data_inicio_1, data_fim_1, data_inicio_2, data_fim_2)
     if banco_ok:
-        salvar_historico(r1, r2, variacao, ano, t1, t2)
+        salvar_historico(r1, r2, variacao, data_inicio_1, data_inicio_2)
     else:
         logger.warning("Histórico JSON não atualizado pois o banco falhou — evitando divergência.")
 
-    print(f'\nComparativo {nome_trimestre(ano, t1)} vs {nome_trimestre(ano, t2)}')
-    print(f'  {r1["label"]}: {r1["total"]} comentários WOZ | {r1["pct_detratores"]}% detratores')
-    print(f'  {r2["label"]}: {r2["total"]} comentários WOZ | {r2["pct_detratores"]}% detratores')
+    print(f'\nComparativo mensal WOZ')
+    print(f'  {label1}: {r1["total"]} comentários | {r1["pct_detratores"]}% detratores')
+    print(f'  {label2}: {r2["total"]} comentários | {r2["pct_detratores"]}% detratores')
     print(f'  Tendência: {variacao["tendencia"].upper()} ({variacao["delta_total"]:+d} comentários, {variacao["delta_pct_detratores"]:+.1f}pp detratores)')
     print(f'\n  Relatório: {saida}')
 

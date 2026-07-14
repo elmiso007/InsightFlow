@@ -76,26 +76,60 @@ Script independente para análise estatística de comentários sobre atendimento
 Não usa IA — opera exclusivamente sobre os dados do banco.
 
 Fluxo:
-1. recebe `--ano`, `--t1`, `--t2` via argparse;
+1. recebe `--ano1 --mes1 --ano2 --mes2` via argparse (ou auto: últimos 2 meses completos);
 2. busca comentários NPS com termos WOZ via SQL ILIKE (woz, robô, chatbot, automático, virtual, etc.);
 3. classifica cada comentário: Promotor (≥9) / Neutro (7-8) / Detrator (≤6);
-4. calcula métricas por trimestre e variação entre T1 e T2;
-5. gera relatório HTML em `woz_detratores/`;
-6. persiste em `analise_nps_analistas` com `analise_tipo = 'woz_detratores_trimestral'` — idempotente por `request_id = woz_{ano}_T{t1}_vs_T{t2}`;
-7. atualiza `woz_detratores/historico.json` somente se o banco persistiu com sucesso.
+4. calcula métricas por mês e variação entre os dois períodos;
+5. persiste comentários individuais em `woz_comentarios` via `salvar_comentarios_woz()` — idempotente por `(protocolo, data_inicio_periodo, data_fim_periodo)`;
+6. gera relatório HTML em `woz_detratores/woz_mensal_{data_inicio_1}_vs_{data_inicio_2}.html`;
+7. persiste resumo em `analise_nps_analistas` com `analise_tipo = 'woz_detratores_mensal'` — idempotente por `request_id = woz_{data_inicio_1}_vs_{data_inicio_2}`;
+8. atualiza `woz_detratores/historico.json` somente se o banco persistiu com sucesso.
 
-## 3. Tabela unificada e discriminador `analise_tipo`
+Funções principais:
+- `periodo_mes(ano, mes)` — retorna (data_inicio, data_fim) do mês completo;
+- `nome_mes(ano, mes)` — rótulo legível (ex: `Jun/2026`);
+- `_auto_meses()` — detecta os dois últimos meses completos automaticamente;
+- `buscar_comentarios_woz_periodo(data_inicio, data_fim)` — base para qualquer período;
+- `buscar_comentarios_woz_mes(ano, mes)` — wrapper de conveniência;
+- `enriquecer_df(df)` — adiciona `score_medio` e `classificacao`;
+- `resumo_quinzena(df, label)` — gera métricas resumidas de um período (nome mantido por compatibilidade);
+- `salvar_comentarios_woz(df, data_inicio, data_fim)` — grava comentários individuais em `woz_comentarios`.
 
-Todos os resultados de análise vivem em uma única tabela: `lw_octadesk.analise_nps_analistas`.
-O campo `analise_tipo` distingue a origem:
+## 3. Tabelas de persistência
+
+### 3.1 `analise_nps_analistas` — resultados consolidados
+
+Campo `analise_tipo` discrimina a origem:
 
 | `analise_tipo` | Script | Descrição |
 |---|---|---|
 | `monitoramento_nps_analistas` | `analise_ia.py` via `verifica_nps.py` | Análise por analista gerada pelo Gemini |
-| `woz_detratores_trimestral` | `analise_woz_detratores.py` | Comparativo trimestral WOZ (estatístico) |
+| `woz_detratores_mensal` | `analise_woz_detratores.py` | Comparativo mensal WOZ (estatístico) |
 
 O rawdata (`rawdata_analise_nps_analistas`) é usado apenas como rascunho intermediário para
 o fluxo NPS de analistas — não pelo fluxo WOZ.
+
+### 3.2 `woz_comentarios` — comentários WOZ individuais
+
+Tabela dedicada para comentários NPS que mencionam o WOZ/bot.
+Criada via `woz_cria_tabela.sql` (executar uma única vez).
+
+Colunas principais:
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `protocolo` | TEXT | Identificador do atendimento |
+| `analista` | TEXT | Analista responsável |
+| `fila` | TEXT | Fila de atendimento |
+| `data_encerramento` | TIMESTAMP | Data do atendimento |
+| `velocidade / solucao / relacionamento` | NUMERIC | Notas NPS individuais |
+| `score_medio` | NUMERIC | Média das três notas |
+| `classificacao` | TEXT | Promotor / Neutro / Detrator / Sem nota |
+| `comentario` | TEXT | Texto completo do comentário |
+| `data_inicio_periodo` | DATE | Início do período que capturou o comentário |
+| `data_fim_periodo` | DATE | Fim do período |
+
+Chave única: `(protocolo, data_inicio_periodo, data_fim_periodo)` — garante idempotência.
 
 ## 4. Fluxo de dados
 
@@ -106,20 +140,21 @@ config.py
   ↓
 ┌───────────────────────────────┐   ┌─────────────────────────────────┐
 │  verifica_nps.py  (main())    │   │  analise_woz_detratores.py      │
-│                               │   │  python script.py --ano --t1 --t2│
+│                               │   │  --ano1 --mes1 --ano2 --mes2    │
 │  conecta_banco.py → PostgreSQL│   │  conecta_banco.py → PostgreSQL  │
 │  get_atendimentos_nps.py      │   │  SQL ILIKE termos WOZ           │
 │  analise_ia.py → Gemini       │   │  classificação + métricas       │
-│  executar_sql_pos_analise()   │   │  salvar_no_banco() → banco      │
-│  (uma vez, pós-ThreadPool)    │   │  salvar_historico() → JSON      │
-└───────────────────────────────┘   └─────────────────────────────────┘
-               ↓                                   ↓
+│  executar_sql_pos_analise()   │   │  salvar_comentarios_woz()       │
+│  (uma vez, pós-ThreadPool)    │   │  salvar_no_banco() → banco      │
+└───────────────────────────────┘   │  salvar_historico() → JSON      │
+               ↓                    └─────────────────────────────────┘
        ┌───────────────────────────────────────────────┐
        │  PostgreSQL — lw_octadesk                     │
        │  • rawdata_analise_nps_analistas (rascunho)   │
        │  • analise_nps_analistas                      │
        │    analise_tipo='monitoramento_nps_analistas' │
-       │    analise_tipo='woz_detratores_trimestral'   │
+       │    analise_tipo='woz_detratores_mensal'       │
+       │  • woz_comentarios (comentários individuais)  │
        └───────────────────────────────────────────────┘
 ```
 
