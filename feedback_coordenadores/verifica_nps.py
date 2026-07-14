@@ -16,7 +16,7 @@ from pathlib import Path
 import psycopg2
 from config import config
 from conecta_banco import *
-from analise_ia import analise_ia_nps, analise_comparativa_nps, limpar_rawdata_antigos, analise_ja_existe
+from analise_ia import analise_ia_nps, analise_comparativa_nps, limpar_rawdata_antigos, analise_ja_existe, executar_sql_pos_analise
 from get_atendimentos_nps import get_atendimentos_analista_individual, get_estatisticas_analistas
 
 sql_path = Path(__file__).parent
@@ -510,6 +510,7 @@ try:
     
     # SALVAR DADOS DA VERIFICAÇÃO
     
+    executar_sql_pos_analise(conn)
     limpar_rawdata_antigos(conn)
     logger.info("✓ Verificação de NPS concluída com sucesso!")
     
