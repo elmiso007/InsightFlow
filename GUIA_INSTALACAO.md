@@ -295,7 +295,7 @@ grep GEMINI_API_KEY .env
 ### Erro: Conexão com banco de dados
 ```bash
 # Teste a conexão manualmente
-psql -h 10.30.138.28 -U automatizacoes -d report_requesttracker
+psql -h seu_host_interno -U automatizacoes -d report_requesttracker
 
 # Verifique as credenciais no .env
 cat .env | grep DB_
