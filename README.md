@@ -1,5 +1,7 @@
 # 📊 Sistema de Análise NPS de Analistas
 
+> Nota de diferenciação: este repositório é o projeto InsightFlow / Análise de Conversas e ROBO, não o Motor Prescritivo PRB-INC. O foco aqui é NPS de analistas, conversas, WOZ e IA; o PRB-INC foca em incidentes, clusterização e recomendações operacionais.
+
 Sistema inteligente de monitoramento e análise de NPS (Net Promoter Score) para analistas de atendimento, com análise automática via Google Gemini AI. O projeto foi estruturado para apoiar a rotina de suporte e gestão de qualidade, convertendo avaliações, comentários e histórico de atendimento em relatórios acionáveis para liderança e analistas.
 
 ## 🎯 Objetivo do projeto
